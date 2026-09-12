@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Clock, Store, Shield, UserCheck, LogOut, User } from 'lucide-react';
+import { Search, Bell, Clock, Shield, UserCheck, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -18,7 +18,6 @@ export default function Header() {
     if (savedRole) setCurrentRole(savedRole);
     if (savedName) setUserName(savedName);
 
-    // Fetch auth status from API
     fetch('/api/auth/me')
       .then((res) => res.json())
       .then((data) => {
@@ -53,10 +52,8 @@ export default function Header() {
           weekday: 'short',
           day: '2-digit',
           month: 'short',
-          year: 'numeric',
           hour: '2-digit',
           minute: '2-digit',
-          second: '2-digit',
         })
       );
     };
@@ -77,28 +74,15 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="h-14 bg-[#4a4a4a] border-b border-[#6d8196]/40 px-5 flex items-center justify-between sticky top-0 z-20 shadow-sm text-white">
-      {/* Store Brand */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-white p-0.5 border border-[#cbcbcb] flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
-            <img src="/logo.jpg" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
-          </div>
-          <h2 className="text-xs font-extrabold text-white tracking-wide hidden md:block">
-            VENKATA LAKSHMI ELECTRONICS
-          </h2>
-        </div>
-        <span className="text-[11px] text-[#cbcbcb] hidden lg:inline">| SINCE 2023 | GSTIN: 36ABCDE1234F1Z5</span>
-      </div>
-
-      {/* Search Input */}
-      <div className="flex-1 max-w-md mx-6">
+    <header className="h-12 bg-[#4a4a4a] border-b border-[#6d8196]/40 px-5 flex items-center justify-between sticky top-0 z-20 shadow-sm text-white flex-shrink-0">
+      {/* Search Input - Clean & Direct */}
+      <div className="flex-1 max-w-md">
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#cbcbcb]" />
           <input
             type="text"
-            placeholder="Search product, barcode or phone..."
-            className="w-full bg-[#383838] border border-[#6d8196]/50 rounded-[5px] pl-9 pr-4 py-1 text-xs text-white placeholder-[#cbcbcb] focus:outline-none focus:border-[#ffffe3] transition-colors"
+            placeholder="Search product, barcode or customer phone..."
+            className="w-full bg-[#383838] border border-[#6d8196]/40 rounded-[5px] pl-9 pr-4 py-1 text-xs text-white placeholder-[#cbcbcb] focus:outline-none focus:border-[#ffffe3] transition-colors"
           />
         </div>
       </div>
