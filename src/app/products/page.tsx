@@ -410,7 +410,7 @@ export default function ProductsPage() {
                   className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 focus:bg-white focus:border-blue-600"
                 />
               </div>
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-[5px]">
+              <button type="submit" className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold py-2 rounded-[5px]">
                 Add Category Dynamically
               </button>
             </form>
@@ -442,7 +442,7 @@ export default function ProductsPage() {
                   className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 focus:bg-white focus:border-blue-600"
                 />
               </div>
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-[5px]">
+              <button type="submit" className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold py-2 rounded-[5px]">
                 Add Brand Dynamically
               </button>
             </form>
@@ -613,7 +613,7 @@ export default function ProductsPage() {
 
               <button
                 type="submit"
-                className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-[5px] text-xs shadow-sm"
+                className="w-full mt-3 bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold py-2 rounded-[5px] text-xs shadow-sm"
               >
                 Save Product
               </button>
@@ -693,7 +693,7 @@ export default function ProductsPage() {
 
               <button
                 type="submit"
-                className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-[5px] text-xs shadow-sm"
+                className="w-full mt-2 bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold py-2 rounded-[5px] text-xs shadow-sm"
               >
                 Update Product Stock & Price
               </button>
