@@ -8,6 +8,7 @@ import {
   ShoppingCart,
   FileText,
   Package,
+  FolderPlus,
   Layers,
   Users,
   Truck,
@@ -22,16 +23,20 @@ import {
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Smart POS Billing', href: '/billing', icon: ShoppingCart, highlight: true },
-  { name: 'Bills & Invoices History', href: '/invoices', icon: FileText },
+  { name: 'Bills & Invoices', href: '/invoices', icon: FileText },
   { name: 'Inventory & Products', href: '/products', icon: Package },
+  { name: 'Categories & Brands', href: '/categories', icon: FolderPlus },
   { name: 'Rack Locations', href: '/racks', icon: Layers },
   { name: 'Customer Udhar', href: '/customers', icon: Users },
-  { name: 'Supplier Purchases', href: '/suppliers', icon: Truck },
+  { name: 'Supplier Dues', href: '/suppliers', icon: Truck },
   { name: 'Barcode Studio', href: '/barcode', icon: Barcode },
   { name: 'WhatsApp Center', href: '/whatsapp', icon: MessageSquare },
   { name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI' },
-  { name: 'Reports & Analytics', href: '/reports', icon: BarChart3 },
+  { name: 'Reports & Analytics', href: '/reports', icon: Barchart3 },
 ];
+
+// Helper to fix typo if any
+const Barchart3 = BarChart3;
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -74,7 +79,7 @@ export default function Sidebar() {
           Store Operations
         </div>
         {navigation.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           const Icon = item.icon;
           return (
             <Link
