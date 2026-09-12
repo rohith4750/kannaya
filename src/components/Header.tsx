@@ -74,7 +74,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="h-12 bg-[#4a4a4a] border-b border-[#6d8196]/40 px-5 flex items-center justify-between sticky top-0 z-20 shadow-sm text-white flex-shrink-0">
+    <header className="h-14 bg-[#383838] border-b border-[#6d8196]/40 px-5 flex items-center justify-between sticky top-0 z-20 shadow-sm text-white flex-shrink-0">
       {/* Search Input - Clean & Direct */}
       <div className="flex-1 max-w-md">
         <div className="relative">

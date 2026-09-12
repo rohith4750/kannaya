@@ -42,8 +42,8 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-[#4a4a4a] border-r border-[#6d8196]/40 flex flex-col h-screen sticky top-0 z-30 select-none shadow-xl">
       {/* Brand Header */}
-      <div className="p-3.5 border-b border-[#6d8196]/40 flex items-center gap-3 bg-[#383838]">
-        <div className="w-10 h-10 rounded-full bg-white p-0.5 border border-[#cbcbcb] flex items-center justify-center shadow-md overflow-hidden flex-shrink-0">
+      <div className="h-14 px-3.5 border-b border-[#6d8196]/40 flex items-center gap-3 bg-[#383838] flex-shrink-0">
+        <div className="w-9 h-9 rounded-full bg-white p-0.5 border border-[#cbcbcb] flex items-center justify-center shadow-md overflow-hidden flex-shrink-0">
           <img src="/logo.jpg" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
         </div>
         <div className="min-w-0">
@@ -105,6 +105,11 @@ export default function Sidebar() {
         })}
       </nav>
 
+      {/* Matching Sidebar Bottom Bar */}
+      <div className="h-9 px-3.5 bg-[#383838] border-t border-[#6d8196]/40 flex items-center justify-between text-[10px] text-[#cbcbcb] flex-shrink-0 font-medium">
+        <span className="truncate">Venkata Lakshmi ERP</span>
+        <span className="text-[#ffffe3] font-bold">v2.0</span>
+      </div>
     </aside>
   );
 }
