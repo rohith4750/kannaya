@@ -15,6 +15,9 @@ import {
   RefreshCw,
   MessageSquare,
   Bot,
+  Calendar,
+  Filter,
+  FileText,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -25,6 +28,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import MaterialSelect from '@/components/MaterialSelect';
 
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState<any>(null);
@@ -32,10 +36,28 @@ export default function DashboardPage() {
   const [salesTrend, setSalesTrend] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Filter States
+  const [period, setPeriod] = useState<string>('this_month');
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<string>('2026');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+
   const fetchDashboard = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/dashboard');
+      const params = new URLSearchParams();
+      params.append('period', period);
+      if (selectedMonth && selectedYear) {
+        params.append('month', selectedMonth);
+        params.append('year', selectedYear);
+      }
+      if (period === 'custom' && startDate && endDate) {
+        params.append('startDate', startDate);
+        params.append('endDate', endDate);
+      }
+
+      const res = await fetch(`/api/dashboard?${params.toString()}`);
       const data = await res.json();
       if (data.metrics) {
         setMetrics(data.metrics);
@@ -51,7 +73,34 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchDashboard();
-  }, []);
+  }, [period, selectedMonth, selectedYear, startDate, endDate]);
+
+  const getPeriodLabel = () => {
+    if (selectedMonth && selectedYear) {
+      const monthNames = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+      ];
+      return `${monthNames[parseInt(selectedMonth) - 1]} ${selectedYear}`;
+    }
+    if (period === 'today') return 'Today';
+    if (period === 'this_month') return 'This Month';
+    if (period === 'last_month') return 'Last Month';
+    if (period === 'last_3_months') return 'Last 3 Months';
+    if (period === 'this_year') return 'This Year (2026)';
+    if (period === 'custom') return 'Custom Date Range';
+    return 'Filtered Period';
+  };
 
   return (
     <div className="space-y-5">
@@ -70,6 +119,7 @@ export default function DashboardPage() {
             </p>
           </div>
         </div>
+
         <div className="flex items-center gap-2.5">
           <button
             onClick={fetchDashboard}
@@ -87,37 +137,201 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* CONSOLIDATED MONTH & DATE RANGE FILTER BAR */}
+      <div className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#cbcbcb] pb-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#4a4a4a]">
+            <Calendar className="w-4 h-4 text-[#6d8196]" />
+            <span>Dashboard Metrics & Report Period:</span>
+            <span className="px-2.5 py-0.5 rounded-[5px] bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/30 font-extrabold">
+              {getPeriodLabel()}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => {
+                setPeriod('this_month');
+                setSelectedMonth('');
+              }}
+              className={`px-3 py-1 rounded-[5px] text-xs font-bold transition-all border ${
+                period === 'this_month' && !selectedMonth
+                  ? 'bg-[#6d8196] text-white border-[#6d8196] shadow-sm'
+                  : 'bg-slate-50 text-slate-700 border-[#cbcbcb] hover:bg-slate-100'
+              }`}
+            >
+              This Month
+            </button>
+            <button
+              onClick={() => {
+                setPeriod('today');
+                setSelectedMonth('');
+              }}
+              className={`px-3 py-1 rounded-[5px] text-xs font-bold transition-all border ${
+                period === 'today'
+                  ? 'bg-[#6d8196] text-white border-[#6d8196] shadow-sm'
+                  : 'bg-slate-50 text-slate-700 border-[#cbcbcb] hover:bg-slate-100'
+              }`}
+            >
+              Today
+            </button>
+            <button
+              onClick={() => {
+                setPeriod('last_month');
+                setSelectedMonth('');
+              }}
+              className={`px-3 py-1 rounded-[5px] text-xs font-bold transition-all border ${
+                period === 'last_month'
+                  ? 'bg-[#6d8196] text-white border-[#6d8196] shadow-sm'
+                  : 'bg-slate-50 text-slate-700 border-[#cbcbcb] hover:bg-slate-100'
+              }`}
+            >
+              Last Month
+            </button>
+            <button
+              onClick={() => {
+                setPeriod('last_3_months');
+                setSelectedMonth('');
+              }}
+              className={`px-3 py-1 rounded-[5px] text-xs font-bold transition-all border ${
+                period === 'last_3_months'
+                  ? 'bg-[#6d8196] text-white border-[#6d8196] shadow-sm'
+                  : 'bg-slate-50 text-slate-700 border-[#cbcbcb] hover:bg-slate-100'
+              }`}
+            >
+              Last 3 Months
+            </button>
+            <button
+              onClick={() => {
+                setPeriod('this_year');
+                setSelectedMonth('');
+              }}
+              className={`px-3 py-1 rounded-[5px] text-xs font-bold transition-all border ${
+                period === 'this_year'
+                  ? 'bg-[#6d8196] text-white border-[#6d8196] shadow-sm'
+                  : 'bg-slate-50 text-slate-700 border-[#cbcbcb] hover:bg-slate-100'
+              }`}
+            >
+              This Year (2026)
+            </button>
+            <button
+              onClick={() => setPeriod('custom')}
+              className={`px-3 py-1 rounded-[5px] text-xs font-bold transition-all border ${
+                period === 'custom'
+                  ? 'bg-[#6d8196] text-white border-[#6d8196] shadow-sm'
+                  : 'bg-slate-50 text-slate-700 border-[#cbcbcb] hover:bg-slate-100'
+              }`}
+            >
+              Custom Range
+            </button>
+          </div>
+        </div>
+
+        {/* Extended Month & Year Selector Controls */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
+          <div>
+            <MaterialSelect
+              label="Select Month Filter"
+              value={selectedMonth}
+              onChange={(val) => {
+                setSelectedMonth(val);
+                if (val) setPeriod('month_select');
+              }}
+              options={[
+                { value: '', label: '-- All Months / Quick Filter --' },
+                { value: '1', label: 'January' },
+                { value: '2', label: 'February' },
+                { value: '3', label: 'March' },
+                { value: '4', label: 'April' },
+                { value: '5', label: 'May' },
+                { value: '6', label: 'June' },
+                { value: '7', label: 'July' },
+                { value: '8', label: 'August' },
+                { value: '9', label: 'September' },
+                { value: '10', label: 'October' },
+                { value: '11', label: 'November' },
+                { value: '12', label: 'December' },
+              ]}
+            />
+          </div>
+
+          <div>
+            <MaterialSelect
+              label="Select Year"
+              value={selectedYear}
+              onChange={(val) => setSelectedYear(val)}
+              options={[
+                { value: '2026', label: 'Year 2026' },
+                { value: '2025', label: 'Year 2025' },
+              ]}
+            />
+          </div>
+
+          {period === 'custom' ? (
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-slate-600 uppercase font-bold">Start Date</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-2 py-1 text-xs text-[#4a4a4a]"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-slate-600 uppercase font-bold">End Date</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-2 py-1 text-xs text-[#4a4a4a]"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="bg-slate-50 p-2 rounded-[5px] border border-[#cbcbcb] flex items-center justify-between">
+              <span className="text-slate-500 font-medium">Billed Transactions in Period:</span>
+              <span className="font-extrabold text-[#6d8196]">{metrics?.totalInvoiceCount || 0} Invoices</span>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-        {/* Today's Sales */}
+        {/* Sales Total in Period */}
         <div className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Today's Sales</span>
+            <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">
+              {getPeriodLabel()} Sales
+            </span>
             <div className="p-1.5 rounded-[5px] bg-emerald-50 text-emerald-700">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2">
             <h3 className="text-xl font-extrabold text-[#4a4a4a]">
-              ₹{(metrics?.todaysSales || 24500).toLocaleString('en-IN')}
+              ₹{(metrics?.todaysSales || 0).toLocaleString('en-IN')}
             </h3>
-            <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
-              <span className="text-emerald-700 font-bold">+18.4%</span> vs yesterday
+            <p className="text-[10px] text-slate-500 mt-1">
+              Gross Billed Amount
             </p>
           </div>
         </div>
 
-        {/* Today's Cash Collection */}
+        {/* Cash Collection in Period */}
         <div className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Today's Collection</span>
+            <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">
+              {getPeriodLabel()} Collection
+            </span>
             <div className="p-1.5 rounded-[5px] bg-[#6d8196]/10 text-[#6d8196]">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2">
             <h3 className="text-xl font-extrabold text-[#4a4a4a]">
-              ₹{(metrics?.todaysCollection || 15000).toLocaleString('en-IN')}
+              ₹{(metrics?.todaysCollection || 0).toLocaleString('en-IN')}
             </h3>
             <p className="text-[10px] text-slate-500 mt-1">Cash + UPI Received</p>
           </div>
@@ -133,10 +347,10 @@ export default function DashboardPage() {
           </div>
           <div className="mt-2">
             <h3 className="text-xl font-extrabold text-amber-700">
-              ₹{(metrics?.customerDueTotal || 71700).toLocaleString('en-IN')}
+              ₹{(metrics?.customerDueTotal || 0).toLocaleString('en-IN')}
             </h3>
             <p className="text-[10px] text-slate-500 mt-1 flex items-center justify-between">
-              <span>Total Credit Balance</span>
+              <span>Total Dues Balance</span>
               <ArrowUpRight className="w-3 h-3 text-amber-700" />
             </p>
           </div>
@@ -145,14 +359,14 @@ export default function DashboardPage() {
         {/* Supplier Pending Due */}
         <Link href="/suppliers" className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm hover:border-[#6d8196] transition-colors block">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Supplier Due</span>
+            <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Supplier Dues</span>
             <div className="p-1.5 rounded-[5px] bg-[#6d8196]/10 text-[#6d8196]">
               <Truck className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2">
             <h3 className="text-xl font-extrabold text-[#6d8196]">
-              ₹{(metrics?.supplierDueTotal || 195000).toLocaleString('en-IN')}
+              ₹{(metrics?.supplierDueTotal || 0).toLocaleString('en-IN')}
             </h3>
             <p className="text-[10px] text-slate-500 mt-1 flex items-center justify-between">
               <span>Payables Pending</span>
@@ -171,7 +385,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-2">
             <h3 className="text-xl font-extrabold text-rose-700">
-              {metrics?.lowStockCount !== undefined ? metrics.lowStockCount : 1}
+              {metrics?.lowStockCount !== undefined ? metrics.lowStockCount : 0}
             </h3>
             <p className="text-[10px] text-slate-500 mt-1 flex items-center justify-between">
               <span>Requires Restock</span>
@@ -187,8 +401,8 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="text-sm font-bold text-[#4a4a4a]">Weekly Sales & Cash Collection</h3>
-              <p className="text-xs text-slate-500">Revenue overview over the past 7 days</p>
+              <h3 className="text-sm font-bold text-[#4a4a4a]">Sales & Collection Trend ({getPeriodLabel()})</h3>
+              <p className="text-xs text-slate-500">Filtered revenue breakdown for {getPeriodLabel()}</p>
             </div>
             <div className="flex items-center gap-4 text-xs font-semibold">
               <div className="flex items-center gap-1.5">
@@ -217,7 +431,7 @@ export default function DashboardPage() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="day" stroke="#64748b" fontSize={11} />
-                <YAxis stroke="#64748b" fontSize={11} tickFormatter={(v) => `₹${v / 1000}k`} />
+                <YAxis stroke="#64748b" fontSize={11} tickFormatter={(v) => `₹${v >= 1000 ? `${v / 1000}k` : v}`} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#4a4a4a',
@@ -248,7 +462,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <p className="text-xs text-[#4a4a4a] mt-3 italic bg-[#ffffe3] p-2.5 rounded-[5px] border border-[#cbcbcb]">
-              "Which customer owes me the most?"
+              "How much total sales in {getPeriodLabel()}?"
             </p>
             <Link
               href="/ai-assistant"
@@ -290,12 +504,12 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Bills Table */}
+      {/* Filtered Bills Table */}
       <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-base font-bold text-[#4a4a4a]">Recent Shop Bills & Transactions</h3>
-            <p className="text-xs text-slate-500">Latest completed customer invoices</p>
+            <h3 className="text-base font-bold text-[#4a4a4a]">Invoices & Transactions ({getPeriodLabel()})</h3>
+            <p className="text-xs text-slate-500">Filtered customer bills generated in {getPeriodLabel()}</p>
           </div>
           <Link href="/invoices" className="text-xs text-[#6d8196] hover:underline font-bold flex items-center gap-1">
             View All Bills <ArrowUpRight className="w-3.5 h-3.5" />
@@ -340,14 +554,14 @@ export default function DashboardPage() {
                       )}
                     </td>
                     <td className="text-slate-500">
-                      {new Date(inv.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(inv.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan={7} className="py-6 text-center text-slate-500">
-                    No recent invoices found.
+                    No invoices generated in {getPeriodLabel()}.
                   </td>
                 </tr>
               )}
