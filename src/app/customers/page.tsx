@@ -153,41 +153,44 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-4">
-      {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-[5px] border border-slate-300 shadow-sm">
-        <div>
-          <h1 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <Users className="w-5 h-5 text-[#6d8196]" /> Customer Credit Accounts & Ledger
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Track customer accounts, outstanding dues, payment histories, and WhatsApp reminders.
-          </p>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <div className="bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-[5px] text-xs">
-            <span className="text-slate-600">Total Credit Due: </span>
-            <span className="font-extrabold text-amber-700">₹{totalOutstandingAll.toLocaleString('en-IN')}</span>
+      {/* Consolidated Top Header & Filter Card */}
+      <div className="bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm overflow-hidden">
+        <div className="p-3.5 border-b border-[#cbcbcb] bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <Users className="w-5 h-5 text-[#6d8196]" />
+            <div>
+              <h1 className="text-base font-bold text-[#4a4a4a]">Customer Credit Accounts & Ledger</h1>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Track customer accounts, outstanding dues, payment histories, and WhatsApp reminders.
+              </p>
+            </div>
           </div>
-          <button
-            onClick={() => setShowAddCustomerModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3.5 py-1.5 rounded-[5px] flex items-center gap-1.5 text-xs transition-all shadow-sm"
-          >
-            <Plus className="w-3.5 h-3.5" /> Add New Customer
-          </button>
+          <div className="flex items-center gap-2.5">
+            <div className="bg-amber-50 border border-amber-200 px-3 py-1 rounded-[5px] text-xs">
+              <span className="text-slate-600 font-medium">Total Credit Due: </span>
+              <span className="font-semibold text-amber-700">₹{totalOutstandingAll.toLocaleString('en-IN')}</span>
+            </div>
+            <button
+              onClick={() => setShowAddCustomerModal(true)}
+              className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold px-3 py-1.5 rounded-[5px] flex items-center gap-1.5 text-xs transition-all shadow-sm border border-[#cbcbcb]/40"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add New Customer
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Search Bar */}
-      <div className="bg-white border border-slate-300 p-3 rounded-[5px] flex items-center gap-3 shadow-sm">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by customer name or phone number..."
-            className="w-full bg-slate-50 border border-slate-300 rounded-[5px] pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white"
-          />
+        {/* Compact Search Bar */}
+        <div className="p-2.5 bg-white">
+          <div className="relative w-full">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by customer name or phone number..."
+              className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-9 pr-3 py-1 text-xs text-[#4a4a4a] focus:outline-none focus:border-[#6d8196] focus:bg-white"
+            />
+          </div>
         </div>
       </div>
 

@@ -219,167 +219,171 @@ export default function ProductsPage() {
   });
 
   return (
-    <div className="space-y-4">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-[5px] border border-slate-300 shadow-sm">
-        <div>
-          <h1 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <Package className="w-5 h-5 text-blue-600" /> Material Inventory Catalog
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Manage stock quantities, GST rates, wholesale pricing, barcodes, and rack locations.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {userRole === 'ADMIN' && (
-            <button
-              onClick={() => {
-                setFormData({
-                  ...formData,
-                  categoryId: categories[0]?.id || '',
-                  brandId: brands[0]?.id || '',
-                  rackId: racks[0]?.id || '',
-                });
-                setShowAddModal(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3.5 py-1.5 rounded-[5px] flex items-center gap-1.5 text-xs transition-all shadow-sm"
-            >
-              <Plus className="w-3.5 h-3.5" /> Add Product
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Filter Controls Bar */}
-      <div className="bg-white border border-slate-300 p-3 rounded-[5px] flex flex-col md:flex-row gap-3 items-center justify-between shadow-sm">
-        <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter by product name, barcode, brand..."
-            className="w-full bg-slate-50 border border-slate-300 rounded-[5px] pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <MaterialSelect
-            value={selectedCategory}
-            onChange={setSelectedCategory}
-            options={[
-              { value: '', label: `All Categories (${categories.length})` },
-              ...categories.map((c) => ({ value: c.id, label: c.name })),
-            ]}
-            className="w-48"
-          />
-
-          <button
-            onClick={() => setFilterLowStock(!filterLowStock)}
-            className={`px-3 py-1.5 rounded-[5px] text-xs font-semibold flex items-center gap-1 border transition-all ${
-              filterLowStock
-                ? 'bg-rose-100 text-rose-700 border-rose-300 font-bold'
-                : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
-            }`}
-          >
-            <AlertTriangle className="w-3.5 h-3.5" /> Low Stock
-          </button>
-        </div>
-      </div>
-
-      {/* Compact Consolidated ERP Products Table */}
-      <div className="bg-white border border-slate-300 rounded-[5px] overflow-hidden shadow-sm max-h-[calc(100vh-14rem)] overflow-y-auto">
-        <table className="erp-table">
-          <thead>
-            <tr>
-              <th>Product Details & Barcode</th>
-              <th>Category / Brand</th>
-              <th>Rack Location</th>
-              <th>Stock Qty</th>
-              {userRole === 'ADMIN' && <th>Purchase Cost</th>}
-              <th>Selling Price</th>
-              <th>Wholesale Rate</th>
-              <th className="text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((p) => {
-                const isLow = p.stockQuantity <= p.minStockAlert;
-                return (
-                  <tr key={p.id}>
-                    <td>
-                      <div>
-                        <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                          <span>{p.name}</span>
-                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-[5px] bg-slate-100 text-slate-700 border border-slate-300">
-                            GST {p.gstPercent || 18}%
-                          </span>
-                        </div>
-                        <div className="text-[10px] font-mono text-slate-500 flex items-center gap-2 mt-0.5">
-                          <span className="text-blue-700 font-bold">{p.barcode}</span>
-                          {p.sku && <span className="text-slate-400">SKU: {p.sku}</span>}
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="font-semibold text-slate-800 text-xs">{p.category?.name || 'Unassigned'}</div>
-                      <div className="text-[10px] text-slate-500">{p.brand?.name || 'Generic'}</div>
-                    </td>
-                    <td>
-                      <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1">
-                        <Layers className="w-2.5 h-2.5" />
-                        {p.rack ? `${p.rack.rackName} (${p.rack.shelfCode})` : 'Unassigned'}
-                      </span>
-                    </td>
-                    <td>
-                      <span
-                        className={`font-black text-xs ${
-                          isLow ? 'text-rose-600 font-bold animate-pulse' : 'text-emerald-700'
-                        }`}
-                      >
-                        {p.stockQuantity} {p.unit}
-                      </span>
-                    </td>
-                    {userRole === 'ADMIN' && (
-                      <td className="font-mono text-slate-600 font-medium">₹{p.purchasePrice}</td>
-                    )}
-                    <td className="font-mono font-bold text-emerald-700">₹{p.sellingPrice}</td>
-                    <td className="font-mono font-semibold text-amber-700">
-                      {p.wholesalePrice ? `₹${p.wholesalePrice}` : 'N/A'}
-                    </td>
-                    <td className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => setEditProduct(p)}
-                          className="p-1 rounded-[5px] bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-700 transition-colors border border-slate-200"
-                          title="Edit Stock & Price"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        {userRole === 'ADMIN' && (
-                          <button
-                            onClick={() => handleDelete(p.id)}
-                            className="p-1 rounded-[5px] bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 transition-colors border border-slate-200"
-                            title="Delete Product"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan={8} className="py-6 text-center text-slate-500">
-                  No products found.
-                </td>
-              </tr>
+    <div className="h-full flex flex-col overflow-hidden">
+      {/* Consolidated Material Inventory Catalog Card */}
+      <div className="bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm flex flex-col h-full overflow-hidden">
+        {/* Unified Table Top Header */}
+        <div className="p-3.5 border-b border-[#cbcbcb] bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <Package className="w-5 h-5 text-[#6d8196]" />
+            <div>
+              <h1 className="text-base font-bold text-[#4a4a4a]">Material Inventory Catalog</h1>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Manage stock quantities, GST rates, wholesale pricing, barcodes, and rack locations.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {userRole === 'ADMIN' && (
+              <button
+                onClick={() => {
+                  setFormData({
+                    ...formData,
+                    categoryId: categories[0]?.id || '',
+                    brandId: brands[0]?.id || '',
+                    rackId: racks[0]?.id || '',
+                  });
+                  setShowAddModal(true);
+                }}
+                className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold px-3 py-1.5 rounded-[5px] flex items-center gap-1.5 text-xs transition-all shadow-sm border border-[#cbcbcb]/40"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Product
+              </button>
             )}
-          </tbody>
-        </table>
+          </div>
+        </div>
+
+        {/* Unified Compact Filter Toolbar */}
+        <div className="px-3.5 py-2 border-b border-[#cbcbcb] bg-white flex flex-col md:flex-row gap-2.5 items-center justify-between shrink-0">
+          <div className="relative flex-1 w-full">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Filter by product name, barcode, brand..."
+              className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-9 pr-3 py-1 text-xs text-[#4a4a4a] focus:outline-none focus:border-[#6d8196] focus:bg-white"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <MaterialSelect
+              value={selectedCategory}
+              onChange={setSelectedCategory}
+              options={[
+                { value: '', label: `All Categories (${categories.length})` },
+                ...categories.map((c) => ({ value: c.id, label: c.name })),
+              ]}
+              className="w-48"
+            />
+
+            <button
+              onClick={() => setFilterLowStock(!filterLowStock)}
+              className={`px-3 py-1 rounded-[5px] text-xs font-semibold flex items-center gap-1 border transition-all ${
+                filterLowStock
+                  ? 'bg-rose-100 text-rose-700 border-rose-300 font-bold'
+                  : 'bg-slate-50 text-[#4a4a4a] border-[#cbcbcb] hover:bg-slate-100'
+              }`}
+            >
+              <AlertTriangle className="w-3.5 h-3.5" /> Low Stock
+            </button>
+          </div>
+        </div>
+
+        {/* Integrated ERP Table */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <table className="erp-table">
+            <thead>
+              <tr>
+                <th>Product Details & Barcode</th>
+                <th>Category / Brand</th>
+                <th>Rack Location</th>
+                <th>Stock Qty</th>
+                {userRole === 'ADMIN' && <th>Purchase Cost</th>}
+                <th>Selling Price</th>
+                <th>Wholesale Rate</th>
+                <th className="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((p) => {
+                  const isLow = p.stockQuantity <= p.minStockAlert;
+                  return (
+                    <tr key={p.id}>
+                      <td>
+                        <div>
+                          <div className="font-bold text-[#4a4a4a] text-xs flex items-center gap-1.5">
+                            <span>{p.name}</span>
+                            <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-[3px] bg-slate-100 text-slate-700 border border-[#cbcbcb]">
+                              GST {p.gstPercent || 18}%
+                            </span>
+                          </div>
+                          <div className="text-[10px] font-mono text-slate-500 flex items-center gap-2 mt-0.5">
+                            <span className="text-[#6d8196] font-semibold">{p.barcode}</span>
+                            {p.sku && <span className="text-slate-400">SKU: {p.sku}</span>}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="font-semibold text-[#4a4a4a] text-xs">{p.category?.name || 'Unassigned'}</div>
+                        <div className="text-[10px] text-slate-500">{p.brand?.name || 'Generic'}</div>
+                      </td>
+                      <td>
+                        <span className="px-1.5 py-0.5 rounded-[3px] text-[10px] font-medium bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20 inline-flex items-center gap-1">
+                          <Layers className="w-2.5 h-2.5" />
+                          {p.rack ? `${p.rack.rackName} (${p.rack.shelfCode})` : 'Unassigned'}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          className={`font-semibold text-xs ${
+                            isLow ? 'text-rose-600 font-bold animate-pulse' : 'text-emerald-700'
+                          }`}
+                        >
+                          {p.stockQuantity} {p.unit}
+                        </span>
+                      </td>
+                      {userRole === 'ADMIN' && (
+                        <td className="font-mono text-slate-600 font-medium">₹{p.purchasePrice}</td>
+                      )}
+                      <td className="font-mono font-semibold text-[#4a4a4a]">₹{p.sellingPrice}</td>
+                      <td className="font-mono font-semibold text-amber-700">
+                        {p.wholesalePrice ? `₹${p.wholesalePrice}` : 'N/A'}
+                      </td>
+                      <td className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => setEditProduct(p)}
+                            className="p-1 rounded-[5px] bg-slate-100 hover:bg-amber-100 text-[#4a4a4a] hover:text-amber-700 transition-colors border border-[#cbcbcb]"
+                            title="Edit Stock & Price"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          {userRole === 'ADMIN' && (
+                            <button
+                              onClick={() => handleDelete(p.id)}
+                              className="p-1 rounded-[5px] bg-slate-100 hover:bg-rose-100 text-[#4a4a4a] hover:text-rose-700 transition-colors border border-[#cbcbcb]"
+                              title="Delete Product"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={8} className="py-6 text-center text-slate-500">
+                    No products found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* DYNAMIC CATEGORY CREATION MODAL */}
