@@ -3,24 +3,29 @@
 @tailwind utilities;
 
 :root {
-  /* User Defined Material Color Palette */
-  --primary-blue: #2563eb;       /* Primary Blue */
-  --secondary-navy: #1e293b;     /* Dark Navy */
-  --accent-amber: #f59e0b;       /* Amber Accent */
-  --bg-app: #f8fafc;             /* Light Background */
-  --text-primary: #0f172a;       /* Dark Text */
+  /* Unified Enterprise ERP Palette */
+  --color-primary: #2563eb;       /* Primary Blue */
+  --color-navy: #1e293b;          /* Dark Slate Navy (Header, Sidebar, Table Headers) */
+  --color-navy-dark: #0f172a;     /* Deep Navy Accents */
+  --color-amber: #f59e0b;         /* Amber Accent */
+  --color-emerald: #10b981;       /* Success Emerald */
+  --color-rose: #ef4444;          /* Danger Rose */
 
-  --surface-card: #ffffff;
+  --bg-app: #f8fafc;             /* Light Crisp Canvas */
+  --surface-card: #ffffff;        /* Crisp White Surface */
   --surface-card-hover: #f1f5f9;
   --border-color: #cbd5e1;
   --border-dark: #334155;
+
+  --text-primary: #0f172a;       /* High contrast dark text */
+  --text-secondary: #334155;
   --text-muted: #64748b;
-  --text-on-navy: #f8fafc;
+  --text-on-navy: #ffffff;
 
   /* Global ERP Radius & Spacing Variables */
   --radius-mat: 5px;
-  --table-py: 4px;
-  --table-px: 8px;
+  --table-py: 5px;
+  --table-px: 10px;
   --card-padding: 12px;
 }
 
@@ -41,10 +46,10 @@ body {
 
 .mat-card-hover:hover {
   background-color: var(--surface-card-hover);
-  border-color: var(--accent-blue);
+  border-color: var(--color-primary);
 }
 
-/* Compact ERP Table Styling (Compact Height & Zero Spacing Wasted) */
+/* High-Contrast Compact ERP Table Styling */
 .erp-table {
   width: 100%;
   border-collapse: collapse;
@@ -53,14 +58,14 @@ body {
 }
 
 .erp-table th {
-  background-color: var(--secondary-navy);
-  color: var(--text-on-navy);
+  background-color: #1e293b !important;
+  color: #ffffff !important;
   font-weight: 700;
   text-transform: uppercase;
   font-size: 10.5px;
   letter-spacing: 0.04em;
   padding: 6px 10px !important;
-  border-bottom: 2px solid var(--border-dark);
+  border-bottom: 2px solid #334155;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -68,11 +73,11 @@ body {
 }
 
 .erp-table td {
-  padding: 5px 10px !important; /* Extremely Compact Row Height */
+  padding: 5px 10px !important; /* Compact Row Height */
   border-bottom: 1px solid #e2e8f0;
   vertical-align: middle;
   background-color: #ffffff;
-  color: var(--text-primary);
+  color: #0f172a;
 }
 
 .erp-table tr:nth-child(even) td {
