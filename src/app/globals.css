@@ -32,10 +32,10 @@
   --card-padding: 12px;
 }
 
-body {
+body, input, select, textarea, button {
   color: var(--text-primary);
   background-color: var(--bg-app);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: var(--font-plus-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
   overflow-x: hidden;
 }
 
