@@ -89,28 +89,6 @@ export default function Header() {
 
       {/* Right Controls */}
       <div className="flex items-center gap-2.5">
-        {/* Role Switcher Toggle */}
-        <button
-          onClick={handleToggleRole}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[5px] text-[11px] font-bold border transition-all ${
-            currentRole === 'ADMIN'
-              ? 'bg-[#f59e0b]/20 text-[#f59e0b] border-[#f59e0b]/40 hover:bg-[#f59e0b]/30'
-              : 'bg-[#6d8196]/30 text-[#ffffe3] border-[#6d8196]/50 hover:bg-[#6d8196]/50'
-          }`}
-          title="Click to toggle between Owner Admin mode and Cashier Staff mode"
-        >
-          {currentRole === 'ADMIN' ? (
-            <>
-              <Shield className="w-3.5 h-3.5 text-[#f59e0b]" />
-              <span>Owner ADMIN 👑</span>
-            </>
-          ) : (
-            <>
-              <UserCheck className="w-3.5 h-3.5 text-[#ffffe3]" />
-              <span>Cashier STAFF 👤</span>
-            </>
-          )}
-        </button>
 
         {/* Live Clock */}
         <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-[#ffffe3] bg-[#383838] px-2.5 py-1 rounded-[5px] border border-[#6d8196]/40">

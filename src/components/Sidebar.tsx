@@ -105,16 +105,6 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Footer Info */}
-      <div className="p-3.5 border-t border-[#6d8196]/40 bg-[#383838] text-xs text-[#cbcbcb]">
-        <div className="flex items-center justify-between text-[11px]">
-          <span>Database:</span>
-          <span className="text-emerald-400 font-mono font-bold flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-[5px] bg-emerald-400 animate-pulse" />
-            kannaya (PostgreSQL)
-          </span>
-        </div>
-      </div>
     </aside>
   );
 }

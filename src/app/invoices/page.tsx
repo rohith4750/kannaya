@@ -261,7 +261,6 @@ export default function InvoicesPage() {
                 <h2 className="font-bold text-sm uppercase">{shopSettings?.shopName || 'VENKATA LAKSHMI ELECTRONICS'}</h2>
                 <p className="text-[10px] text-slate-700">{shopSettings?.address}</p>
                 <p className="text-[10px] text-slate-700">Ph: {shopSettings?.phone}</p>
-                <p className="text-[10px] font-bold mt-1">GSTIN: {shopSettings?.gstin}</p>
               </div>
 
               <div className="flex justify-between text-[11px] mb-2 font-bold">

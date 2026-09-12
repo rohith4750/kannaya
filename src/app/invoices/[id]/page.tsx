@@ -175,7 +175,6 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             <h2 className="font-extrabold text-base uppercase">{settings?.shopName || 'VENKATA LAKSHMI ELECTRONICS'}</h2>
             <p className="text-[10px] text-slate-600">{settings?.address}</p>
             <p className="text-[10px] text-slate-600">Ph: {settings?.phone}</p>
-            <p className="text-[10px] font-bold mt-1">GSTIN: {settings?.gstin}</p>
           </div>
 
           <div className="flex justify-between text-[11px] mb-2 font-bold">

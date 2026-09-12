@@ -457,7 +457,6 @@ export default function BillingPOSPage() {
                 <h2 className="font-bold text-sm uppercase">{receiptData.settings?.shopName || 'VENKATA LAKSHMI ELECTRONICS'}</h2>
                 <p className="text-[10px] text-slate-600">{receiptData.settings?.address}</p>
                 <p className="text-[10px] text-slate-600">Ph: {receiptData.settings?.phone}</p>
-                <p className="text-[10px] font-bold mt-1">GSTIN: {receiptData.settings?.gstin}</p>
               </div>
 
               <div className="flex justify-between text-[11px] mb-2 font-bold">
