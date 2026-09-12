@@ -20,8 +20,11 @@ import {
   ChevronUp,
   Printer,
   Package,
+  X,
+  ExternalLink,
 } from 'lucide-react';
 import MaterialSelect from '@/components/MaterialSelect';
+import InvoicePrintTemplate from '@/components/InvoicePrintTemplate';
 
 export default function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -35,6 +38,16 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const [payAmount, setPayAmount] = useState('');
   const [payMethod, setPayMethod] = useState('CASH');
   const [payNotes, setPayNotes] = useState('');
+
+  // PDF Bill Modal State
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [printerWidth, setPrinterWidth] = useState<'A4' | '80mm' | '58mm'>('A4');
+
+  const handleOpenReceipt = (inv: any) => {
+    setSelectedInvoice(inv);
+    setShowReceiptModal(true);
+  };
 
   const loadCustomerData = async () => {
     try {
@@ -334,7 +347,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
                               <div className="text-right">
                                 <div className="font-extrabold text-sm text-[#4a4a4a]">
                                   ₹{inv.totalAmount.toLocaleString('en-IN')}
@@ -349,6 +362,14 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                                   </span>
                                 )}
                               </div>
+
+                              <button
+                                onClick={() => handleOpenReceipt(inv)}
+                                className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-2.5 py-1 rounded-[5px] text-[11px] font-bold flex items-center gap-1 transition-all shadow-sm"
+                                title="View & Print PDF / Thermal Bill"
+                              >
+                                <FileText className="w-3.5 h-3.5" /> PDF Bill
+                              </button>
 
                               <button
                                 onClick={() => setExpandedInvoiceId(isExpanded ? null : inv.id)}
@@ -465,7 +486,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                       <th className="py-2.5 px-3">Paid Amount</th>
                       <th className="py-2.5 px-3">Due Amount</th>
                       <th className="py-2.5 px-3">Payment Mode</th>
-                      <th className="py-2.5 px-3 text-right">View</th>
+                      <th className="py-2.5 px-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
@@ -480,12 +501,22 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                         <td className="py-2.5 px-3 font-bold text-amber-700">₹{inv.dueAmount.toLocaleString('en-IN')}</td>
                         <td className="py-2.5 px-3">{inv.paymentMethod}</td>
                         <td className="py-2.5 px-3 text-right">
-                          <Link
-                            href={`/invoices/${inv.id}`}
-                            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-[5px] border border-[#cbcbcb] text-[11px] font-bold"
-                          >
-                            Open Bill
-                          </Link>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => handleOpenReceipt(inv)}
+                              className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-2.5 py-1 rounded-[5px] text-[11px] font-bold flex items-center gap-1 transition-all shadow-sm"
+                              title="Open & Print A4 GST PDF Invoice"
+                            >
+                              <FileText className="w-3.5 h-3.5" /> PDF Bill
+                            </button>
+                            <Link
+                              href={`/invoices/${inv.id}`}
+                              className="bg-slate-100 hover:bg-slate-200 text-slate-700 p-1.5 rounded-[5px] border border-[#cbcbcb] text-[11px] font-bold"
+                              title="Open Full Page"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -562,6 +593,62 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* PRINT / VIEW RECEIPT MODAL */}
+      {showReceiptModal && selectedInvoice && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-300 rounded-[5px] max-w-3xl w-full p-5 space-y-4 shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-[#6d8196]" /> Invoice #{selectedInvoice.invoiceNo} - {selectedInvoice.customerName || customer.name}
+              </h3>
+              <div className="flex items-center gap-2">
+                <div className="w-48">
+                  <MaterialSelect
+                    value={printerWidth}
+                    onChange={(val: any) => setPrinterWidth(val)}
+                    options={[
+                      { value: 'A4', label: 'A4 GST Tax Invoice (PDF)' },
+                      { value: '80mm', label: '80mm Thermal' },
+                      { value: '58mm', label: '58mm Thermal' },
+                    ]}
+                  />
+                </div>
+                <button onClick={() => setShowReceiptModal(false)} className="text-slate-400 hover:text-slate-700 p-1">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 bg-slate-50 p-3 rounded-[5px] border border-[#cbcbcb] overflow-y-auto min-h-0">
+              <InvoicePrintTemplate
+                invoice={{
+                  ...selectedInvoice,
+                  customerName: selectedInvoice.customerName || customer.name,
+                  customerPhone: selectedInvoice.customerPhone || customer.phone,
+                  customerAddress: selectedInvoice.customerAddress || customer.address,
+                }}
+                settings={{
+                  shopName: 'VENKATA LAKSHMI ELECTRONICS',
+                  address: 'Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001',
+                  phone: '+91 98765 43210',
+                  gstin: '36ABCDE1234F1Z5',
+                }}
+                format={printerWidth as any}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2 border-t border-slate-200">
+              <button
+                onClick={() => window.print()}
+                className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 px-4 rounded-[5px] flex items-center justify-center gap-2 text-xs transition-colors shadow-sm"
+              >
+                <Printer className="w-4 h-4" /> Print Bill
+              </button>
+            </div>
           </div>
         </div>
       )}

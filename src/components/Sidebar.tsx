@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -23,23 +23,40 @@ import {
 } from 'lucide-react';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Smart POS Billing', href: '/billing', icon: ShoppingCart, highlight: true },
-  { name: 'Bills & Invoices', href: '/invoices', icon: FileText },
-  { name: 'Inventory & Products', href: '/products', icon: Package },
-  { name: 'Categories & Brands', href: '/categories', icon: FolderPlus },
-  { name: 'Rack Locations', href: '/racks', icon: Layers },
-  { name: 'Customer Credit Accounts', href: '/customers', icon: Users },
-  { name: 'Supplier Dues', href: '/suppliers', icon: Truck },
-  { name: 'Barcode Studio', href: '/barcode', icon: Barcode },
-  { name: 'User Management', href: '/users', icon: ShieldCheck },
-  { name: 'WhatsApp Center', href: '/whatsapp', icon: MessageSquare },
-  { name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI' },
-  { name: 'Reports & Analytics', href: '/reports', icon: BarChart3 },
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['ADMIN'] },
+  { name: 'Smart POS Billing', href: '/billing', icon: ShoppingCart, highlight: true, roles: ['ADMIN', 'STAFF'] },
+  { name: 'Bills & Invoices', href: '/invoices', icon: FileText, roles: ['ADMIN', 'STAFF'] },
+  { name: 'Inventory & Products', href: '/products', icon: Package, roles: ['ADMIN', 'STAFF'] },
+  { name: 'Categories & Brands', href: '/categories', icon: FolderPlus, roles: ['ADMIN'] },
+  { name: 'Rack Locations', href: '/racks', icon: Layers, roles: ['ADMIN', 'STAFF'] },
+  { name: 'Customer Credit Accounts', href: '/customers', icon: Users, roles: ['ADMIN', 'STAFF'] },
+  { name: 'Supplier Dues', href: '/suppliers', icon: Truck, roles: ['ADMIN'] },
+  { name: 'Barcode Studio', href: '/barcode', icon: Barcode, roles: ['ADMIN', 'STAFF'] },
+  { name: 'User Management', href: '/users', icon: ShieldCheck, roles: ['ADMIN'] },
+  { name: 'WhatsApp Center', href: '/whatsapp', icon: MessageSquare, roles: ['ADMIN', 'STAFF'] },
+  { name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI', roles: ['ADMIN'] },
+  { name: 'Reports & Analytics', href: '/reports', icon: BarChart3, roles: ['ADMIN'] },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [userRole, setUserRole] = useState<'ADMIN' | 'STAFF'>('ADMIN');
+
+  useEffect(() => {
+    const checkRole = () => {
+      const saved = localStorage.getItem('kannaya_user_role') as 'ADMIN' | 'STAFF';
+      if (saved) setUserRole(saved);
+    };
+    checkRole();
+    window.addEventListener('role_changed', checkRole);
+    window.addEventListener('storage', checkRole);
+    return () => {
+      window.removeEventListener('role_changed', checkRole);
+      window.removeEventListener('storage', checkRole);
+    };
+  }, []);
+
+  const visibleNav = navigation.filter((item) => item.roles.includes(userRole));
 
   return (
     <aside className="hidden md:flex w-64 bg-[#4a4a4a] flex-col h-screen sticky top-0 z-30 select-none shadow-xl">
@@ -76,9 +93,9 @@ export default function Sidebar() {
       {/* Navigation Links */}
       <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
         <div className="text-[10px] font-semibold uppercase tracking-wider text-[#cbcbcb] px-3 py-1">
-          Store Navigation
+          Store Navigation ({userRole})
         </div>
-        {navigation.map((item) => {
+        {visibleNav.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           const Icon = item.icon;
           return (

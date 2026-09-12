@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   FileText,
   Search,
@@ -14,8 +15,10 @@ import {
   Calendar,
   DollarSign,
   Layers,
+  ExternalLink,
 } from 'lucide-react';
 import MaterialSelect from '@/components/MaterialSelect';
+import InvoicePrintTemplate from '@/components/InvoicePrintTemplate';
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -205,17 +208,24 @@ export default function InvoicesPage() {
                       )}
                     </td>
                     <td className="text-right">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          href={`/invoices/${inv.id}`}
+                          className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-2.5 py-1 rounded-[5px] text-[11px] font-bold flex items-center gap-1 transition-all shadow-sm"
+                          title="Open & Print A4 GST PDF Invoice"
+                        >
+                          <FileText className="w-3.5 h-3.5" /> PDF Bill
+                        </Link>
                         <button
                           onClick={() => handleOpenReceipt(inv)}
-                          className="p-1 rounded-[5px] bg-slate-100 hover:bg-amber-100 text-[#4a4a4a] hover:text-amber-700 transition-colors border border-[#cbcbcb]"
+                          className="p-1.5 rounded-[5px] bg-slate-100 hover:bg-amber-100 text-[#4a4a4a] hover:text-amber-700 transition-colors border border-[#cbcbcb]"
                           title="View & Print Thermal Receipt"
                         >
                           <Printer className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleWhatsAppShare(inv)}
-                          className="p-1 rounded-[5px] bg-emerald-50 border border-emerald-300 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                          className="p-1.5 rounded-[5px] bg-emerald-50 border border-emerald-300 text-emerald-700 hover:bg-emerald-100 transition-colors"
                           title="Share Invoice on WhatsApp"
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
@@ -245,94 +255,29 @@ export default function InvoicesPage() {
                 <FileText className="w-4 h-4 text-blue-600" /> Bill {selectedInvoice.invoiceNo}
               </h3>
               <div className="flex items-center gap-2">
-                <MaterialSelect
-                  value={printerWidth}
-                  onChange={(val: any) => setPrinterWidth(val)}
-                  options={[
-                    { value: '80mm', label: '80mm Thermal' },
-                    { value: '58mm', label: '58mm Thermal' },
-                  ]}
-                  className="w-32"
-                />
+                <div className="w-48">
+                  <MaterialSelect
+                    value={printerWidth}
+                    onChange={(val: any) => setPrinterWidth(val)}
+                    options={[
+                      { value: 'A4', label: 'A4 GST Tax Invoice (PDF)' },
+                      { value: '80mm', label: '80mm Thermal' },
+                      { value: '58mm', label: '58mm Thermal' },
+                    ]}
+                  />
+                </div>
                 <button onClick={() => setShowReceiptModal(false)} className="text-slate-400 hover:text-slate-700 p-1">
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            <div className="bg-white text-slate-950 p-4 rounded-[5px] font-mono text-xs shadow-inner max-h-[380px] overflow-y-auto" id="thermal-receipt-printable">
-              <div className="text-center border-b border-dashed border-slate-400 pb-2 mb-2">
-                <h2 className="font-bold text-sm uppercase">{shopSettings?.shopName || 'VENKATA LAKSHMI ELECTRONICS'}</h2>
-                <p className="text-[10px] text-slate-700">{shopSettings?.address}</p>
-                <p className="text-[10px] text-slate-700">Ph: {shopSettings?.phone}</p>
-              </div>
-
-              <div className="flex justify-between text-[11px] mb-2 font-bold">
-                <span>Inv: {selectedInvoice.invoiceNo}</span>
-                <span>{new Date(selectedInvoice.createdAt).toLocaleDateString('en-IN')}</span>
-              </div>
-
-              <div className="border-b border-dashed border-slate-400 pb-1 mb-2">
-                <p className="font-bold text-[11px]">Customer: {selectedInvoice.customerName}</p>
-                {selectedInvoice.customerPhone !== 'N/A' && (
-                  <p className="text-[10px]">Ph: {selectedInvoice.customerPhone}</p>
-                )}
-              </div>
-
-              <table className="w-full text-left text-[11px] mb-2">
-                <thead>
-                  <tr className="border-b border-slate-400">
-                    <th className="py-1">Item</th>
-                    <th className="py-1 text-center">Qty</th>
-                    <th className="py-1 text-right">Amt</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-dashed divide-slate-300">
-                  {selectedInvoice.items?.map((item: any) => (
-                    <tr key={item.id}>
-                      <td className="py-1 pr-1">
-                        <div className="font-semibold">{item.productName}</div>
-                        <div className="text-[9px] text-slate-600">[{item.rackLocation}]</div>
-                      </td>
-                      <td className="py-1 text-center font-bold">
-                        {item.quantity} {item.unit}
-                      </td>
-                      <td className="py-1 text-right font-bold">₹{item.total}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <div className="border-t border-slate-950 pt-2 space-y-1 text-right text-[11px]">
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span>₹{selectedInvoice.subtotal}</span>
-                </div>
-                {selectedInvoice.discount > 0 && (
-                  <div className="flex justify-between text-slate-700">
-                    <span>Discount:</span>
-                    <span>-₹{selectedInvoice.discount}</span>
-                  </div>
-                )}
-                <div className="flex justify-between font-bold text-sm pt-1 border-t border-dashed border-slate-400">
-                  <span>TOTAL:</span>
-                  <span>₹{selectedInvoice.totalAmount}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Paid ({selectedInvoice.paymentMethod}):</span>
-                  <span>₹{selectedInvoice.paidAmount}</span>
-                </div>
-                {selectedInvoice.dueAmount > 0 && (
-                  <div className="flex justify-between font-bold text-rose-700">
-                    <span>Due Balance:</span>
-                    <span>₹{selectedInvoice.dueAmount}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="text-center border-t border-dashed border-slate-400 mt-3 pt-2 text-[10px] text-slate-700">
-                *** THANK YOU FOR YOUR BUSINESS! ***
-              </div>
+            <div className="bg-slate-50 p-3 rounded-[5px] border border-[#cbcbcb] max-h-[440px] overflow-y-auto">
+              <InvoicePrintTemplate
+                invoice={selectedInvoice}
+                settings={shopSettings}
+                format={printerWidth as any}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3">

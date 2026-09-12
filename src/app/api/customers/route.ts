@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { LedgerType } from '@prisma/client';
 
 export async function GET(request: Request) {
   try {
@@ -66,7 +65,7 @@ export async function POST(request: Request) {
       const ledgerEntry = await prisma.customerLedger.create({
         data: {
           customerId,
-          type: LedgerType.PAYMENT,
+          type: 'PAYMENT' as any,
           amount: payAmt,
           balance: newOutstanding,
           notes: notes || `Credit Payment received via ${paymentMethod}`,

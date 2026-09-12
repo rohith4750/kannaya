@@ -227,10 +227,10 @@ export default function BillingPOSPage() {
   };
 
   return (
-    <div className="min-h-full flex flex-col lg:flex-row gap-4 overflow-y-auto lg:overflow-hidden">
+    <div className="h-full flex flex-col lg:flex-row gap-3.5 overflow-hidden">
       {/* Product Catalog */}
-      <div className="flex-1 flex flex-col min-w-0 bg-white rounded-[5px] border border-[#cbcbcb] p-4 overflow-hidden shadow-sm">
-        <div className="flex gap-3 mb-3">
+      <div className="flex-1 flex flex-col min-w-0 bg-white rounded-[5px] border border-[#cbcbcb] p-3.5 overflow-hidden shadow-sm h-full">
+        <div className="flex gap-3 mb-3 shrink-0">
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -243,12 +243,12 @@ export default function BillingPOSPage() {
               className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-10 pr-4 py-2 text-xs text-[#4a4a4a] placeholder-slate-400 focus:outline-none focus:border-[#6d8196] focus:bg-white"
             />
           </div>
-          <div className="bg-[#6d8196]/10 border border-[#6d8196]/30 px-3 py-2 rounded-[5px] flex items-center gap-2 text-xs font-bold text-[#6d8196]">
+          <div className="bg-[#6d8196]/10 border border-[#6d8196]/30 px-3 py-2 rounded-[5px] flex items-center gap-2 text-xs font-bold text-[#6d8196] shrink-0">
             <Barcode className="w-4 h-4" /> Barcode Active
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-1 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 content-start">
+        <div className="flex-1 overflow-y-auto min-h-0 pr-1 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 content-start">
           {filteredProducts.map((product) => {
             const isLowStock = product.stockQuantity <= product.minStockAlert;
             const inCart = cart.find((item) => item.id === product.id);
@@ -306,9 +306,9 @@ export default function BillingPOSPage() {
       </div>
 
       {/* Cart & Billing Checkout */}
-      <div className="w-full lg:w-[400px] bg-white border border-[#cbcbcb] rounded-[5px] flex flex-col h-full overflow-hidden shadow-sm">
+      <div className="w-full lg:w-[400px] bg-white border border-[#cbcbcb] rounded-[5px] flex flex-col h-full overflow-hidden shadow-sm shrink-0">
         {/* Customer Selector */}
-        <div className="p-3.5 border-b border-[#cbcbcb] bg-slate-50">
+        <div className="p-3 border-b border-[#cbcbcb] bg-slate-50 shrink-0">
           <MaterialSelect
             label="Customer Credit Account"
             value={selectedCustomerId}
@@ -324,7 +324,7 @@ export default function BillingPOSPage() {
         </div>
 
         {/* Cart List */}
-        <div className="flex-1 overflow-y-auto p-3.5 space-y-2 divide-y divide-[#cbcbcb]">
+        <div className="flex-1 overflow-y-auto min-h-0 p-3 space-y-2 divide-y divide-[#cbcbcb]">
           {cart.length > 0 ? (
             cart.map((item) => (
               <div key={item.id} className="pt-2 first:pt-0 flex items-start justify-between gap-2.5">
@@ -369,7 +369,7 @@ export default function BillingPOSPage() {
         </div>
 
         {/* Calculations & Submit */}
-        <div className="p-3.5 border-t border-[#cbcbcb] bg-slate-50 space-y-2.5">
+        <div className="p-3 border-t border-[#cbcbcb] bg-slate-50 space-y-2 shrink-0">
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
               <label className="text-[10px] text-slate-600 uppercase font-semibold">Discount (₹)</label>

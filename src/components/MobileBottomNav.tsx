@@ -23,36 +23,54 @@ import {
 } from 'lucide-react';
 
 const mainTabs = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'POS Bill', href: '/billing', icon: ShoppingCart, highlight: true },
-  { name: 'Invoices', href: '/invoices', icon: FileText },
-  { name: 'Products', href: '/products', icon: Package },
-  { name: 'Customers', href: '/customers', icon: Users },
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['ADMIN'] },
+  { name: 'POS Bill', href: '/billing', icon: ShoppingCart, highlight: true, roles: ['ADMIN', 'STAFF'] },
+  { name: 'Invoices', href: '/invoices', icon: FileText, roles: ['ADMIN', 'STAFF'] },
+  { name: 'Products', href: '/products', icon: Package, roles: ['ADMIN', 'STAFF'] },
+  { name: 'Customers', href: '/customers', icon: Users, roles: ['ADMIN', 'STAFF'] },
 ];
 
 const secondaryLinks = [
-  { name: 'Categories & Brands', href: '/categories', icon: FolderPlus },
-  { name: 'Rack Locations', href: '/racks', icon: Layers },
-  { name: 'Supplier Dues', href: '/suppliers', icon: Truck },
-  { name: 'Barcode Studio', href: '/barcode', icon: Barcode },
-  { name: 'User Management', href: '/users', icon: ShieldCheck },
-  { name: 'WhatsApp Center', href: '/whatsapp', icon: MessageSquare },
-  { name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI' },
-  { name: 'Reports & Analytics', href: '/reports', icon: BarChart3 },
+  { name: 'Categories & Brands', href: '/categories', icon: FolderPlus, roles: ['ADMIN'] },
+  { name: 'Rack Locations', href: '/racks', icon: Layers, roles: ['ADMIN', 'STAFF'] },
+  { name: 'Supplier Dues', href: '/suppliers', icon: Truck, roles: ['ADMIN'] },
+  { name: 'Barcode Studio', href: '/barcode', icon: Barcode, roles: ['ADMIN', 'STAFF'] },
+  { name: 'User Management', href: '/users', icon: ShieldCheck, roles: ['ADMIN'] },
+  { name: 'WhatsApp Center', href: '/whatsapp', icon: MessageSquare, roles: ['ADMIN', 'STAFF'] },
+  { name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI', roles: ['ADMIN'] },
+  { name: 'Reports & Analytics', href: '/reports', icon: BarChart3, roles: ['ADMIN'] },
 ];
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [userRole, setUserRole] = useState<'ADMIN' | 'STAFF'>('ADMIN');
+
+  React.useEffect(() => {
+    const checkRole = () => {
+      const saved = localStorage.getItem('kannaya_user_role') as 'ADMIN' | 'STAFF';
+      if (saved) setUserRole(saved);
+    };
+    checkRole();
+    window.addEventListener('role_changed', checkRole);
+    window.addEventListener('storage', checkRole);
+    return () => {
+      window.removeEventListener('role_changed', checkRole);
+      window.removeEventListener('storage', checkRole);
+    };
+  }, []);
 
   // Don't render on login page
   if (pathname === '/login') return null;
+
+  const visibleMainTabs = mainTabs.filter((tab) => tab.roles.includes(userRole));
+  const visibleSecondaryLinks = secondaryLinks.filter((link) => link.roles.includes(userRole));
 
   return (
     <>
       {/* App-like Sticky Bottom Navigation Bar (Mobile Only) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#383838] border-t border-[#4a4a4a] text-white py-1.5 px-2 flex justify-around items-center shadow-2xl select-none">
-        {mainTabs.map((tab) => {
+        {visibleMainTabs.map((tab) => {
           const isActive = pathname === tab.href || (tab.href !== '/' && pathname.startsWith(tab.href));
           const Icon = tab.icon;
           return (
@@ -106,7 +124,7 @@ export default function MobileBottomNav() {
 
             {/* Links Grid */}
             <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-              {secondaryLinks.map((item) => {
+              {visibleSecondaryLinks.map((item) => {
                 const isActive = pathname.startsWith(item.href);
                 const Icon = item.icon;
                 return (

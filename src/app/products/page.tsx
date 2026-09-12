@@ -234,22 +234,20 @@ function ProductsContent() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {userRole === 'ADMIN' && (
-              <button
-                onClick={() => {
-                  setFormData({
-                    ...formData,
-                    categoryId: categories[0]?.id || '',
-                    brandId: brands[0]?.id || '',
-                    rackId: racks[0]?.id || '',
-                  });
-                  setShowAddModal(true);
-                }}
-                className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold px-3 py-1.5 rounded-[5px] flex items-center gap-1.5 text-xs transition-all shadow-sm border border-[#cbcbcb]/40"
-              >
-                <Plus className="w-3.5 h-3.5" /> Add Product
-              </button>
-            )}
+            <button
+              onClick={() => {
+                setFormData({
+                  ...formData,
+                  categoryId: categories[0]?.id || '',
+                  brandId: brands[0]?.id || '',
+                  rackId: racks[0]?.id || '',
+                });
+                setShowAddModal(true);
+              }}
+              className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold px-3 py-1.5 rounded-[5px] flex items-center gap-1.5 text-xs transition-all shadow-sm border border-[#cbcbcb]/40"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Product
+            </button>
           </div>
         </div>
 

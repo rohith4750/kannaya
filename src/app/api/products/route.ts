@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     });
 
     if (filter === 'low-stock') {
-      const filtered = products.filter((p) => p.stockQuantity <= p.minStockAlert);
+      const filtered = products.filter((p: any) => p.stockQuantity <= p.minStockAlert);
       return NextResponse.json(filtered);
     }
 

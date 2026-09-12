@@ -484,8 +484,14 @@ export default function CustomersPage() {
                   {/* Itemized Items Breakdown if Invoice exists */}
                   {entry.invoice?.items && entry.invoice.items.length > 0 && (
                     <div className="bg-white rounded-[5px] border border-amber-200 p-2 text-[11px]">
-                      <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">
-                        Items Purchased in this Bill:
+                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase mb-1">
+                        <span>Items Purchased in this Bill:</span>
+                        <Link
+                          href={`/invoices/${entry.invoice.id}`}
+                          className="text-[#6d8196] font-bold text-[10px] flex items-center gap-1 hover:underline normal-case"
+                        >
+                          <FileText className="w-3 h-3" /> Open PDF Bill
+                        </Link>
                       </div>
                       <div className="space-y-1">
                         {entry.invoice.items.map((item: any) => (
