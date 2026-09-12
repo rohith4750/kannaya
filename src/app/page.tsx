@@ -90,7 +90,7 @@ export default function DashboardPage() {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {/* Today's Sales */}
-        <div className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-emerald-600 shadow-sm">
+        <div className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Today's Sales</span>
             <div className="p-1.5 rounded-[5px] bg-emerald-50 text-emerald-700">
@@ -108,7 +108,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Today's Cash Collection */}
-        <div className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-[#6d8196] shadow-sm">
+        <div className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Today's Collection</span>
             <div className="p-1.5 rounded-[5px] bg-[#6d8196]/10 text-[#6d8196]">
@@ -124,7 +124,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Customer Udhar Due */}
-        <Link href="/customers" className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-amber-500 shadow-sm hover:border-amber-600 transition-colors block">
+        <Link href="/customers" className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm hover:border-[#6d8196] transition-colors block">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Customer Credit Due</span>
             <div className="p-1.5 rounded-[5px] bg-amber-50 text-amber-700">
@@ -143,7 +143,7 @@ export default function DashboardPage() {
         </Link>
 
         {/* Supplier Pending Due */}
-        <Link href="/suppliers" className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-[#6d8196] shadow-sm hover:border-[#6d8196] transition-colors block">
+        <Link href="/suppliers" className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm hover:border-[#6d8196] transition-colors block">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Supplier Due</span>
             <div className="p-1.5 rounded-[5px] bg-[#6d8196]/10 text-[#6d8196]">
@@ -162,7 +162,7 @@ export default function DashboardPage() {
         </Link>
 
         {/* Low Stock Alert */}
-        <Link href="/products?filter=low-stock" className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-rose-600 shadow-sm hover:border-rose-700 transition-colors block">
+        <Link href="/products?filter=low-stock" className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm hover:border-[#6d8196] transition-colors block">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Low Stock Items</span>
             <div className="p-1.5 rounded-[5px] bg-rose-50 text-rose-700">

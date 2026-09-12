@@ -27,7 +27,7 @@ export default function Header() {
           localStorage.setItem('kannaya_user_role', data.user.role || 'ADMIN');
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handleToggleRole = () => {
@@ -70,11 +70,11 @@ export default function Header() {
           setLowStockCount(data.metrics.lowStockCount || 0);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   return (
-    <header className="h-14 bg-[#383838] border-b border-[#6d8196]/40 px-5 flex items-center justify-between sticky top-0 z-20 shadow-sm text-white flex-shrink-0">
+    <header className="h-14 bg-[#383838] px-5 flex items-center justify-between sticky top-0 z-20 shadow-sm text-white flex-shrink-0">
       {/* Search Input - Clean & Direct */}
       <div className="flex-1 max-w-md">
         <div className="relative">
@@ -82,7 +82,7 @@ export default function Header() {
           <input
             type="text"
             placeholder="Search product, barcode or customer phone..."
-            className="w-full bg-[#383838] border border-[#6d8196]/40 rounded-[5px] pl-9 pr-4 py-1 text-xs text-white placeholder-[#cbcbcb] focus:outline-none focus:border-[#ffffe3] transition-colors"
+            className="w-full bg-[#4a4a4a] rounded-[5px] pl-9 pr-4 py-1.5 text-xs text-white placeholder-[#cbcbcb] focus:outline-none focus:bg-[#525252] transition-colors"
           />
         </div>
       </div>
@@ -91,7 +91,7 @@ export default function Header() {
       <div className="flex items-center gap-2.5">
 
         {/* Live Clock */}
-        <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-[#ffffe3] bg-[#383838] px-2.5 py-1 rounded-[5px] border border-[#6d8196]/40">
+        <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-[#ffffe3] bg-[#4a4a4a] px-2.5 py-1.5 rounded-[5px]">
           <Clock className="w-3.5 h-3.5 text-[#f59e0b]" />
           <span>{currentTime || 'Loading...'}</span>
         </div>
@@ -99,7 +99,7 @@ export default function Header() {
         {/* Low Stock Alert */}
         <Link
           href="/products?filter=low-stock"
-          className="relative p-1.5 rounded-[5px] bg-[#383838] border border-[#6d8196]/40 text-[#cbcbcb] hover:text-[#ffffe3] transition-colors"
+          className="relative p-2 rounded-[5px] bg-[#4a4a4a] text-[#cbcbcb] hover:text-[#ffffe3] transition-colors"
           title="Low Stock Products Alert"
         >
           <Bell className="w-3.5 h-3.5" />
@@ -113,7 +113,7 @@ export default function Header() {
         {/* User Logout Button */}
         <button
           onClick={handleLogout}
-          className="p-1.5 rounded-[5px] bg-[#383838] border border-[#6d8196]/40 text-[#cbcbcb] hover:text-rose-400 transition-colors"
+          className="p-2 rounded-[5px] bg-[#4a4a4a] text-[#cbcbcb] hover:text-rose-400 transition-colors"
           title="Sign Out of Session"
         >
           <LogOut className="w-3.5 h-3.5" />

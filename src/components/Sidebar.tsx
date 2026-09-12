@@ -40,9 +40,9 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-[#4a4a4a] border-r border-[#6d8196]/40 flex flex-col h-screen sticky top-0 z-30 select-none shadow-xl">
+    <aside className="w-64 bg-[#4a4a4a] flex flex-col h-screen sticky top-0 z-30 select-none shadow-xl">
       {/* Brand Header */}
-      <div className="h-14 px-3.5 border-b border-[#6d8196]/40 flex items-center gap-3 bg-[#383838] flex-shrink-0">
+      <div className="h-14 px-3.5 flex items-center gap-3 bg-[#383838] flex-shrink-0">
         <div className="w-9 h-9 rounded-full bg-white p-0.5 border border-[#cbcbcb] flex items-center justify-center shadow-md overflow-hidden flex-shrink-0">
           <img src="/logo.jpg" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
         </div>
@@ -60,7 +60,7 @@ export default function Sidebar() {
       <div className="px-3 pt-3 pb-2">
         <Link
           href="/billing"
-          className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold py-2 px-3.5 rounded-[5px] flex items-center justify-between shadow-md transition-all group border border-[#cbcbcb]/30"
+          className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold py-2 px-3.5 rounded-[5px] flex items-center justify-between shadow-md transition-all group"
         >
           <span className="flex items-center gap-2 text-xs">
             <ShoppingCart className="w-4 h-4 text-[#ffffe3]" /> Quick POS Bill
@@ -85,7 +85,7 @@ export default function Sidebar() {
               href={item.href}
               className={`flex items-center justify-between px-3.5 py-2 rounded-[5px] text-xs transition-all ${
                 isActive
-                  ? 'bg-[#6d8196] text-white font-semibold shadow-md border border-[#cbcbcb]/40'
+                  ? 'bg-[#6d8196] text-white font-semibold shadow-md'
                   : 'text-[#cbcbcb] font-medium hover:text-white hover:bg-[#6d8196]/30'
               }`}
             >
@@ -106,7 +106,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Matching Sidebar Bottom Bar */}
-      <div className="h-9 px-3.5 bg-[#383838] border-t border-[#6d8196]/40 flex items-center justify-between text-[10px] text-[#cbcbcb] flex-shrink-0 font-medium">
+      <div className="h-9 px-3.5 bg-[#383838] flex items-center justify-between text-[10px] text-[#cbcbcb] flex-shrink-0 font-medium">
         <span className="truncate">Venkata Lakshmi ERP</span>
         <span className="text-[#ffffe3] font-bold">v2.0</span>
       </div>
