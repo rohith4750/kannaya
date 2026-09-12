@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, Zap, Lock, Mail, Store, ArrowRight, UserCheck, KeyRound } from 'lucide-react';
+import { Shield, Zap, Lock, Mail, Store, ArrowRight, UserCheck, KeyRound, X, CheckCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -10,6 +10,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState('adminpassword123');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Forgot Password Modal State
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetKey, setResetKey] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMsg, setResetMsg] = useState('');
+  const [resetErr, setResetErr] = useState('');
 
   const handleLogin = async (e?: React.FormEvent, customEmail?: string, customPass?: string) => {
     if (e) e.preventDefault();
@@ -39,6 +48,38 @@ export default function LoginPage() {
       setError('Connection failed. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetErr('');
+    setResetMsg('');
+    setResetLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: resetEmail,
+          newPassword,
+          securityKey: resetKey,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setResetMsg(data.message);
+        setEmail(resetEmail);
+        setPassword(newPassword);
+      } else {
+        setResetErr(data.error || 'Failed to reset password');
+      }
+    } catch (e: any) {
+      setResetErr('Error connecting to server');
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -84,9 +125,22 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="text-[#4a4a4a] font-bold uppercase text-[10px] block mb-1">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[#4a4a4a] font-bold uppercase text-[10px]">
+                Password
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setResetEmail(email);
+                  setResetKey('1234');
+                  setShowForgotModal(true);
+                }}
+                className="text-[11px] text-[#6d8196] hover:underline font-semibold"
+              >
+                Forgot Password?
+              </button>
+            </div>
             <div className="relative">
               <KeyRound className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#6d8196]" />
               <input
@@ -130,6 +184,83 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* FORGOT PASSWORD MODAL */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-sm w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-3">
+              <h3 className="text-sm font-bold text-[#4a4a4a] flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-[#6d8196]" /> Reset Account Password
+              </h3>
+              <button onClick={() => setShowForgotModal(false)} className="text-slate-400 hover:text-[#4a4a4a] p-1">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {resetErr && (
+              <div className="bg-rose-50 border border-rose-200 text-rose-700 p-2.5 rounded-[5px] text-xs font-semibold">
+                {resetErr}
+              </div>
+            )}
+
+            {resetMsg && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-2.5 rounded-[5px] text-xs font-semibold flex items-center gap-1.5">
+                <CheckCircle className="w-4 h-4 text-emerald-700 shrink-0" />
+                <span>{resetMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleResetPassword} className="space-y-3 text-xs">
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Email Address / Username</label>
+                <input
+                  type="email"
+                  required
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="admin@kannaya.com"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">
+                  Store Reset Security Key (Default: 1234)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={resetKey}
+                  onChange={(e) => setResetKey(e.target.value)}
+                  placeholder="1234"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] font-mono focus:bg-white focus:border-[#6d8196]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">New Password</label>
+                <input
+                  type="password"
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password..."
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196]"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={resetLoading}
+                className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold py-2 rounded-[5px] text-xs shadow-sm transition-all disabled:opacity-50 mt-1"
+              >
+                {resetLoading ? 'Updating Password...' : 'Reset & Update Password'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
