@@ -74,15 +74,23 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="h-14 bg-[#383838] px-5 flex items-center justify-between sticky top-0 z-20 shadow-sm text-white flex-shrink-0">
+    <header className="h-14 bg-[#383838] px-3.5 sm:px-5 flex items-center justify-between sticky top-0 z-20 shadow-sm text-white flex-shrink-0 gap-2">
+      {/* Mobile Brand Logo Header */}
+      <div className="flex md:hidden items-center gap-2 shrink-0">
+        <div className="w-8 h-8 rounded-full bg-white p-0.5 border border-[#cbcbcb] overflow-hidden">
+          <img src="/logo.jpg" alt="Logo" className="w-full h-full object-contain rounded-full" />
+        </div>
+        <span className="font-bold text-xs text-white truncate max-w-[110px] sm:max-w-none">Venkata Lakshmi</span>
+      </div>
+
       {/* Search Input - Clean & Direct */}
       <div className="flex-1 max-w-md">
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#cbcbcb]" />
           <input
             type="text"
-            placeholder="Search product, barcode or customer phone..."
-            className="w-full bg-[#4a4a4a] rounded-[5px] pl-9 pr-4 py-1.5 text-xs text-white placeholder-[#cbcbcb] focus:outline-none focus:bg-[#525252] transition-colors"
+            placeholder="Search products..."
+            className="w-full bg-[#4a4a4a] rounded-[5px] pl-8 sm:pl-9 pr-3 py-1.5 text-xs text-white placeholder-[#cbcbcb] focus:outline-none focus:bg-[#525252] transition-colors"
           />
         </div>
       </div>

@@ -41,6 +41,11 @@ body, input, select, textarea, button {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Smooth mobile touch scrolling */
+div, main, section, table {
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Hide blinking text caret on non-editable body elements */
 *:not(input):not(textarea):not([contenteditable="true"]) {
   caret-color: transparent !important;
@@ -172,25 +177,26 @@ button, input, select, textarea, div.rounded-xl, div.rounded-2xl, div.rounded-lg
   background: #6d8196;
 }
 
-/* Thermal Printer Styling */
+/* Print Styling for PDF & Thermal Receipts */
 @media print {
   body * {
     visibility: hidden;
   }
+  #a4-invoice-printable, #a4-invoice-printable *,
   #thermal-receipt-printable, #thermal-receipt-printable * {
     visibility: visible;
   }
-  #thermal-receipt-printable {
+  #a4-invoice-printable, #thermal-receipt-printable {
     position: absolute;
     left: 0;
     top: 0;
     width: 100% !important;
-    max-width: 80mm !important;
+    max-width: none !important;
     background: #ffffff !important;
     color: #000000 !important;
-    font-family: 'Courier New', Courier, monospace !important;
-    font-size: 12px !important;
-    padding: 5px !important;
+    padding: 0 !important;
     margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
   }
 }

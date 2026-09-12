@@ -227,7 +227,7 @@ export default function BillingPOSPage() {
   };
 
   return (
-    <div className="h-full flex flex-col lg:flex-row gap-5 overflow-hidden">
+    <div className="min-h-full flex flex-col lg:flex-row gap-4 overflow-y-auto lg:overflow-hidden">
       {/* Product Catalog */}
       <div className="flex-1 flex flex-col min-w-0 bg-white rounded-[5px] border border-[#cbcbcb] p-4 overflow-hidden shadow-sm">
         <div className="flex gap-3 mb-3">
