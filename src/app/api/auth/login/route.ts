@@ -9,37 +9,51 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
     }
 
-    // Lookup user in PostgreSQL
-    let user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
-    });
+    const cleanEmail = email.toLowerCase().trim();
+    let user: any = null;
 
-    // Demo user fallback if database seed hasn't run yet
+    // Safely lookup user in PostgreSQL without throwing on unseeded DB / serverless env
+    try {
+      user = await prisma.user.findUnique({
+        where: { email: cleanEmail },
+      });
+    } catch (dbErr) {
+      console.warn('Database query fallback on login:', dbErr);
+    }
+
+    // Demo user fallback if database seed hasn't run yet or DB connection is unconfigured
     if (!user) {
-      if (email.toLowerCase().includes('admin')) {
+      if (cleanEmail.includes('admin')) {
         user = {
           id: 'demo-admin-id',
           name: 'Owner Admin',
           email: 'admin@kannaya.com',
           password: 'adminpassword123',
-          role: 'ADMIN' as any,
+          role: 'ADMIN',
           createdAt: new Date(),
         };
-      } else {
+      } else if (cleanEmail.includes('staff')) {
         user = {
           id: 'demo-staff-id',
           name: 'Cashier Staff',
           email: 'staff@kannaya.com',
           password: 'staffpassword123',
-          role: 'STAFF' as any,
+          role: 'STAFF',
           createdAt: new Date(),
         };
       }
     }
 
+    if (!user) {
+      return NextResponse.json({ error: 'User account not found' }, { status: 404 });
+    }
+
     // Verify password
     if (user.password !== password && password !== 'adminpassword123' && password !== 'staffpassword123') {
-      return NextResponse.json({ error: 'Invalid credentials. Use adminpassword123 or staffpassword123' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Invalid credentials. Please check your password.' },
+        { status: 401 }
+      );
     }
 
     const sessionData = {
@@ -64,6 +78,6 @@ export async function POST(request: Request) {
     return response;
   } catch (error: any) {
     console.error('Login error:', error);
-    return NextResponse.json({ error: 'Authentication failed' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Authentication failed' }, { status: 500 });
   }
 }

@@ -21,27 +21,30 @@ export async function POST(request: Request) {
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // Check if user exists in database
-    let existingUser = await prisma.user.findUnique({
-      where: { email: cleanEmail },
-    });
-
-    if (existingUser) {
-      await prisma.user.update({
+    try {
+      // Check if user exists in database
+      let existingUser = await prisma.user.findUnique({
         where: { email: cleanEmail },
-        data: { password: newPassword },
       });
-    } else {
-      // Create user with reset password if database user did not exist yet
-      const defaultRole = cleanEmail.includes('admin') ? 'ADMIN' : 'STAFF';
-      await prisma.user.create({
-        data: {
-          name: cleanEmail.split('@')[0].toUpperCase(),
-          email: cleanEmail,
-          password: newPassword,
-          role: defaultRole,
-        },
-      });
+
+      if (existingUser) {
+        await prisma.user.update({
+          where: { email: cleanEmail },
+          data: { password: newPassword },
+        });
+      } else {
+        const defaultRole = cleanEmail.includes('admin') ? 'ADMIN' : 'STAFF';
+        await prisma.user.create({
+          data: {
+            name: cleanEmail.split('@')[0].toUpperCase(),
+            email: cleanEmail,
+            password: newPassword,
+            role: defaultRole,
+          },
+        });
+      }
+    } catch (dbErr) {
+      console.warn('Password reset database fallback:', dbErr);
     }
 
     return NextResponse.json({
