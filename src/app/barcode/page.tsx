@@ -69,7 +69,7 @@ export default function BarcodePage() {
           >
             <div>
               <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-1 mb-2">
-                <span className="text-[10px] font-bold text-slate-600 uppercase">SRI LAKSHMI ERP</span>
+                <span className="text-[10px] font-bold text-[#6d8196] uppercase">VENKATA LAKSHMI</span>
                 <span className="text-[10px] font-bold bg-[#ffffe3] text-[#4a4a4a] px-1.5 py-0.5 rounded-[5px] border border-[#cbcbcb]">
                   {p.rack ? `${p.rack.rackName} (${p.rack.shelfCode})` : 'Rack A1'}
                 </span>

@@ -43,7 +43,7 @@ export default function InvoicesPage() {
       if (Array.isArray(data)) setInvoices(data);
 
       setShopSettings({
-        shopName: 'SRI LAKSHMI ELECTRICALS & HARDWARE',
+        shopName: 'VENKATA LAKSHMI ELECTRONICS',
         address: 'Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001',
         phone: '+91 98765 43210',
         gstin: '36ABCDE1234F1Z5',
@@ -258,7 +258,7 @@ export default function InvoicesPage() {
 
             <div className="bg-white text-slate-950 p-4 rounded-[5px] font-mono text-xs shadow-inner max-h-[380px] overflow-y-auto" id="thermal-receipt-printable">
               <div className="text-center border-b border-dashed border-slate-400 pb-2 mb-2">
-                <h2 className="font-bold text-sm uppercase">{shopSettings?.shopName || 'SRI LAKSHMI ELECTRICALS'}</h2>
+                <h2 className="font-bold text-sm uppercase">{shopSettings?.shopName || 'VENKATA LAKSHMI ELECTRONICS'}</h2>
                 <p className="text-[10px] text-slate-700">{shopSettings?.address}</p>
                 <p className="text-[10px] text-slate-700">Ph: {shopSettings?.phone}</p>
                 <p className="text-[10px] font-bold mt-1">GSTIN: {shopSettings?.gstin}</p>

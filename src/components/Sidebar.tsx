@@ -42,16 +42,16 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-[#4a4a4a] border-r border-[#6d8196]/40 flex flex-col h-screen sticky top-0 z-30 select-none shadow-xl">
       {/* Brand Header */}
-      <div className="p-4 border-b border-[#6d8196]/40 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-[5px] bg-[#6d8196] flex items-center justify-center shadow-md text-white font-black">
-          <Zap className="w-5 h-5 fill-current" />
+      <div className="p-3.5 border-b border-[#6d8196]/40 flex items-center gap-3 bg-[#383838]">
+        <div className="w-10 h-10 rounded-full bg-white p-0.5 border border-[#cbcbcb] flex items-center justify-center shadow-md overflow-hidden flex-shrink-0">
+          <img src="/logo.jpg" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
         </div>
-        <div>
-          <h1 className="font-bold text-base text-white leading-tight flex items-center gap-1">
-            Kannaya ERP
+        <div className="min-w-0">
+          <h1 className="font-extrabold text-sm text-white leading-tight truncate tracking-tight">
+            Venkata Lakshmi
           </h1>
-          <p className="text-[11px] text-[#ffffe3] flex items-center gap-1 font-medium">
-            <Store className="w-3 h-3 text-[#f59e0b]" /> Electrical & Hardware
+          <p className="text-[10px] text-[#ffffe3] font-bold truncate">
+            Electronics & Hardware
           </p>
         </div>
       </div>

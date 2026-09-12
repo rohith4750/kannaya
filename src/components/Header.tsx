@@ -80,13 +80,15 @@ export default function Header() {
     <header className="h-14 bg-[#4a4a4a] border-b border-[#6d8196]/40 px-5 flex items-center justify-between sticky top-0 z-20 shadow-sm text-white">
       {/* Store Brand */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <Store className="w-4 h-4 text-[#f59e0b]" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-full bg-white p-0.5 border border-[#cbcbcb] flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
+            <img src="/logo.jpg" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
+          </div>
           <h2 className="text-xs font-extrabold text-white tracking-wide hidden md:block">
-            SRI LAKSHMI ELECTRICALS & HARDWARE
+            VENKATA LAKSHMI ELECTRONICS
           </h2>
         </div>
-        <span className="text-[11px] text-[#cbcbcb] hidden lg:inline">| GSTIN: 36ABCDE1234F1Z5</span>
+        <span className="text-[11px] text-[#cbcbcb] hidden lg:inline">| SINCE 2023 | GSTIN: 36ABCDE1234F1Z5</span>
       </div>
 
       {/* Search Input */}

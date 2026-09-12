@@ -46,14 +46,16 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white border border-[#cbcbcb] rounded-[5px] p-8 shadow-xl space-y-6">
         {/* Brand Logo & Header */}
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-[5px] bg-[#6d8196] flex items-center justify-center shadow-md mx-auto text-white font-black border border-[#cbcbcb]">
-            <Zap className="w-7 h-7 fill-current text-[#ffffe3]" />
+        <div className="text-center space-y-3">
+          <div className="w-24 h-24 rounded-full bg-white p-1 border-2 border-[#6d8196] shadow-lg mx-auto flex items-center justify-center overflow-hidden">
+            <img src="/logo.jpg" alt="Venkata Lakshmi Electronics Logo" className="w-full h-full object-contain rounded-full" />
           </div>
-          <h1 className="text-2xl font-extrabold text-[#4a4a4a] tracking-tight">Kannaya ERP Login</h1>
-          <p className="text-xs text-slate-500">
-            Electrical & Hardware Store Operating System
-          </p>
+          <div>
+            <h1 className="text-xl font-extrabold text-[#4a4a4a] tracking-tight">Venkata Lakshmi Electronics</h1>
+            <p className="text-xs text-[#6d8196] font-bold mt-0.5">
+              Powering Your Needs • Building A Brighter Tomorrow
+            </p>
+          </div>
         </div>
 
         {error && (

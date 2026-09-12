@@ -454,7 +454,7 @@ export default function BillingPOSPage() {
             {/* Thermal Print Receipt Roll Paper */}
             <div className="bg-white text-slate-950 p-4 rounded-[5px] font-mono text-xs shadow-inner max-h-[380px] overflow-y-auto" id="thermal-receipt-printable">
               <div className="text-center border-b border-dashed border-slate-400 pb-2 mb-2">
-                <h2 className="font-bold text-sm uppercase">{receiptData.settings?.shopName || 'SRI LAKSHMI ELECTRICALS'}</h2>
+                <h2 className="font-bold text-sm uppercase">{receiptData.settings?.shopName || 'VENKATA LAKSHMI ELECTRONICS'}</h2>
                 <p className="text-[10px] text-slate-700">{receiptData.settings?.address}</p>
                 <p className="text-[10px] text-slate-700">Ph: {receiptData.settings?.phone}</p>
                 <p className="text-[10px] font-bold mt-1">GSTIN: {receiptData.settings?.gstin}</p>

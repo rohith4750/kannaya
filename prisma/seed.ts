@@ -65,8 +65,8 @@ async function main() {
   await prisma.shopSettings.create({
     data: {
       id: 'default',
-      shopName: 'SRI LAKSHMI ELECTRICALS & HARDWARE',
-      tagline: 'Authorized Dealer: Polycab, Anchor, Finolex & Havells',
+      shopName: 'VENKATA LAKSHMI ELECTRONICS',
+      tagline: 'Powering Your Needs • Building A Brighter Tomorrow (Since 2023)',
       phone: '+91 98765 43210',
       address: 'Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001',
       gstin: '36ABCDE1234F1Z5',

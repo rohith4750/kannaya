@@ -56,14 +56,19 @@ export default function DashboardPage() {
   return (
     <div className="space-y-5">
       {/* Top Banner Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-[5px] border border-slate-300 shadow-sm">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            Welcome to Kannaya ERP
-          </h1>
-          <p className="text-slate-500 text-xs mt-0.5">
-            Real-time business performance overview for Sri Lakshmi Electricals & Hardware.
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-white p-0.5 border border-[#cbcbcb] flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
+            <img src="/logo.jpg" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-[#4a4a4a] flex items-center gap-2">
+              Welcome to Venkata Lakshmi Electronics
+            </h1>
+            <p className="text-slate-500 text-xs mt-0.5 font-medium">
+              Real-time business performance overview • Powering Your Needs (Since 2023).
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2.5">
           <button

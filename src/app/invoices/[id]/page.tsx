@@ -172,7 +172,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         {/* Live Thermal Receipt Roll Container (Printable) */}
         <div className="bg-white text-[#4a4a4a] p-5 rounded-[5px] font-mono text-xs shadow-md border border-[#cbcbcb]" id="thermal-receipt-printable">
           <div className="text-center border-b border-dashed border-[#cbcbcb] pb-3 mb-3">
-            <h2 className="font-extrabold text-base uppercase">{settings?.shopName || 'SRI LAKSHMI ELECTRICALS'}</h2>
+            <h2 className="font-extrabold text-base uppercase">{settings?.shopName || 'VENKATA LAKSHMI ELECTRONICS'}</h2>
             <p className="text-[10px] text-slate-600">{settings?.address}</p>
             <p className="text-[10px] text-slate-600">Ph: {settings?.phone}</p>
             <p className="text-[10px] font-bold mt-1">GSTIN: {settings?.gstin}</p>
