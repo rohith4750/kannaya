@@ -388,7 +388,7 @@ export default function BillingPOSPage() {
                 options={[
                   { value: 'CASH', label: 'Cash' },
                   { value: 'UPI', label: 'UPI / QR' },
-                  { value: 'CREDIT', label: 'Udhar (Credit)' },
+                  { value: 'CREDIT', label: 'Credit Account' },
                   { value: 'CARD', label: 'Card' },
                 ]}
               />
@@ -407,7 +407,7 @@ export default function BillingPOSPage() {
               />
             </div>
             <div>
-              <label className="text-[10px] text-slate-600 uppercase font-semibold">Due (Udhar Balance)</label>
+              <label className="text-[10px] text-slate-600 uppercase font-semibold">Due Balance (Credit)</label>
               <div className="mt-1 bg-white border border-[#cbcbcb] rounded-[5px] px-2.5 py-1 text-amber-700 font-semibold">
                 ₹{dueAmount.toLocaleString('en-IN')}
               </div>

@@ -156,7 +156,7 @@ export default function CustomersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-[5px] border border-slate-300 shadow-sm">
         <div>
           <h1 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <Users className="w-5 h-5 text-amber-700" /> Customer Credit (Udhar) & Ledger Management
+            <Users className="w-5 h-5 text-[#6d8196]" /> Customer Credit Accounts & Ledger
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
             Track customer accounts, outstanding dues, payment histories, and WhatsApp reminders.
@@ -164,7 +164,7 @@ export default function CustomersPage() {
         </div>
         <div className="flex items-center gap-2.5">
           <div className="bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-[5px] text-xs">
-            <span className="text-slate-600">Total Udhar Due: </span>
+            <span className="text-slate-600">Total Credit Due: </span>
             <span className="font-extrabold text-amber-700">₹{totalOutstandingAll.toLocaleString('en-IN')}</span>
           </div>
           <button

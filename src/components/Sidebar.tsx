@@ -28,7 +28,7 @@ const navigation = [
   { name: 'Inventory & Products', href: '/products', icon: Package },
   { name: 'Categories & Brands', href: '/categories', icon: FolderPlus },
   { name: 'Rack Locations', href: '/racks', icon: Layers },
-  { name: 'Customer Udhar', href: '/customers', icon: Users },
+  { name: 'Customer Credit Accounts', href: '/customers', icon: Users },
   { name: 'Supplier Dues', href: '/suppliers', icon: Truck },
   { name: 'Barcode Studio', href: '/barcode', icon: Barcode },
   { name: 'WhatsApp Center', href: '/whatsapp', icon: MessageSquare },

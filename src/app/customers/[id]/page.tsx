@@ -116,7 +116,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
           href="/customers"
           className="text-xs text-[#4a4a4a] hover:text-[#6d8196] flex items-center gap-1.5 font-bold bg-white border border-[#cbcbcb] px-3 py-1.5 rounded-[5px] transition-colors shadow-sm"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Udhar Accounts
+          <ArrowLeft className="w-4 h-4" /> Back to Customer Credit Accounts
         </Link>
 
         <div className="flex items-center gap-2">

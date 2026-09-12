@@ -126,7 +126,7 @@ export default function DashboardPage() {
         {/* Customer Udhar Due */}
         <Link href="/customers" className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-amber-500 shadow-sm hover:border-amber-600 transition-colors block">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Customer Due</span>
+            <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Customer Credit Due</span>
             <div className="p-1.5 rounded-[5px] bg-amber-50 text-amber-700">
               <Users className="w-4 h-4" />
             </div>
@@ -136,7 +136,7 @@ export default function DashboardPage() {
               ₹{(metrics?.customerDueTotal || 71700).toLocaleString('en-IN')}
             </h3>
             <p className="text-[10px] text-slate-500 mt-1 flex items-center justify-between">
-              <span>Total Udhar Balance</span>
+              <span>Total Credit Balance</span>
               <ArrowUpRight className="w-3 h-3 text-amber-700" />
             </p>
           </div>
@@ -283,7 +283,7 @@ export default function DashboardPage() {
                 href="/customers"
                 className="p-2.5 rounded-[5px] bg-slate-50 border border-[#cbcbcb] hover:border-[#6d8196] text-xs font-semibold text-[#4a4a4a] flex items-center gap-2 transition-colors"
               >
-                <Users className="w-4 h-4 text-[#6d8196]" /> Udhar Ledger
+                <Users className="w-4 h-4 text-[#6d8196]" /> Credit Ledger
               </Link>
             </div>
           </div>

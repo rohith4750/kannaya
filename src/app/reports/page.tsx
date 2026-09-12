@@ -46,7 +46,7 @@ export default function ReportsPage() {
         </div>
 
         <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-amber-500 shadow-sm space-y-1.5">
-          <div className="text-xs font-bold text-[#4a4a4a] uppercase">Total Customer Udhar Outstanding</div>
+          <div className="text-xs font-bold text-[#4a4a4a] uppercase">Total Customer Credit Outstanding</div>
           <div className="text-2xl font-extrabold text-amber-700">
             ₹{(metrics?.customerDueTotal || 71700).toLocaleString('en-IN')}
           </div>
