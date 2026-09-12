@@ -32,11 +32,8 @@ const navigation = [
   { name: 'Barcode Studio', href: '/barcode', icon: Barcode },
   { name: 'WhatsApp Center', href: '/whatsapp', icon: MessageSquare },
   { name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI' },
-  { name: 'Reports & Analytics', href: '/reports', icon: Barchart3 },
+  { name: 'Reports & Analytics', href: '/reports', icon: BarChart3 },
 ];
-
-// Helper to fix typo if any
-const Barchart3 = BarChart3;
 
 export default function Sidebar() {
   const pathname = usePathname();

@@ -1,6 +1,27 @@
-import { PrismaClient, LedgerType, PaymentMethod, Role } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+const Role = {
+  ADMIN: 'ADMIN',
+  STAFF: 'STAFF',
+} as const;
+
+const PaymentMethod = {
+  CASH: 'CASH',
+  UPI: 'UPI',
+  CARD: 'CARD',
+  CREDIT: 'CREDIT',
+  SPLIT: 'SPLIT',
+} as const;
+
+const LedgerType = {
+  SALE: 'SALE',
+  PAYMENT: 'PAYMENT',
+  PURCHASE: 'PURCHASE',
+  RETURN: 'RETURN',
+  ADJUSTMENT: 'ADJUSTMENT',
+} as const;
 
 async function main() {
   console.log('Seeding Kannaya Electrical ERP Database...');
@@ -27,7 +48,7 @@ async function main() {
       name: 'Owner Admin',
       email: 'admin@kannaya.com',
       password: 'adminpassword123',
-      role: Role.ADMIN,
+      role: Role.ADMIN as any,
     },
   });
 
@@ -36,7 +57,7 @@ async function main() {
       name: 'Cashier Staff',
       email: 'staff@kannaya.com',
       password: 'staffpassword123',
-      role: Role.STAFF,
+      role: Role.STAFF as any,
     },
   });
 
@@ -309,7 +330,7 @@ async function main() {
       totalAmount: 5000,
       paidAmount: 2000,
       dueAmount: 3000,
-      paymentMethod: PaymentMethod.CREDIT,
+      paymentMethod: PaymentMethod.CREDIT as any,
       status: 'COMPLETED',
       createdAt: new Date(Date.now() - 5 * 86400000),
       items: {
@@ -340,7 +361,7 @@ async function main() {
   await prisma.customerLedger.create({
     data: {
       customerId: customerRamesh.id,
-      type: LedgerType.SALE,
+      type: LedgerType.SALE as any,
       amount: 5000,
       balance: 18500,
       notes: 'Sale INV-2026-001 (Paid 2000 Cash, Due 3000 Udhar)',
@@ -349,7 +370,7 @@ async function main() {
     },
   });
 
-  console.log('Kannaya ERP database seeded with enhanced product attributes!');
+  console.log('Kannaya ERP database seeded cleanly!');
 }
 
 main()
