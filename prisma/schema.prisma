@@ -1,0 +1,219 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  CARD
+  CREDIT
+  SPLIT
+}
+
+enum LedgerType {
+  SALE
+  PAYMENT
+  PURCHASE
+  RETURN
+  ADJUSTMENT
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(STAFF)
+  createdAt DateTime @default(now())
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+}
+
+model Brand {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model Rack {
+  id          String    @id @default(cuid())
+  rackName    String    // e.g. "Rack A"
+  shelfCode   String    // e.g. "A1"
+  description String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+
+  @@unique([rackName, shelfCode])
+}
+
+model Product {
+  id              String              @id @default(cuid())
+  name            String
+  sku             String?             @unique
+  barcode         String              @unique
+  hsnCode         String?             @default("8544")
+  gstPercent      Float               @default(18)
+  unit            String              // "meter", "pcs", "box", "roll", "pkt"
+  purchasePrice   Float
+  sellingPrice    Float
+  wholesalePrice  Float?
+  minWholesaleQty Float?
+  stockQuantity   Float
+  minStockAlert   Float
+  warranty        String?
+  description     String?
+  categoryId      String
+  category        Category            @relation(fields: [categoryId], references: [id])
+  brandId         String
+  brand           Brand               @relation(fields: [brandId], references: [id])
+  rackId          String?
+  rack            Rack?               @relation(fields: [rackId], references: [id])
+  invoiceItems    InvoiceItem[]
+  purchaseItems   PurchaseOrderItem[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+}
+
+model Customer {
+  id             String           @id @default(cuid())
+  name           String
+  phone          String           @unique
+  email          String?
+  address        String?
+  creditLimit    Float            @default(50000)
+  totalPurchases Float            @default(0)
+  totalPaid      Float            @default(0)
+  outstanding    Float            @default(0)
+  invoices       Invoice[]
+  ledger         CustomerLedger[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model CustomerLedger {
+  id          String     @id @default(cuid())
+  customerId  String
+  customer    Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type        LedgerType
+  amount      Float
+  balance     Float
+  notes       String?
+  invoiceId   String?
+  invoice     Invoice?   @relation(fields: [invoiceId], references: [id])
+  createdAt   DateTime   @default(now())
+}
+
+model Supplier {
+  id             String           @id @default(cuid())
+  name           String
+  contactPerson  String?
+  phone          String           @unique
+  email          String?
+  address        String?
+  totalPurchased Float            @default(0)
+  totalPaid      Float            @default(0)
+  outstanding    Float            @default(0)
+  purchaseOrders PurchaseOrder[]
+  ledger         SupplierLedger[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model SupplierLedger {
+  id              String         @id @default(cuid())
+  supplierId      String
+  supplier        Supplier       @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  type            LedgerType
+  amount          Float
+  balance         Float
+  notes           String?
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  createdAt       DateTime       @default(now())
+}
+
+model Invoice {
+  id            String           @id @default(cuid())
+  invoiceNo     String           @unique
+  customerId    String?
+  customer      Customer?        @relation(fields: [customerId], references: [id])
+  customerName  String
+  customerPhone String
+  subtotal      Float
+  discount      Float            @default(0)
+  tax           Float            @default(0)
+  totalAmount   Float
+  paidAmount    Float
+  dueAmount     Float
+  paymentMethod PaymentMethod
+  status        String           @default("COMPLETED")
+  items         InvoiceItem[]
+  ledgerEntries CustomerLedger[]
+  createdAt     DateTime         @default(now())
+}
+
+model InvoiceItem {
+  id           String   @id @default(cuid())
+  invoiceId    String
+  invoice      Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id])
+  productName  String
+  unit         String
+  price        Float
+  quantity     Float
+  total        Float
+  rackLocation String?
+}
+
+model PurchaseOrder {
+  id            String              @id @default(cuid())
+  poNumber      String              @unique
+  supplierId    String
+  supplier      Supplier            @relation(fields: [supplierId], references: [id])
+  totalAmount   Float
+  paidAmount    Float
+  dueAmount     Float
+  status        String              @default("RECEIVED")
+  items         PurchaseOrderItem[]
+  ledgerEntries SupplierLedger[]
+  createdAt     DateTime            @default(now())
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id])
+  price           Float
+  quantity        Float
+  total           Float
+}
+
+model ShopSettings {
+  id          String @id @default("default")
+  shopName    String @default("SRI LAKSHMI ELECTRICALS & HARDWARE")
+  tagline     String @default("Complete Electrical & Hardware Solutions")
+  phone       String @default("+91 98765 43210")
+  address     String @default("Main Road, Electrical Market, City - 500001")
+  gstin       String @default("36ABCDE1234F1Z5")
+  printerType String @default("80mm")
+}
