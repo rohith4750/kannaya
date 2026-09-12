@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Truck, Plus, DollarSign, MessageSquare, Phone, Mail, Building, X } from 'lucide-react';
+import Link from 'next/link';
+import { Truck, Plus, DollarSign, MessageSquare, Phone, Mail, Building, X, FileText } from 'lucide-react';
 
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -168,20 +169,29 @@ export default function SuppliersPage() {
             </div>
 
             {/* Actions */}
-            <div className="mt-5 pt-3 border-t border-[#cbcbcb] flex items-center justify-between gap-2">
+            <div className="mt-5 pt-3 border-t border-[#cbcbcb] flex items-center justify-between gap-1.5">
+              <Link
+                href={`/suppliers/${s.id}`}
+                className="bg-slate-100 hover:bg-slate-200 border border-[#cbcbcb] text-slate-800 font-bold py-2 px-2.5 rounded-[5px] text-[11px] flex items-center gap-1 transition-colors shadow-sm"
+                title="View Daily Itemized Purchase Orders & Ledger Statement"
+              >
+                <FileText className="w-3.5 h-3.5 text-[#6d8196]" /> Orders & Ledger
+              </Link>
+
               <button
                 onClick={() => setPayModalSupplier(s)}
                 disabled={s.outstanding <= 0}
-                className="flex-1 bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold py-2 px-3 rounded-[5px] text-xs flex items-center justify-center gap-1 transition-colors disabled:opacity-40"
+                className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 px-2 rounded-[5px] text-xs flex items-center justify-center gap-1 transition-colors disabled:opacity-40 shadow-sm"
               >
                 <DollarSign className="w-3.5 h-3.5" /> Pay Supplier
               </button>
+
               <button
                 onClick={() => handleWhatsAppReorder(s)}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white p-2 rounded-[5px] text-xs flex items-center gap-1 font-bold"
+                className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 p-2 rounded-[5px] text-xs"
                 title="Send Low Stock WhatsApp Reorder"
               >
-                <MessageSquare className="w-4 h-4" /> Reorder
+                <MessageSquare className="w-4 h-4" />
               </button>
             </div>
           </div>
