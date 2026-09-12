@@ -153,7 +153,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const invoiceGroups = groupInvoicesByDate();
 
   return (
-    <div className="space-y-5 max-w-5xl mx-auto">
+    <div className="space-y-4 w-full">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Link
@@ -177,7 +177,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                 onClick={() => setShowPayModal(true)}
                 className="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-sm"
               >
-                <DollarSign className="w-4 h-4" /> Clear Udhar Payment
+                <DollarSign className="w-4 h-4" /> Clear Credit Payment
               </button>
               <button
                 onClick={handleWhatsAppReminder}
@@ -198,7 +198,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
               <h1 className="text-2xl font-extrabold text-[#4a4a4a]">{customer.name}</h1>
               {customer.outstanding > 0 ? (
                 <span className="px-2.5 py-0.5 rounded-[5px] text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                  Udhar Due
+                  Credit Due
                 </span>
               ) : (
                 <span className="px-2.5 py-0.5 rounded-[5px] text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
@@ -224,7 +224,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
           </div>
 
           <div className="bg-[#ffffe3] p-4 rounded-[5px] border border-[#cbcbcb] min-w-[220px] text-right shadow-sm">
-            <span className="text-[10px] text-slate-500 uppercase font-bold">Current Udhar Outstanding</span>
+            <span className="text-[10px] text-slate-500 uppercase font-bold">Current Outstanding Balance</span>
             <div className={`text-3xl font-black ${customer.outstanding > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
               ₹{customer.outstanding.toLocaleString('en-IN')}
             </div>
@@ -341,7 +341,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                                 </div>
                                 {inv.dueAmount > 0 ? (
                                   <span className="text-[10px] text-amber-700 font-bold block">
-                                    Added to Udhar: ₹{inv.dueAmount.toLocaleString('en-IN')}
+                                    Added to Credit: ₹{inv.dueAmount.toLocaleString('en-IN')}
                                   </span>
                                 ) : (
                                   <span className="text-[10px] text-emerald-700 font-bold block">
@@ -504,7 +504,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-md w-full p-5 space-y-4 shadow-xl">
             <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
-              <DollarSign className="w-5 h-5 text-emerald-700" /> Record Udhar Payment
+              <DollarSign className="w-5 h-5 text-emerald-700" /> Record Credit Payment
             </h3>
 
             <form onSubmit={handleRecordPayment} className="space-y-3 text-xs">
@@ -558,7 +558,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                   type="submit"
                   className="w-1/2 bg-emerald-700 hover:bg-emerald-800 text-white py-2 rounded-[5px] font-bold"
                 >
-                  Clear Udhar Balance
+                  Clear Credit Balance
                 </button>
               </div>
             </form>

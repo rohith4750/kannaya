@@ -165,7 +165,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             </div>
             {invoice.dueAmount > 0 && (
               <div className="flex justify-between font-bold text-amber-700">
-                <span>Due Udhar:</span>
+                <span>Balance Credit Due:</span>
                 <span>₹{invoice.dueAmount}</span>
               </div>
             )}

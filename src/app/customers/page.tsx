@@ -209,7 +209,7 @@ export default function CustomersPage() {
                   <h3 className="text-sm font-bold text-slate-900 truncate">{c.name}</h3>
                   {c.outstanding > 0 ? (
                     <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                      Udhar Due
+                      Credit Due
                     </span>
                   ) : (
                     <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
@@ -349,13 +349,13 @@ export default function CustomersPage() {
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-md w-full p-5 space-y-3 shadow-2xl">
             <h3 className="text-sm font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
-              <DollarSign className="w-4 h-4 text-emerald-700" /> Record Udhar Payment
+              <DollarSign className="w-4 h-4 text-emerald-700" /> Record Credit Payment
             </h3>
 
             <div className="bg-[#ffffe3] p-2.5 rounded-[5px] border border-[#cbcbcb] text-xs">
               <div className="font-bold text-[#4a4a4a]">{payModalCustomer.name}</div>
               <div className="text-amber-700 font-bold mt-0.5">
-                Current Outstanding Udhar: ₹{payModalCustomer.outstanding.toLocaleString('en-IN')}
+                Current Outstanding Balance: ₹{payModalCustomer.outstanding.toLocaleString('en-IN')}
               </div>
             </div>
 
@@ -410,7 +410,7 @@ export default function CustomersPage() {
                   type="submit"
                   className="w-1/2 bg-emerald-700 hover:bg-emerald-800 text-white py-2 rounded-[5px] font-bold shadow-sm"
                 >
-                  Clear Udhar Balance
+                  Clear Credit Balance
                 </button>
               </div>
             </form>

@@ -57,7 +57,7 @@ export default function WhatsAppPage() {
         {/* Customer Payment Reminders Column */}
         <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm space-y-4">
           <h3 className="text-sm font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
-            <Users className="w-4 h-4 text-amber-700" /> Customers with Outstanding Udhar Dues ({customers.length})
+            <Users className="w-4 h-4 text-amber-700" /> Customers with Outstanding Credit Dues ({customers.length})
           </h3>
 
           <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
@@ -102,7 +102,7 @@ export default function WhatsAppPage() {
           <div className="bg-[#ffffe3] border border-[#cbcbcb] p-4 rounded-[5px] text-xs space-y-2 font-mono text-[#4a4a4a]">
             <p className="font-bold">⚡ VENKATA LAKSHMI ELECTRONICS ⚡</p>
             <p>Dear Ramesh Kumar,</p>
-            <p>Your outstanding credit balance (Udhar) is ₹18,500.</p>
+            <p>Your outstanding credit balance is ₹18,500.</p>
             <p>Kindly settle the amount via Cash or UPI.</p>
             <p>Thank you!</p>
           </div>

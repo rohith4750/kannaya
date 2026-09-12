@@ -311,7 +311,7 @@ export default function DashboardPage() {
                 <th>Items Count</th>
                 <th>Payment Mode</th>
                 <th>Total Amount</th>
-                <th>Due (Udhar)</th>
+                <th>Due Amount (Credit)</th>
                 <th>Date</th>
               </tr>
             </thead>
