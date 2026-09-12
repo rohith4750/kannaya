@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ChevronDown } from 'lucide-react';
+import { FormControl, Select, MenuItem, SelectChangeEvent } from '@mui/material';
 
 interface Option {
   value: string;
@@ -25,28 +25,80 @@ export default function MaterialSelect({
   label,
   className = '',
 }: MaterialSelectProps) {
+  const handleChange = (event: SelectChangeEvent<string>) => {
+    onChange(event.target.value as string);
+  };
+
   return (
-    <div className={`relative w-full ${className}`}>
+    <FormControl fullWidth size="small" className={className}>
       {label && (
-        <label className="text-slate-700 font-bold uppercase text-[10px] block mb-1">
+        <label className="text-[#4a4a4a] font-semibold uppercase text-[10px] block mb-1">
           {label}
         </label>
       )}
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-3 pr-8 py-1.5 text-xs text-[#4a4a4a] focus:outline-none focus:border-[#6d8196] focus:bg-white focus:ring-1 focus:ring-[#6d8196] transition-all cursor-pointer font-medium"
-        >
-          {placeholder && <option value="">{placeholder}</option>}
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value} className="bg-white text-slate-900 py-1">
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-      </div>
-    </div>
+      <Select
+        value={value || ''}
+        onChange={handleChange}
+        displayEmpty
+        sx={{
+          fontSize: '12px',
+          color: '#4a4a4a',
+          backgroundColor: '#ffffff',
+          borderRadius: '5px !important',
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#cbcbcb',
+          },
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#6d8196',
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#6d8196',
+          },
+          '& .MuiSelect-select': {
+            padding: '6px 10px',
+          },
+        }}
+        MenuProps={{
+          slotProps: {
+            paper: {
+              sx: {
+                borderRadius: '5px !important',
+                border: '1px solid #cbcbcb',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                maxHeight: 250,
+                '& .MuiMenuItem-root': {
+                  fontSize: '12px',
+                  color: '#4a4a4a',
+                  padding: '6px 12px',
+                  '&:hover': {
+                    backgroundColor: '#ffffe3',
+                    color: '#4a4a4a',
+                  },
+                  '&.Mui-selected': {
+                    backgroundColor: '#6d8196',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    '&:hover': {
+                      backgroundColor: '#5b6f84',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }}
+      >
+        {placeholder && (
+          <MenuItem value="">
+            <span style={{ color: '#94a3b8' }}>{placeholder}</span>
+          </MenuItem>
+        )}
+        {options.map((opt) => (
+          <MenuItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   );
 }

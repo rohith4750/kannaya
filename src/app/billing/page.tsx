@@ -439,14 +439,16 @@ export default function BillingPOSPage() {
                 <CheckCircle className="w-5 h-5 text-emerald-700" /> Invoice Generated
               </h3>
               <div className="flex items-center gap-2">
-                <select
-                  value={printerWidth}
-                  onChange={(e) => setPrinterWidth(e.target.value as any)}
-                  className="bg-white border border-[#cbcbcb] text-xs text-[#4a4a4a] px-2 py-1 rounded-[5px]"
-                >
-                  <option value="80mm">80mm Thermal</option>
-                  <option value="58mm">58mm Thermal</option>
-                </select>
+                <div className="w-36">
+                  <MaterialSelect
+                    value={printerWidth}
+                    onChange={(val) => setPrinterWidth(val as any)}
+                    options={[
+                      { value: '80mm', label: '80mm Thermal' },
+                      { value: '58mm', label: '58mm Thermal' },
+                    ]}
+                  />
+                </div>
                 <button onClick={() => setShowReceiptModal(false)} className="text-slate-400 hover:text-[#4a4a4a] p-1">
                   <X className="w-5 h-5" />
                 </button>

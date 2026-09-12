@@ -12,6 +12,7 @@ import {
   Phone,
   Layers,
 } from 'lucide-react';
+import MaterialSelect from '@/components/MaterialSelect';
 
 export default function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -85,14 +86,16 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         </Link>
 
         <div className="flex items-center gap-2">
-          <select
-            value={printerWidth}
-            onChange={(e) => setPrinterWidth(e.target.value as any)}
-            className="bg-white border border-[#cbcbcb] text-xs text-[#4a4a4a] px-3 py-1.5 rounded-[5px] focus:outline-none focus:border-[#6d8196]"
-          >
-            <option value="80mm">80mm Thermal</option>
-            <option value="58mm">58mm Thermal</option>
-          </select>
+          <div className="w-36">
+            <MaterialSelect
+              value={printerWidth}
+              onChange={(val) => setPrinterWidth(val as any)}
+              options={[
+                { value: '80mm', label: '80mm Thermal' },
+                { value: '58mm', label: '58mm Thermal' },
+              ]}
+            />
+          </div>
           <button
             onClick={handlePrintThermal}
             className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-4 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-sm border border-[#cbcbcb]/40"

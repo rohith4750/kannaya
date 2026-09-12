@@ -15,6 +15,7 @@ import {
   FileText,
   AlertCircle,
 } from 'lucide-react';
+import MaterialSelect from '@/components/MaterialSelect';
 
 export default function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -246,16 +247,16 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
               </div>
 
               <div>
-                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Payment Method</label>
-                <select
+                <MaterialSelect
+                  label="Payment Method"
                   value={payMethod}
-                  onChange={(e) => setPayMethod(e.target.value)}
-                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
-                >
-                  <option value="CASH">Cash</option>
-                  <option value="UPI">UPI / GPay / PhonePe</option>
-                  <option value="CARD">Bank Transfer / Card</option>
-                </select>
+                  onChange={(val) => setPayMethod(val)}
+                  options={[
+                    { value: 'CASH', label: 'Cash' },
+                    { value: 'UPI', label: 'UPI / GPay / PhonePe' },
+                    { value: 'CARD', label: 'Bank Transfer / Card' },
+                  ]}
+                />
               </div>
 
               <div>

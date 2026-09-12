@@ -7,13 +7,14 @@ import {
   Plus,
   DollarSign,
   MessageSquare,
-  History,
+  History as HistoryIcon,
   Phone,
   AlertCircle,
   CheckCircle,
   X,
   CreditCard,
 } from 'lucide-react';
+import MaterialSelect from '@/components/MaterialSelect';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -244,7 +245,7 @@ export default function CustomersPage() {
                   className="bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 p-1.5 rounded-[5px] text-xs"
                   title="View Ledger History"
                 >
-                  <History className="w-4 h-4" />
+                  <HistoryIcon className="w-4 h-4" />
                 </button>
                 {c.outstanding > 0 && (
                   <button
@@ -365,16 +366,16 @@ export default function CustomersPage() {
               </div>
 
               <div>
-                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Payment Method</label>
-                <select
+                <MaterialSelect
+                  label="Payment Method"
                   value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
-                >
-                  <option value="CASH">Cash</option>
-                  <option value="UPI">UPI / GPay / PhonePe</option>
-                  <option value="CARD">Bank Transfer / Card</option>
-                </select>
+                  onChange={(val) => setPaymentMethod(val)}
+                  options={[
+                    { value: 'CASH', label: 'Cash' },
+                    { value: 'UPI', label: 'UPI / GPay / PhonePe' },
+                    { value: 'CARD', label: 'Bank Transfer / Card' },
+                  ]}
+                />
               </div>
 
               <div>
