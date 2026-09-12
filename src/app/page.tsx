@@ -75,7 +75,7 @@ export default function DashboardPage() {
           </button>
           <Link
             href="/billing"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-[5px] flex items-center gap-2 shadow-sm text-xs transition-all"
+            className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold px-4 py-2 rounded-[5px] flex items-center gap-2 shadow-sm text-xs transition-all border border-[#cbcbcb]/40"
           >
             <ShoppingCart className="w-4 h-4" /> Start POS Billing
           </Link>
@@ -85,15 +85,15 @@ export default function DashboardPage() {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {/* Today's Sales */}
-        <div className="bg-white p-4 rounded-[5px] border border-slate-300 border-l-4 border-l-emerald-600 shadow-sm">
+        <div className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-emerald-600 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Today's Sales</span>
+            <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Today's Sales</span>
             <div className="p-1.5 rounded-[5px] bg-emerald-50 text-emerald-700">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2">
-            <h3 className="text-xl font-extrabold text-slate-900">
+            <h3 className="text-xl font-extrabold text-[#4a4a4a]">
               ₹{(metrics?.todaysSales || 24500).toLocaleString('en-IN')}
             </h3>
             <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
@@ -103,15 +103,15 @@ export default function DashboardPage() {
         </div>
 
         {/* Today's Cash Collection */}
-        <div className="bg-white p-4 rounded-[5px] border border-slate-300 border-l-4 border-l-sky-600 shadow-sm">
+        <div className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-[#6d8196] shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Today's Collection</span>
-            <div className="p-1.5 rounded-[5px] bg-sky-50 text-sky-700">
+            <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Today's Collection</span>
+            <div className="p-1.5 rounded-[5px] bg-[#6d8196]/10 text-[#6d8196]">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2">
-            <h3 className="text-xl font-extrabold text-slate-900">
+            <h3 className="text-xl font-extrabold text-[#4a4a4a]">
               ₹{(metrics?.todaysCollection || 15000).toLocaleString('en-IN')}
             </h3>
             <p className="text-[10px] text-slate-500 mt-1">Cash + UPI Received</p>
@@ -119,9 +119,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Customer Udhar Due */}
-        <Link href="/customers" className="bg-white p-4 rounded-[5px] border border-slate-300 border-l-4 border-l-amber-500 shadow-sm hover:border-amber-600 transition-colors block">
+        <Link href="/customers" className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-amber-500 shadow-sm hover:border-amber-600 transition-colors block">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Customer Due</span>
+            <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Customer Due</span>
             <div className="p-1.5 rounded-[5px] bg-amber-50 text-amber-700">
               <Users className="w-4 h-4" />
             </div>
@@ -138,28 +138,28 @@ export default function DashboardPage() {
         </Link>
 
         {/* Supplier Pending Due */}
-        <Link href="/suppliers" className="bg-white p-4 rounded-[5px] border border-slate-300 border-l-4 border-l-blue-600 shadow-sm hover:border-blue-700 transition-colors block">
+        <Link href="/suppliers" className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-[#6d8196] shadow-sm hover:border-[#6d8196] transition-colors block">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Supplier Due</span>
-            <div className="p-1.5 rounded-[5px] bg-blue-50 text-blue-700">
+            <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Supplier Due</span>
+            <div className="p-1.5 rounded-[5px] bg-[#6d8196]/10 text-[#6d8196]">
               <Truck className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2">
-            <h3 className="text-xl font-extrabold text-blue-800">
+            <h3 className="text-xl font-extrabold text-[#6d8196]">
               ₹{(metrics?.supplierDueTotal || 195000).toLocaleString('en-IN')}
             </h3>
             <p className="text-[10px] text-slate-500 mt-1 flex items-center justify-between">
               <span>Payables Pending</span>
-              <ArrowUpRight className="w-3 h-3 text-blue-700" />
+              <ArrowUpRight className="w-3 h-3 text-[#6d8196]" />
             </p>
           </div>
         </Link>
 
         {/* Low Stock Alert */}
-        <Link href="/products?filter=low-stock" className="bg-white p-4 rounded-[5px] border border-slate-300 border-l-4 border-l-rose-600 shadow-sm hover:border-rose-700 transition-colors block">
+        <Link href="/products?filter=low-stock" className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-rose-600 shadow-sm hover:border-rose-700 transition-colors block">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Low Stock Items</span>
+            <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Low Stock Items</span>
             <div className="p-1.5 rounded-[5px] bg-rose-50 text-rose-700">
               <AlertTriangle className="w-4 h-4" />
             </div>
@@ -179,20 +179,20 @@ export default function DashboardPage() {
       {/* Charts & Quick Actions Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Sales Trend Chart */}
-        <div className="lg:col-span-2 bg-white p-5 rounded-[5px] border border-slate-300 shadow-sm">
+        <div className="lg:col-span-2 bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Weekly Sales & Cash Collection</h3>
+              <h3 className="text-sm font-bold text-[#4a4a4a]">Weekly Sales & Cash Collection</h3>
               <p className="text-xs text-slate-500">Revenue overview over the past 7 days</p>
             </div>
             <div className="flex items-center gap-4 text-xs font-semibold">
               <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-[5px] bg-blue-600" />
-                <span className="text-slate-700">Sales</span>
+                <span className="w-3 h-3 rounded-[5px] bg-[#6d8196]" />
+                <span className="text-[#4a4a4a]">Sales</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded-[5px] bg-emerald-600" />
-                <span className="text-slate-700">Collection</span>
+                <span className="text-[#4a4a4a]">Collection</span>
               </div>
             </div>
           </div>
@@ -202,8 +202,8 @@ export default function DashboardPage() {
               <AreaChart data={salesTrend}>
                 <defs>
                   <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#6d8196" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#6d8196" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="collectGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#059669" stopOpacity={0.3} />
@@ -215,15 +215,15 @@ export default function DashboardPage() {
                 <YAxis stroke="#64748b" fontSize={11} tickFormatter={(v) => `₹${v / 1000}k`} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0f172a',
-                    borderColor: '#334155',
+                    backgroundColor: '#4a4a4a',
+                    borderColor: '#6d8196',
                     borderRadius: '5px',
                     color: '#fff',
                     fontSize: '11px',
                   }}
                   formatter={(value: any) => [`₹${Number(value).toLocaleString('en-IN')}`, '']}
                 />
-                <Area type="monotone" dataKey="sales" stroke="#2563eb" strokeWidth={2.5} fillOpacity={1} fill="url(#salesGrad)" />
+                <Area type="monotone" dataKey="sales" stroke="#6d8196" strokeWidth={2.5} fillOpacity={1} fill="url(#salesGrad)" />
                 <Area type="monotone" dataKey="collection" stroke="#059669" strokeWidth={2.5} fillOpacity={1} fill="url(#collectGrad)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -232,53 +232,53 @@ export default function DashboardPage() {
 
         {/* Quick Modules Shortcuts */}
         <div className="space-y-4">
-          <div className="bg-white p-5 rounded-[5px] border border-slate-300 shadow-sm">
+          <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-[5px] bg-blue-50 text-blue-700">
+              <div className="p-2 rounded-[5px] bg-[#6d8196]/10 text-[#6d8196]">
                 <Bot className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Kannaya AI Assistant</h3>
+                <h3 className="text-sm font-bold text-[#4a4a4a]">Kannaya AI Assistant</h3>
                 <p className="text-xs text-slate-500">Ask natural language shop queries</p>
               </div>
             </div>
-            <p className="text-xs text-slate-700 mt-3 italic bg-slate-50 p-2.5 rounded-[5px] border border-slate-200">
+            <p className="text-xs text-[#4a4a4a] mt-3 italic bg-[#ffffe3] p-2.5 rounded-[5px] border border-[#cbcbcb]">
               "Which customer owes me the most?"
             </p>
             <Link
               href="/ai-assistant"
-              className="mt-3.5 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded-[5px] text-xs flex items-center justify-center gap-2 transition-colors shadow-sm"
+              className="mt-3.5 w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold py-1.5 px-4 rounded-[5px] text-xs flex items-center justify-center gap-2 transition-colors shadow-sm"
             >
               Ask AI Assistant
             </Link>
           </div>
 
-          <div className="bg-white p-5 rounded-[5px] border border-slate-300 shadow-sm">
-            <h3 className="text-sm font-bold text-slate-900 mb-3">Quick ERP Modules</h3>
+          <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm">
+            <h3 className="text-sm font-bold text-[#4a4a4a] mb-3">Quick ERP Modules</h3>
             <div className="grid grid-cols-2 gap-2">
               <Link
                 href="/racks"
-                className="p-2.5 rounded-[5px] bg-slate-50 border border-slate-300 hover:border-blue-600 text-xs font-semibold text-slate-800 flex items-center gap-2 transition-colors"
+                className="p-2.5 rounded-[5px] bg-slate-50 border border-[#cbcbcb] hover:border-[#6d8196] text-xs font-semibold text-[#4a4a4a] flex items-center gap-2 transition-colors"
               >
                 <Layers className="w-4 h-4 text-amber-700" /> Rack Map
               </Link>
               <Link
                 href="/barcode"
-                className="p-2.5 rounded-[5px] bg-slate-50 border border-slate-300 hover:border-blue-600 text-xs font-semibold text-slate-800 flex items-center gap-2 transition-colors"
+                className="p-2.5 rounded-[5px] bg-slate-50 border border-[#cbcbcb] hover:border-[#6d8196] text-xs font-semibold text-[#4a4a4a] flex items-center gap-2 transition-colors"
               >
-                <Package className="w-4 h-4 text-blue-700" /> Barcode Studio
+                <Package className="w-4 h-4 text-[#6d8196]" /> Barcode Studio
               </Link>
               <Link
                 href="/whatsapp"
-                className="p-2.5 rounded-[5px] bg-slate-50 border border-slate-300 hover:border-blue-600 text-xs font-semibold text-slate-800 flex items-center gap-2 transition-colors"
+                className="p-2.5 rounded-[5px] bg-slate-50 border border-[#cbcbcb] hover:border-[#6d8196] text-xs font-semibold text-[#4a4a4a] flex items-center gap-2 transition-colors"
               >
                 <MessageSquare className="w-4 h-4 text-emerald-700" /> WhatsApp
               </Link>
               <Link
                 href="/customers"
-                className="p-2.5 rounded-[5px] bg-slate-50 border border-slate-300 hover:border-blue-600 text-xs font-semibold text-slate-800 flex items-center gap-2 transition-colors"
+                className="p-2.5 rounded-[5px] bg-slate-50 border border-[#cbcbcb] hover:border-[#6d8196] text-xs font-semibold text-[#4a4a4a] flex items-center gap-2 transition-colors"
               >
-                <Users className="w-4 h-4 text-blue-700" /> Udhar Ledger
+                <Users className="w-4 h-4 text-[#6d8196]" /> Udhar Ledger
               </Link>
             </div>
           </div>
@@ -286,18 +286,18 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Bills Table */}
-      <div className="bg-white p-5 rounded-[5px] border border-slate-300 shadow-sm">
+      <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-base font-bold text-slate-900">Recent Shop Bills & Transactions</h3>
+            <h3 className="text-base font-bold text-[#4a4a4a]">Recent Shop Bills & Transactions</h3>
             <p className="text-xs text-slate-500">Latest completed customer invoices</p>
           </div>
-          <Link href="/invoices" className="text-xs text-blue-700 hover:underline font-bold flex items-center gap-1">
+          <Link href="/invoices" className="text-xs text-[#6d8196] hover:underline font-bold flex items-center gap-1">
             View All Bills <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="overflow-x-auto rounded-[5px] border border-slate-200">
+        <div className="overflow-x-auto rounded-[5px] border border-[#cbcbcb]">
           <table className="erp-table">
             <thead>
               <tr>
@@ -314,7 +314,7 @@ export default function DashboardPage() {
               {recentInvoices.length > 0 ? (
                 recentInvoices.map((inv) => (
                   <tr key={inv.id}>
-                    <td className="font-mono font-bold text-blue-700">
+                    <td className="font-mono font-bold text-[#6d8196]">
                       <Link href={`/invoices/${inv.id}`} className="hover:underline">
                         {inv.invoiceNo}
                       </Link>

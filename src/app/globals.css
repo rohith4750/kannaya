@@ -3,24 +3,27 @@
 @tailwind utilities;
 
 :root {
-  /* Unified Enterprise ERP Palette */
-  --color-primary: #2563eb;       /* Primary Blue */
-  --color-navy: #1e293b;          /* Dark Slate Navy (Header, Sidebar, Table Headers) */
-  --color-navy-dark: #0f172a;     /* Deep Navy Accents */
-  --color-amber: #f59e0b;         /* Amber Accent */
-  --color-emerald: #10b981;       /* Success Emerald */
-  --color-rose: #ef4444;          /* Danger Rose */
+  /* Ink Wash Minimalist Palette */
+  --ink-charcoal: #4a4a4a;        /* Charcoal Ink (#4A4A4A) */
+  --ink-silver: #cbcbcb;          /* Silver Grey Border (#CBCBCB) */
+  --ink-cream: #ffffe3;           /* Warm Soft Cream (#FFFFE3) */
+  --ink-slate: #6d8196;           /* Slate Blue Grey (#6D8196) */
 
-  --bg-app: #f8fafc;             /* Light Crisp Canvas */
-  --surface-card: #ffffff;        /* Crisp White Surface */
-  --surface-card-hover: #f1f5f9;
-  --border-color: #cbd5e1;
-  --border-dark: #334155;
+  --bg-app: #f8fafc;
+  --surface-card: #ffffff;
+  --surface-card-hover: #ffffe3;
+  --border-color: #cbcbcb;
+  --border-dark: #4a4a4a;
 
-  --text-primary: #0f172a;       /* High contrast dark text */
-  --text-secondary: #334155;
-  --text-muted: #64748b;
+  --text-primary: #4a4a4a;       /* High contrast Charcoal Ink text */
+  --text-muted: #6d8196;
   --text-on-navy: #ffffff;
+
+  --color-primary: #6d8196;
+  --color-accent: #6d8196;
+  --color-amber: #f59e0b;
+  --color-emerald: #10b981;
+  --color-rose: #ef4444;
 
   /* Global ERP Radius & Spacing Variables */
   --radius-mat: 5px;
@@ -41,15 +44,15 @@ body {
   background-color: var(--surface-card);
   border: 1px solid var(--border-color);
   border-radius: 5px !important;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 3px rgba(74, 74, 74, 0.06);
 }
 
 .mat-card-hover:hover {
   background-color: var(--surface-card-hover);
-  border-color: var(--color-primary);
+  border-color: var(--ink-slate);
 }
 
-/* High-Contrast Compact ERP Table Styling */
+/* Ink Wash ERP Table Styling */
 .erp-table {
   width: 100%;
   border-collapse: collapse;
@@ -58,14 +61,14 @@ body {
 }
 
 .erp-table th {
-  background-color: #1e293b !important;
+  background-color: #6d8196 !important;
   color: #ffffff !important;
   font-weight: 700;
   text-transform: uppercase;
   font-size: 10.5px;
   letter-spacing: 0.04em;
   padding: 6px 10px !important;
-  border-bottom: 2px solid #334155;
+  border-bottom: 2px solid #4a4a4a;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -74,18 +77,18 @@ body {
 
 .erp-table td {
   padding: 5px 10px !important; /* Compact Row Height */
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #cbcbcb;
   vertical-align: middle;
   background-color: #ffffff;
-  color: #0f172a;
+  color: #4a4a4a;
 }
 
 .erp-table tr:nth-child(even) td {
-  background-color: #f8fafc;
+  background-color: #ffffe3 !important;
 }
 
 .erp-table tr:hover td {
-  background-color: #eff6ff !important;
+  background-color: #e2e8f0 !important;
 }
 
 /* Global 5px Radius Rule */
@@ -106,7 +109,7 @@ button, input, select, textarea, div.rounded-xl, div.rounded-2xl, div.rounded-lg
   border-radius: 5px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2563eb;
+  background: #6d8196;
 }
 
 /* Thermal Printer Styling */

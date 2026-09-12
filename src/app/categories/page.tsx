@@ -73,53 +73,53 @@ export default function CategoriesBrandsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/80 p-6 rounded-2xl border border-slate-800">
+    <div className="space-y-5">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <FolderPlus className="w-5 h-5 text-amber-400" /> Categories & Brands Taxonomy
+          <h1 className="text-xl font-bold text-[#4a4a4a] flex items-center gap-2">
+            <FolderPlus className="w-5 h-5 text-[#6d8196]" /> Categories & Brands Taxonomy
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Dynamically manage product categories, manufacturer brands, and taxonomy structures.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowCatModal(true)}
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 text-xs transition-all shadow-lg shadow-amber-500/10"
+            className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold px-4 py-2 rounded-[5px] flex items-center gap-2 text-xs transition-all shadow-sm"
           >
             <Plus className="w-4 h-4" /> Add Category
           </button>
           <button
             onClick={() => setShowBrandModal(true)}
-            className="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 text-xs border border-slate-700 transition-all"
+            className="bg-[#4a4a4a] hover:bg-[#383838] text-white font-bold px-4 py-2 rounded-[5px] flex items-center gap-2 text-xs transition-all shadow-sm"
           >
             <Plus className="w-4 h-4" /> Add Brand
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Categories List Card */}
-        <div className="glass-panel p-6 rounded-2xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <FolderPlus className="w-4 h-4 text-amber-400" /> Product Categories ({categories.length})
+        <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-3">
+            <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2">
+              <FolderPlus className="w-4 h-4 text-[#6d8196]" /> Product Categories ({categories.length})
             </h3>
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {categories.map((c) => (
               <div
                 key={c.id}
-                className="bg-slate-950 p-3.5 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs"
+                className="bg-slate-50 p-3 rounded-[5px] border border-[#cbcbcb] flex items-center justify-between text-xs"
               >
                 <div>
-                  <div className="font-bold text-white">{c.name}</div>
-                  <div className="text-[11px] text-slate-400 mt-0.5">{c.description || 'General Category'}</div>
+                  <div className="font-bold text-[#4a4a4a]">{c.name}</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">{c.description || 'General Category'}</div>
                 </div>
-                <span className="px-2.5 py-1 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <span className="px-2.5 py-1 rounded-[5px] text-[10px] font-bold bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20">
                   {c._count?.products || 0} Products
                 </span>
               </div>
@@ -128,21 +128,21 @@ export default function CategoriesBrandsPage() {
         </div>
 
         {/* Brands List Card */}
-        <div className="glass-panel p-6 rounded-2xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Tag className="w-4 h-4 text-blue-400" /> Manufacturer Brands ({brands.length})
+        <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-3">
+            <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2">
+              <Tag className="w-4 h-4 text-[#6d8196]" /> Manufacturer Brands ({brands.length})
             </h3>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-2">
             {brands.map((b) => (
               <div
                 key={b.id}
-                className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs"
+                className="bg-slate-50 p-3 rounded-[5px] border border-[#cbcbcb] flex items-center justify-between text-xs"
               >
-                <span className="font-bold text-white">{b.name}</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                <span className="font-bold text-[#4a4a4a]">{b.name}</span>
+                <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-semibold bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20">
                   {b._count?.products || 0} Products
                 </span>
               </div>
@@ -153,44 +153,44 @@ export default function CategoriesBrandsPage() {
 
       {/* CREATE CATEGORY MODAL */}
       {showCatModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-4">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <FolderPlus className="w-4 h-4 text-amber-400" /> Add Product Category
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
+              <FolderPlus className="w-4 h-4 text-[#6d8196]" /> Add Product Category
             </h3>
             <form onSubmit={handleCreateCategory} className="space-y-3 text-xs">
               <div>
-                <label className="text-slate-400 uppercase text-[10px] font-semibold">Category Name</label>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Category Name</label>
                 <input
                   type="text"
                   required
                   value={catName}
                   onChange={(e) => setCatName(e.target.value)}
                   placeholder="e.g. Solar Panels, Heavy Wires"
-                  className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
                 />
               </div>
               <div>
-                <label className="text-slate-400 uppercase text-[10px] font-semibold">Description</label>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Description</label>
                 <input
                   type="text"
                   value={catDesc}
                   onChange={(e) => setCatDesc(e.target.value)}
                   placeholder="e.g. Solar inverters and PV panels"
-                  className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
                 />
               </div>
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowCatModal(false)}
-                  className="w-1/2 bg-slate-800 text-slate-300 py-2.5 rounded-xl font-semibold"
+                  className="w-1/2 bg-slate-100 border border-[#cbcbcb] text-[#4a4a4a] py-2 rounded-[5px] font-bold hover:bg-slate-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 bg-amber-500 hover:bg-amber-400 text-slate-950 py-2.5 rounded-xl font-bold"
+                  className="w-1/2 bg-[#6d8196] hover:bg-[#5b6f84] text-white py-2 rounded-[5px] font-bold"
                 >
                   Save Category
                 </button>
@@ -202,34 +202,34 @@ export default function CategoriesBrandsPage() {
 
       {/* CREATE BRAND MODAL */}
       {showBrandModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-4">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Tag className="w-4 h-4 text-amber-400" /> Add Manufacturer Brand
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
+              <Tag className="w-4 h-4 text-[#6d8196]" /> Add Manufacturer Brand
             </h3>
             <form onSubmit={handleCreateBrand} className="space-y-3 text-xs">
               <div>
-                <label className="text-slate-400 uppercase text-[10px] font-semibold">Brand Name</label>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Brand Name</label>
                 <input
                   type="text"
                   required
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
                   placeholder="e.g. Schneider, Legrand, Polycab"
-                  className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
                 />
               </div>
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowBrandModal(false)}
-                  className="w-1/2 bg-slate-800 text-slate-300 py-2.5 rounded-xl font-semibold"
+                  className="w-1/2 bg-slate-100 border border-[#cbcbcb] text-[#4a4a4a] py-2 rounded-[5px] font-bold hover:bg-slate-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 bg-amber-500 hover:bg-amber-400 text-slate-950 py-2.5 rounded-xl font-bold"
+                  className="w-1/2 bg-[#6d8196] hover:bg-[#5b6f84] text-white py-2 rounded-[5px] font-bold"
                 >
                   Save Brand
                 </button>

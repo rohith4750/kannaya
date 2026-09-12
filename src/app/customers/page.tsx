@@ -263,54 +263,54 @@ export default function CustomersPage() {
 
       {/* ADD CUSTOMER MODAL */}
       {showAddCustomerModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-300 rounded-[5px] max-w-md w-full p-5 space-y-3 shadow-2xl">
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-600" /> Register Customer Account
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-md w-full p-5 space-y-3 shadow-2xl">
+            <h3 className="text-sm font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
+              <Users className="w-4 h-4 text-[#6d8196]" /> Register Customer Account
             </h3>
 
             <form onSubmit={handleAddCustomer} className="space-y-3 text-xs">
               <div>
-                <label className="text-slate-700 uppercase text-[10px] font-bold">Customer Full Name</label>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Customer Full Name</label>
                 <input
                   type="text"
                   required
                   value={newCustName}
                   onChange={(e) => setNewCustName(e.target.value)}
                   placeholder="e.g. Ramesh Kumar / Electrician"
-                  className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 focus:bg-white focus:border-blue-600"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-700 uppercase text-[10px] font-bold">Phone Number</label>
+                  <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Phone Number</label>
                   <input
                     type="text"
                     required
                     value={newCustPhone}
                     onChange={(e) => setNewCustPhone(e.target.value)}
                     placeholder="9876543210"
-                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 focus:bg-white focus:border-blue-600"
+                    className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-700 uppercase text-[10px] font-bold">Credit Limit (₹)</label>
+                  <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Credit Limit (₹)</label>
                   <input
                     type="number"
                     value={newCustCreditLimit}
                     onChange={(e) => setNewCustCreditLimit(e.target.value)}
-                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 font-mono focus:bg-white focus:border-blue-600"
+                    className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] font-mono focus:bg-white focus:border-[#6d8196] focus:outline-none"
                   />
                 </div>
               </div>
               <div>
-                <label className="text-slate-700 uppercase text-[10px] font-bold">Address / Site Location</label>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Address / Site Location</label>
                 <input
                   type="text"
                   value={newCustAddress}
                   onChange={(e) => setNewCustAddress(e.target.value)}
                   placeholder="e.g. Market Road, Phase 2 Site"
-                  className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 focus:bg-white focus:border-blue-600"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
                 />
               </div>
 
@@ -318,13 +318,13 @@ export default function CustomersPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddCustomerModal(false)}
-                  className="w-1/2 bg-slate-100 text-slate-700 py-2 rounded-[5px] font-bold border border-slate-300"
+                  className="w-1/2 bg-slate-100 text-[#4a4a4a] py-2 rounded-[5px] font-bold border border-[#cbcbcb] hover:bg-slate-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-[5px] font-bold shadow-sm"
+                  className="w-1/2 bg-[#6d8196] hover:bg-[#5b6f84] text-white py-2 rounded-[5px] font-bold shadow-sm"
                 >
                   Save Account
                 </button>
@@ -336,14 +336,14 @@ export default function CustomersPage() {
 
       {/* RECORD PAYMENT MODAL */}
       {payModalCustomer && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-300 rounded-[5px] max-w-md w-full p-5 space-y-3 shadow-2xl">
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-md w-full p-5 space-y-3 shadow-2xl">
+            <h3 className="text-sm font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
               <DollarSign className="w-4 h-4 text-emerald-700" /> Record Udhar Payment
             </h3>
 
-            <div className="bg-slate-50 p-2.5 rounded-[5px] border border-slate-300 text-xs">
-              <div className="font-bold text-slate-900">{payModalCustomer.name}</div>
+            <div className="bg-[#ffffe3] p-2.5 rounded-[5px] border border-[#cbcbcb] text-xs">
+              <div className="font-bold text-[#4a4a4a]">{payModalCustomer.name}</div>
               <div className="text-amber-700 font-bold mt-0.5">
                 Current Outstanding Udhar: ₹{payModalCustomer.outstanding.toLocaleString('en-IN')}
               </div>
@@ -351,7 +351,7 @@ export default function CustomersPage() {
 
             <form onSubmit={handleRecordPayment} className="space-y-3 text-xs">
               <div>
-                <label className="text-slate-700 uppercase text-[10px] font-bold">Payment Amount Received (₹)</label>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Payment Amount Received (₹)</label>
                 <input
                   type="number"
                   required
@@ -360,16 +360,16 @@ export default function CustomersPage() {
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
                   placeholder={`Max ₹${payModalCustomer.outstanding}`}
-                  className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-emerald-700 font-bold text-base focus:bg-white focus:border-blue-600"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-emerald-700 font-bold text-base focus:bg-white focus:border-[#6d8196] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-slate-700 uppercase text-[10px] font-bold">Payment Method</label>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Payment Method</label>
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 focus:bg-white focus:border-blue-600"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
                 >
                   <option value="CASH">Cash</option>
                   <option value="UPI">UPI / GPay / PhonePe</option>
@@ -378,13 +378,13 @@ export default function CustomersPage() {
               </div>
 
               <div>
-                <label className="text-slate-700 uppercase text-[10px] font-bold">Notes / Receipt Ref</label>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Notes / Receipt Ref</label>
                 <input
                   type="text"
                   value={paymentNotes}
                   onChange={(e) => setPaymentNotes(e.target.value)}
                   placeholder="e.g. Received via GPay for INV-2026-001"
-                  className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 focus:bg-white focus:border-blue-600"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
                 />
               </div>
 
@@ -392,13 +392,13 @@ export default function CustomersPage() {
                 <button
                   type="button"
                   onClick={() => setPayModalCustomer(null)}
-                  className="w-1/2 bg-slate-100 text-slate-700 py-2 rounded-[5px] font-bold border border-slate-300"
+                  className="w-1/2 bg-slate-100 text-[#4a4a4a] py-2 rounded-[5px] font-bold border border-[#cbcbcb] hover:bg-slate-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-[5px] font-bold shadow-sm"
+                  className="w-1/2 bg-emerald-700 hover:bg-emerald-800 text-white py-2 rounded-[5px] font-bold shadow-sm"
                 >
                   Clear Udhar Balance
                 </button>

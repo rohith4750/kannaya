@@ -16,94 +16,94 @@ export default function ReportsPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/80 p-6 rounded-2xl border border-slate-800">
+    <div className="space-y-5">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-amber-400" /> Business Analytics & Reports
+          <h1 className="text-xl font-bold text-[#4a4a4a] flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-[#6d8196]" /> Business Analytics & Reports
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Financial auditing, profit/loss breakdown, inventory valuation, and credit receivables.
           </p>
         </div>
         <button
           onClick={() => window.print()}
-          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 text-xs transition-all shadow-lg shadow-amber-500/10"
+          className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold px-4 py-2 rounded-[5px] flex items-center gap-2 text-xs transition-all shadow-sm border border-[#cbcbcb]/40"
         >
           <Printer className="w-4 h-4" /> Print Financial Report
         </button>
       </div>
 
       {/* Financial Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-emerald-500 space-y-2">
-          <div className="text-xs font-semibold text-slate-400 uppercase">Estimated Today's Sales</div>
-          <div className="text-3xl font-black text-white">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-emerald-600 shadow-sm space-y-1.5">
+          <div className="text-xs font-bold text-[#4a4a4a] uppercase">Estimated Today's Sales</div>
+          <div className="text-2xl font-extrabold text-[#4a4a4a]">
             ₹{(metrics?.todaysSales || 24500).toLocaleString('en-IN')}
           </div>
-          <p className="text-xs text-emerald-400 font-semibold">+18.4% growth vs previous week</p>
+          <p className="text-xs text-emerald-700 font-bold">+18.4% growth vs previous week</p>
         </div>
 
-        <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-amber-500 space-y-2">
-          <div className="text-xs font-semibold text-slate-400 uppercase">Total Customer Udhar Outstanding</div>
-          <div className="text-3xl font-black text-amber-400">
+        <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-amber-500 shadow-sm space-y-1.5">
+          <div className="text-xs font-bold text-[#4a4a4a] uppercase">Total Customer Udhar Outstanding</div>
+          <div className="text-2xl font-extrabold text-amber-700">
             ₹{(metrics?.customerDueTotal || 71700).toLocaleString('en-IN')}
           </div>
-          <p className="text-xs text-slate-400">Receivables pending clearance</p>
+          <p className="text-xs text-slate-500">Receivables pending clearance</p>
         </div>
 
-        <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-purple-500 space-y-2">
-          <div className="text-xs font-semibold text-slate-400 uppercase">Total Supplier Payables Due</div>
-          <div className="text-3xl font-black text-purple-300">
+        <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] border-l-4 border-l-[#6d8196] shadow-sm space-y-1.5">
+          <div className="text-xs font-bold text-[#4a4a4a] uppercase">Total Supplier Payables Due</div>
+          <div className="text-2xl font-extrabold text-[#6d8196]">
             ₹{(metrics?.supplierDueTotal || 195000).toLocaleString('en-IN')}
           </div>
-          <p className="text-xs text-slate-400">Pending stock invoices</p>
+          <p className="text-xs text-slate-500">Pending stock invoices</p>
         </div>
       </div>
 
       {/* Detailed Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Sales & Collection Report */}
-        <div className="glass-panel p-6 rounded-2xl space-y-4">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-emerald-400" /> Revenue & Profit Breakdown
+        <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm space-y-4">
+          <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
+            <TrendingUp className="w-4 h-4 text-emerald-700" /> Revenue & Profit Breakdown
           </h3>
 
-          <div className="space-y-3 text-xs">
-            <div className="flex justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
-              <span className="text-slate-400">Total Gross Monthly Sales</span>
-              <span className="font-bold text-white">₹7,28,400</span>
+          <div className="space-y-2.5 text-xs">
+            <div className="flex justify-between p-3 rounded-[5px] bg-slate-50 border border-[#cbcbcb]">
+              <span className="text-slate-600 font-medium">Total Gross Monthly Sales</span>
+              <span className="font-bold text-[#4a4a4a]">₹7,28,400</span>
             </div>
-            <div className="flex justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
-              <span className="text-slate-400">Estimated Cost of Goods Sold (COGS)</span>
-              <span className="font-bold text-slate-300">₹5,18,200</span>
+            <div className="flex justify-between p-3 rounded-[5px] bg-slate-50 border border-[#cbcbcb]">
+              <span className="text-slate-600 font-medium">Estimated Cost of Goods Sold (COGS)</span>
+              <span className="font-bold text-slate-700">₹5,18,200</span>
             </div>
-            <div className="flex justify-between p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
-              <span className="font-bold text-emerald-300">Estimated Net Profit</span>
-              <span className="font-black text-emerald-400 text-sm">₹2,10,200 (28.8%)</span>
+            <div className="flex justify-between p-3 rounded-[5px] bg-emerald-50 border border-emerald-200">
+              <span className="font-bold text-emerald-800">Estimated Net Profit</span>
+              <span className="font-black text-emerald-700 text-sm">₹2,10,200 (28.8%)</span>
             </div>
           </div>
         </div>
 
         {/* Inventory Valuation Report */}
-        <div className="glass-panel p-6 rounded-2xl space-y-4">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <Package className="w-4 h-4 text-amber-400" /> Inventory Stock Valuation
+        <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm space-y-4">
+          <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
+            <Package className="w-4 h-4 text-[#6d8196]" /> Inventory Stock Valuation
           </h3>
 
-          <div className="space-y-3 text-xs">
-            <div className="flex justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
-              <span className="text-slate-400">Total Catalog Items</span>
-              <span className="font-bold text-white">{metrics?.totalProductCount || 14} SKUs</span>
+          <div className="space-y-2.5 text-xs">
+            <div className="flex justify-between p-3 rounded-[5px] bg-slate-50 border border-[#cbcbcb]">
+              <span className="text-slate-600 font-medium">Total Catalog Items</span>
+              <span className="font-bold text-[#4a4a4a]">{metrics?.totalProductCount || 14} SKUs</span>
             </div>
-            <div className="flex justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
-              <span className="text-slate-400">Stock Purchase Cost Valuation</span>
-              <span className="font-bold text-white">₹12,85,400</span>
+            <div className="flex justify-between p-3 rounded-[5px] bg-slate-50 border border-[#cbcbcb]">
+              <span className="text-slate-600 font-medium">Stock Purchase Cost Valuation</span>
+              <span className="font-bold text-[#4a4a4a]">₹12,85,400</span>
             </div>
-            <div className="flex justify-between p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
-              <span className="font-bold text-amber-300">Stock Selling Value</span>
-              <span className="font-black text-amber-400 text-sm">₹17,42,800</span>
+            <div className="flex justify-between p-3 rounded-[5px] bg-[#ffffe3] border border-[#cbcbcb]">
+              <span className="font-bold text-[#4a4a4a]">Stock Selling Value</span>
+              <span className="font-black text-[#6d8196] text-sm">₹17,42,800</span>
             </div>
           </div>
         </div>

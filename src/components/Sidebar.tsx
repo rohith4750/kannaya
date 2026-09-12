@@ -40,17 +40,17 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-[#1e293b] border-r border-slate-700/80 flex flex-col h-screen sticky top-0 z-30 select-none shadow-lg">
+    <aside className="w-64 bg-[#4a4a4a] border-r border-[#6d8196]/40 flex flex-col h-screen sticky top-0 z-30 select-none shadow-xl">
       {/* Brand Header */}
-      <div className="p-4 border-b border-slate-700 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-[5px] bg-[#2563eb] flex items-center justify-center shadow-lg text-white font-black">
+      <div className="p-4 border-b border-[#6d8196]/40 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-[5px] bg-[#6d8196] flex items-center justify-center shadow-md text-white font-black">
           <Zap className="w-5 h-5 fill-current" />
         </div>
         <div>
           <h1 className="font-bold text-base text-white leading-tight flex items-center gap-1">
             Kannaya ERP
           </h1>
-          <p className="text-[11px] text-slate-400 flex items-center gap-1">
+          <p className="text-[11px] text-[#ffffe3] flex items-center gap-1 font-medium">
             <Store className="w-3 h-3 text-[#f59e0b]" /> Electrical & Hardware
           </p>
         </div>
@@ -60,12 +60,12 @@ export default function Sidebar() {
       <div className="px-3 pt-3 pb-2">
         <Link
           href="/billing"
-          className="w-full bg-[#f59e0b] hover:bg-amber-500 text-slate-950 font-black py-2 px-3.5 rounded-[5px] flex items-center justify-between shadow-md transition-all group"
+          className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-black py-2 px-3.5 rounded-[5px] flex items-center justify-between shadow-md transition-all group border border-[#cbcbcb]/30"
         >
           <span className="flex items-center gap-2 text-xs">
-            <ShoppingCart className="w-4 h-4" /> Quick POS Bill
+            <ShoppingCart className="w-4 h-4 text-[#ffffe3]" /> Quick POS Bill
           </span>
-          <span className="bg-slate-950/20 px-1.5 py-0.5 rounded-[5px] text-[10px] text-slate-950 font-extrabold">
+          <span className="bg-[#ffffe3]/20 px-1.5 py-0.5 rounded-[5px] text-[10px] text-[#ffffe3] font-extrabold">
             F2
           </span>
         </Link>
@@ -73,7 +73,7 @@ export default function Sidebar() {
 
       {/* Navigation Links */}
       <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1">
+        <div className="text-[10px] font-extrabold uppercase tracking-wider text-[#cbcbcb] px-3 py-1">
           Store Navigation
         </div>
         {navigation.map((item) => {
@@ -85,17 +85,17 @@ export default function Sidebar() {
               href={item.href}
               className={`flex items-center justify-between px-3.5 py-2 rounded-[5px] text-xs font-bold transition-all ${
                 isActive
-                  ? 'bg-[#2563eb] text-white shadow-md'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
+                  ? 'bg-[#6d8196] text-white shadow-md border border-[#cbcbcb]/40'
+                  : 'text-[#cbcbcb] hover:text-white hover:bg-[#6d8196]/30'
               }`}
             >
               <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-[#ffffe3]' : 'text-[#cbcbcb]'}`} />
                 <span>{item.name}</span>
               </div>
               {item.badge && (
                 <span className={`px-1.5 py-0.5 text-[9px] font-black rounded-[5px] uppercase ${
-                  isActive ? 'bg-white text-[#2563eb]' : 'bg-[#2563eb] text-white'
+                  isActive ? 'bg-[#ffffe3] text-[#4a4a4a]' : 'bg-[#6d8196] text-white'
                 }`}>
                   {item.badge}
                 </span>
@@ -106,7 +106,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer Info */}
-      <div className="p-3.5 border-t border-slate-700 bg-[#0f172a] text-xs text-slate-400">
+      <div className="p-3.5 border-t border-[#6d8196]/40 bg-[#383838] text-xs text-[#cbcbcb]">
         <div className="flex items-center justify-between text-[11px]">
           <span>Database:</span>
           <span className="text-emerald-400 font-mono font-bold flex items-center gap-1">

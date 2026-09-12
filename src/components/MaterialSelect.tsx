@@ -36,7 +36,7 @@ export default function MaterialSelect({
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none bg-slate-50 border border-slate-300 rounded-[5px] pl-3 pr-8 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-1 focus:ring-blue-600 transition-all cursor-pointer font-medium"
+          className="w-full appearance-none bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-3 pr-8 py-1.5 text-xs text-[#4a4a4a] focus:outline-none focus:border-[#6d8196] focus:bg-white focus:ring-1 focus:ring-[#6d8196] transition-all cursor-pointer font-medium"
         >
           {placeholder && <option value="">{placeholder}</option>}
           {options.map((opt) => (

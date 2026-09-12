@@ -43,14 +43,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white border border-slate-300 rounded-[5px] p-8 shadow-xl space-y-6">
+    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white border border-[#cbcbcb] rounded-[5px] p-8 shadow-xl space-y-6">
         {/* Brand Logo & Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-[5px] bg-gradient-to-tr from-blue-600 via-indigo-600 to-amber-500 flex items-center justify-center shadow-md mx-auto text-white font-black">
-            <Zap className="w-7 h-7 fill-current" />
+          <div className="w-12 h-12 rounded-[5px] bg-[#6d8196] flex items-center justify-center shadow-md mx-auto text-white font-black border border-[#cbcbcb]">
+            <Zap className="w-7 h-7 fill-current text-[#ffffe3]" />
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Kannaya ERP Login</h1>
+          <h1 className="text-2xl font-extrabold text-[#4a4a4a] tracking-tight">Kannaya ERP Login</h1>
           <p className="text-xs text-slate-500">
             Electrical & Hardware Store Operating System
           </p>
@@ -65,35 +65,35 @@ export default function LoginPage() {
         {/* Credentials Form */}
         <form onSubmit={(e) => handleLogin(e)} className="space-y-4 text-xs">
           <div>
-            <label className="text-slate-700 font-bold uppercase text-[10px] block mb-1">
+            <label className="text-[#4a4a4a] font-bold uppercase text-[10px] block mb-1">
               Email Address / Username
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#6d8196]" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@kannaya.com"
-                className="w-full bg-slate-50 border border-slate-300 rounded-[5px] pl-9 pr-3 py-2.5 text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white"
+                className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-9 pr-3 py-2.5 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196] focus:bg-white"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-slate-700 font-bold uppercase text-[10px] block mb-1">
+            <label className="text-[#4a4a4a] font-bold uppercase text-[10px] block mb-1">
               Password
             </label>
             <div className="relative">
-              <KeyRound className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <KeyRound className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#6d8196]" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full bg-slate-50 border border-slate-300 rounded-[5px] pl-9 pr-3 py-2.5 text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white"
+                className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-9 pr-3 py-2.5 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196] focus:bg-white"
               />
             </div>
           </div>
@@ -101,29 +101,29 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-[5px] text-xs shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold py-3 rounded-[5px] text-xs shadow-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50 border border-[#cbcbcb]/40"
           >
             {loading ? 'Authenticating...' : 'Sign In to Store ERP'} <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-        {/* 1-Click Material UI Quick Demo Logins */}
-        <div className="pt-4 border-t border-slate-200 space-y-2">
+        {/* 1-Click Quick Demo Logins */}
+        <div className="pt-4 border-t border-[#cbcbcb] space-y-2">
           <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">
-            Quick Material Demo Sign-In
+            Quick ERP Demo Sign-In
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => handleLogin(undefined, 'admin@kannaya.com', 'adminpassword123')}
-              className="bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 py-2 px-3 rounded-[5px] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+              className="bg-[#ffffe3] hover:bg-[#ffffcc] border border-[#cbcbcb] text-[#4a4a4a] py-2 px-3 rounded-[5px] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
             >
-              <Shield className="w-3.5 h-3.5" /> Admin (Owner)
+              <Shield className="w-3.5 h-3.5 text-[#f59e0b]" /> Admin (Owner)
             </button>
             <button
               onClick={() => handleLogin(undefined, 'staff@kannaya.com', 'staffpassword123')}
-              className="bg-blue-50 hover:bg-blue-100 border border-blue-300 text-blue-800 py-2 px-3 rounded-[5px] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+              className="bg-slate-100 hover:bg-slate-200 border border-[#cbcbcb] text-[#4a4a4a] py-2 px-3 rounded-[5px] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
             >
-              <UserCheck className="w-3.5 h-3.5" /> Staff (Cashier)
+              <UserCheck className="w-3.5 h-3.5 text-[#6d8196]" /> Staff (Cashier)
             </button>
           </div>
         </div>
