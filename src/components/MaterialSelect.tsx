@@ -28,7 +28,7 @@ export default function MaterialSelect({
   return (
     <div className={`relative w-full ${className}`}>
       {label && (
-        <label className="text-slate-300 font-semibold uppercase text-[10px] block mb-1">
+        <label className="text-slate-700 font-bold uppercase text-[10px] block mb-1">
           {label}
         </label>
       )}
@@ -36,16 +36,16 @@ export default function MaterialSelect({
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none bg-[#0f172a] border border-slate-700 rounded-[5px] pl-3 pr-9 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer"
+          className="w-full appearance-none bg-slate-50 border border-slate-300 rounded-[5px] pl-3 pr-8 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-1 focus:ring-blue-600 transition-all cursor-pointer font-medium"
         >
           {placeholder && <option value="">{placeholder}</option>}
           {options.map((opt) => (
-            <option key={opt.value} value={opt.value} className="bg-[#1e293b] text-white py-1">
+            <option key={opt.value} value={opt.value} className="bg-white text-slate-900 py-1">
               {opt.label}
             </option>
           ))}
         </select>
-        <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
       </div>
     </div>
   );

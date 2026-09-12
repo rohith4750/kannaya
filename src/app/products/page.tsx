@@ -100,7 +100,6 @@ export default function ProductsPage() {
     return () => window.removeEventListener('role_changed', checkRole);
   }, []);
 
-  // Dynamic Category Creation
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCatName.trim()) return;
@@ -123,7 +122,6 @@ export default function ProductsPage() {
     }
   };
 
-  // Dynamic Brand Creation
   const handleCreateBrand = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newBrandName.trim()) return;
@@ -145,7 +143,6 @@ export default function ProductsPage() {
     }
   };
 
-  // Submit New Product
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -166,7 +163,6 @@ export default function ProductsPage() {
     }
   };
 
-  // Submit Update Stock / Price
   const handleUpdateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editProduct) return;
@@ -193,7 +189,6 @@ export default function ProductsPage() {
     }
   };
 
-  // Delete product
   const handleDelete = async (id: string) => {
     if (userRole !== 'ADMIN') {
       alert('Permission Denied: Only Store Owner / Admin can delete catalog products.');
@@ -208,7 +203,6 @@ export default function ProductsPage() {
     }
   };
 
-  // Filtered List
   const filteredProducts = products.filter((p) => {
     const q = searchQuery.toLowerCase().trim();
     const matchesSearch =
@@ -225,14 +219,14 @@ export default function ProductsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#1e293b] p-6 rounded-[5px] border border-slate-700/80 shadow-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-[5px] border border-slate-300 shadow-sm">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Package className="w-5 h-5 text-indigo-400" /> Material Inventory Catalog
+          <h1 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <Package className="w-5 h-5 text-blue-600" /> Material Inventory Catalog
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-0.5">
             Manage stock quantities, GST rates, wholesale pricing, barcodes, and rack locations.
           </p>
         </div>
@@ -248,28 +242,28 @@ export default function ProductsPage() {
                 });
                 setShowAddModal(true);
               }}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-[5px] flex items-center gap-2 text-xs shadow-md transition-all"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3.5 py-1.5 rounded-[5px] flex items-center gap-1.5 text-xs transition-all shadow-sm"
             >
-              <Plus className="w-4 h-4" /> Add Product
+              <Plus className="w-3.5 h-3.5" /> Add Product
             </button>
           )}
         </div>
       </div>
 
       {/* Filter Controls Bar */}
-      <div className="bg-[#1e293b] border border-slate-700/80 p-4 rounded-[5px] flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
+      <div className="bg-white border border-slate-300 p-3 rounded-[5px] flex flex-col md:flex-row gap-3 items-center justify-between shadow-sm">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter by product name, barcode, brand..."
-            className="w-full bg-[#0f172a] border border-slate-700 rounded-[5px] pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+            className="w-full bg-slate-50 border border-slate-300 rounded-[5px] pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white"
           />
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center gap-2 w-full md:w-auto">
           <MaterialSelect
             value={selectedCategory}
             onChange={setSelectedCategory}
@@ -282,132 +276,137 @@ export default function ProductsPage() {
 
           <button
             onClick={() => setFilterLowStock(!filterLowStock)}
-            className={`px-3 py-2 rounded-[5px] text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+            className={`px-3 py-1.5 rounded-[5px] text-xs font-semibold flex items-center gap-1 border transition-all ${
               filterLowStock
-                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow'
-                : 'bg-[#0f172a] text-slate-400 border-slate-700 hover:text-white'
+                ? 'bg-rose-100 text-rose-700 border-rose-300 font-bold'
+                : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
             }`}
           >
-            <AlertTriangle className="w-3.5 h-3.5" /> Low Stock Only
+            <AlertTriangle className="w-3.5 h-3.5" /> Low Stock
           </button>
         </div>
       </div>
 
-      {/* Products Table */}
-      <div className="bg-[#1e293b] border border-slate-700/80 rounded-[5px] overflow-hidden shadow-md">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-[#0f172a] text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-700">
-              <tr>
-                <th className="py-3.5 px-4">Product & Barcode</th>
-                <th className="py-3.5 px-4">Brand / Category</th>
-                <th className="py-3.5 px-4">Rack Location</th>
-                <th className="py-3.5 px-4">Stock Qty</th>
-                {userRole === 'ADMIN' && <th className="py-3.5 px-4">Purchase Cost</th>}
-                <th className="py-3.5 px-4">Selling Price</th>
-                <th className="py-3.5 px-4">Wholesale Rate</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-700/60">
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((p) => {
-                  const isLow = p.stockQuantity <= p.minStockAlert;
-                  return (
-                    <tr key={p.id} className="hover:bg-slate-800/60 transition-colors">
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-white text-sm">{p.name}</div>
-                        <div className="text-[11px] font-mono text-slate-400 flex items-center gap-2 mt-0.5">
-                          <span className="text-amber-400">{p.barcode}</span>
-                          <span className="text-slate-500">| GST: {p.gstPercent || 18}%</span>
+      {/* Compact Consolidated ERP Products Table */}
+      <div className="bg-white border border-slate-300 rounded-[5px] overflow-hidden shadow-sm max-h-[calc(100vh-14rem)] overflow-y-auto">
+        <table className="erp-table">
+          <thead>
+            <tr>
+              <th>Product Details & Barcode</th>
+              <th>Category / Brand</th>
+              <th>Rack Location</th>
+              <th>Stock Qty</th>
+              {userRole === 'ADMIN' && <th>Purchase Cost</th>}
+              <th>Selling Price</th>
+              <th>Wholesale Rate</th>
+              <th className="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((p) => {
+                const isLow = p.stockQuantity <= p.minStockAlert;
+                return (
+                  <tr key={p.id}>
+                    <td>
+                      <div>
+                        <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                          <span>{p.name}</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-[5px] bg-slate-100 text-slate-700 border border-slate-300">
+                            GST {p.gstPercent || 18}%
+                          </span>
                         </div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-semibold text-slate-200">{p.brand?.name || 'Generic'}</div>
-                        <div className="text-[10px] text-slate-400">{p.category?.name}</div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className="px-2.5 py-1 rounded-[5px] text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 inline-flex items-center gap-1">
-                          <Layers className="w-2.5 h-2.5" />
-                          {p.rack ? `${p.rack.rackName} (${p.rack.shelfCode})` : 'Unassigned'}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`font-black text-sm ${
-                            isLow ? 'text-rose-400 animate-pulse' : 'text-emerald-400'
-                          }`}
+                        <div className="text-[10px] font-mono text-slate-500 flex items-center gap-2 mt-0.5">
+                          <span className="text-blue-700 font-bold">{p.barcode}</span>
+                          {p.sku && <span className="text-slate-400">SKU: {p.sku}</span>}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="font-semibold text-slate-800 text-xs">{p.category?.name || 'Unassigned'}</div>
+                      <div className="text-[10px] text-slate-500">{p.brand?.name || 'Generic'}</div>
+                    </td>
+                    <td>
+                      <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1">
+                        <Layers className="w-2.5 h-2.5" />
+                        {p.rack ? `${p.rack.rackName} (${p.rack.shelfCode})` : 'Unassigned'}
+                      </span>
+                    </td>
+                    <td>
+                      <span
+                        className={`font-black text-xs ${
+                          isLow ? 'text-rose-600 font-bold animate-pulse' : 'text-emerald-700'
+                        }`}
+                      >
+                        {p.stockQuantity} {p.unit}
+                      </span>
+                    </td>
+                    {userRole === 'ADMIN' && (
+                      <td className="font-mono text-slate-600 font-medium">₹{p.purchasePrice}</td>
+                    )}
+                    <td className="font-mono font-bold text-emerald-700">₹{p.sellingPrice}</td>
+                    <td className="font-mono font-semibold text-amber-700">
+                      {p.wholesalePrice ? `₹${p.wholesalePrice}` : 'N/A'}
+                    </td>
+                    <td className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => setEditProduct(p)}
+                          className="p-1 rounded-[5px] bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-700 transition-colors border border-slate-200"
+                          title="Edit Stock & Price"
                         >
-                          {p.stockQuantity} {p.unit}
-                        </span>
-                      </td>
-                      {userRole === 'ADMIN' && (
-                        <td className="py-3.5 px-4 font-mono text-slate-400">₹{p.purchasePrice}</td>
-                      )}
-                      <td className="py-3.5 px-4 font-mono font-bold text-emerald-400">₹{p.sellingPrice}</td>
-                      <td className="py-3.5 px-4 font-mono text-amber-400">
-                        {p.wholesalePrice ? `₹${p.wholesalePrice}` : 'N/A'}
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        {userRole === 'ADMIN' && (
                           <button
-                            onClick={() => setEditProduct(p)}
-                            className="p-1.5 rounded-[5px] bg-[#0f172a] text-slate-300 hover:text-amber-400 transition-colors"
-                            title="Edit Stock & Price"
+                            onClick={() => handleDelete(p.id)}
+                            className="p-1 rounded-[5px] bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 transition-colors border border-slate-200"
+                            title="Delete Product"
                           >
-                            <Edit2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
-                          {userRole === 'ADMIN' && (
-                            <button
-                              onClick={() => handleDelete(p.id)}
-                              className="p-1.5 rounded-[5px] bg-[#0f172a] text-slate-300 hover:text-rose-400 transition-colors"
-                              title="Delete Product"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={8} className="py-8 text-center text-slate-500">
-                    No products found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={8} className="py-6 text-center text-slate-500">
+                  No products found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* DYNAMIC CATEGORY CREATION MODAL */}
       {showAddCategoryModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#1e293b] border border-slate-700 rounded-[5px] max-w-sm w-full p-5 space-y-3 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-700 pb-2">
-              <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                <FolderPlus className="w-4 h-4 text-indigo-400" /> Create New Category
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-300 rounded-[5px] max-w-sm w-full p-5 space-y-3 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <FolderPlus className="w-4 h-4 text-blue-600" /> Create New Category
               </h4>
-              <button onClick={() => setShowAddCategoryModal(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setShowAddCategoryModal(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <form onSubmit={handleCreateCategory} className="space-y-3 text-xs">
               <div>
-                <label className="text-slate-300 uppercase text-[10px] font-semibold">Category Name</label>
+                <label className="text-slate-700 uppercase text-[10px] font-bold">Category Name</label>
                 <input
                   type="text"
                   required
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
                   placeholder="e.g. Solar Panels, Modular Switches"
-                  className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-white"
+                  className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 focus:bg-white focus:border-blue-600"
                 />
               </div>
-              <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-[5px]">
+              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-[5px]">
                 Add Category Dynamically
               </button>
             </form>
@@ -417,29 +416,29 @@ export default function ProductsPage() {
 
       {/* DYNAMIC BRAND CREATION MODAL */}
       {showAddBrandModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#1e293b] border border-slate-700 rounded-[5px] max-w-sm w-full p-5 space-y-3 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-700 pb-2">
-              <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                <Tag className="w-4 h-4 text-indigo-400" /> Create New Brand
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-300 rounded-[5px] max-w-sm w-full p-5 space-y-3 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <Tag className="w-4 h-4 text-blue-600" /> Create New Brand
               </h4>
-              <button onClick={() => setShowAddBrandModal(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setShowAddBrandModal(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <form onSubmit={handleCreateBrand} className="space-y-3 text-xs">
               <div>
-                <label className="text-slate-300 uppercase text-[10px] font-semibold">Brand Name</label>
+                <label className="text-slate-700 uppercase text-[10px] font-bold">Brand Name</label>
                 <input
                   type="text"
                   required
                   value={newBrandName}
                   onChange={(e) => setNewBrandName(e.target.value)}
                   placeholder="e.g. Schneider, Anchor, Polycab"
-                  className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-white"
+                  className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 focus:bg-white focus:border-blue-600"
                 />
               </div>
-              <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-[5px]">
+              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-[5px]">
                 Add Brand Dynamically
               </button>
             </form>
@@ -449,39 +448,38 @@ export default function ProductsPage() {
 
       {/* ADD PRODUCT MODAL */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#1e293b] border border-slate-700 rounded-[5px] max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-700 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Package className="w-5 h-5 text-indigo-400" /> Add New Product
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-300 rounded-[5px] max-w-lg w-full p-5 space-y-3 max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Package className="w-4 h-4 text-blue-600" /> Add New Product
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
+              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-700">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleAddProduct} className="space-y-3 text-xs">
+            <form onSubmit={handleAddProduct} className="space-y-2.5 text-xs">
               <div>
-                <label className="text-slate-300 uppercase text-[10px] font-semibold">Product Name</label>
+                <label className="text-slate-700 uppercase text-[10px] font-bold">Product Name</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Polycab 1.5 Sqmm FR Wire (Red)"
-                  className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-white"
+                  className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 focus:bg-white focus:border-blue-600"
                 />
               </div>
 
-              {/* Dynamic Category & Brand selectors with + Add Buttons */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-slate-300 uppercase text-[10px] font-semibold">Category</label>
+                    <label className="text-slate-700 uppercase text-[10px] font-bold">Category</label>
                     <button
                       type="button"
                       onClick={() => setShowAddCategoryModal(true)}
-                      className="text-amber-400 hover:underline text-[10px] font-bold"
+                      className="text-amber-700 hover:underline text-[10px] font-bold"
                     >
                       + Add New
                     </button>
@@ -495,11 +493,11 @@ export default function ProductsPage() {
 
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-slate-300 uppercase text-[10px] font-semibold">Brand</label>
+                    <label className="text-slate-700 uppercase text-[10px] font-bold">Brand</label>
                     <button
                       type="button"
                       onClick={() => setShowAddBrandModal(true)}
-                      className="text-amber-400 hover:underline text-[10px] font-bold"
+                      className="text-amber-700 hover:underline text-[10px] font-bold"
                     >
                       + Add New
                     </button>
@@ -514,13 +512,13 @@ export default function ProductsPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-slate-300 uppercase text-[10px] font-semibold">HSN Code</label>
+                  <label className="text-slate-700 uppercase text-[10px] font-bold">HSN Code</label>
                   <input
                     type="text"
                     value={formData.hsnCode}
                     onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })}
                     placeholder="8544"
-                    className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-white font-mono"
+                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 font-mono focus:bg-white focus:border-blue-600"
                   />
                 </div>
                 <div>
@@ -554,53 +552,53 @@ export default function ProductsPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-slate-300 uppercase text-[10px] font-semibold">Purchase Cost (₹)</label>
+                  <label className="text-slate-700 uppercase text-[10px] font-bold">Purchase Cost (₹)</label>
                   <input
                     type="number"
                     step="0.01"
                     required
                     value={formData.purchasePrice}
                     onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
-                    className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-white"
+                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 focus:bg-white focus:border-blue-600"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-300 uppercase text-[10px] font-semibold">Retail Price (₹)</label>
+                  <label className="text-slate-700 uppercase text-[10px] font-bold">Retail Price (₹)</label>
                   <input
                     type="number"
                     step="0.01"
                     required
                     value={formData.sellingPrice}
                     onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
-                    className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-emerald-400 font-bold"
+                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-emerald-700 font-bold focus:bg-white focus:border-blue-600"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-300 uppercase text-[10px] font-semibold">Wholesale Price (₹)</label>
+                  <label className="text-slate-700 uppercase text-[10px] font-bold">Wholesale Price (₹)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formData.wholesalePrice}
                     onChange={(e) => setFormData({ ...formData, wholesalePrice: e.target.value })}
                     placeholder="Contractor rate"
-                    className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-amber-400 font-bold"
+                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-amber-700 font-bold focus:bg-white focus:border-blue-600"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-300 uppercase text-[10px] font-semibold">Initial Stock Qty</label>
+                  <label className="text-slate-700 uppercase text-[10px] font-bold">Initial Stock Qty</label>
                   <input
                     type="number"
                     required
                     value={formData.stockQuantity}
                     onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
-                    className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-white"
+                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 focus:bg-white focus:border-blue-600"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-300 uppercase text-[10px] font-semibold">Rack Location</label>
+                  <label className="text-slate-700 uppercase text-[10px] font-bold">Rack Location</label>
                   <MaterialSelect
                     value={formData.rackId}
                     onChange={(val) => setFormData({ ...formData, rackId: val })}
@@ -611,9 +609,89 @@ export default function ProductsPage() {
 
               <button
                 type="submit"
-                className="w-full mt-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-[5px] text-xs shadow-md"
+                className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-[5px] text-xs shadow-sm"
               >
                 Save Product
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT PRODUCT MODAL */}
+      {editProduct && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-300 rounded-[5px] max-w-md w-full p-5 space-y-3 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <h3 className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-amber-600" /> Edit Product: {editProduct.name}
+              </h3>
+              <button onClick={() => setEditProduct(null)} className="text-slate-400 hover:text-slate-700">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateProduct} className="space-y-3 text-xs">
+              <div>
+                <label className="text-slate-700 uppercase text-[10px] font-bold">Stock Quantity ({editProduct.unit})</label>
+                <input
+                  type="number"
+                  value={editProduct.stockQuantity}
+                  onChange={(e) => setEditProduct({ ...editProduct, stockQuantity: parseFloat(e.target.value) || 0 })}
+                  className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900 font-bold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-700 uppercase text-[10px] font-bold">Selling Price (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editProduct.sellingPrice}
+                    onChange={(e) => setEditProduct({ ...editProduct, sellingPrice: parseFloat(e.target.value) || 0 })}
+                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-emerald-700 font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-slate-700 uppercase text-[10px] font-bold">Wholesale Price (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editProduct.wholesalePrice || ''}
+                    onChange={(e) => setEditProduct({ ...editProduct, wholesalePrice: parseFloat(e.target.value) || 0 })}
+                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-amber-700 font-bold"
+                  />
+                </div>
+              </div>
+
+              {userRole === 'ADMIN' && (
+                <div>
+                  <label className="text-slate-700 uppercase text-[10px] font-bold">Purchase Cost (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editProduct.purchasePrice}
+                    onChange={(e) => setEditProduct({ ...editProduct, purchasePrice: parseFloat(e.target.value) || 0 })}
+                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-[5px] px-3 py-1.5 text-slate-900"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="text-slate-700 uppercase text-[10px] font-bold">Rack Location</label>
+                <MaterialSelect
+                  value={editProduct.rackId || ''}
+                  onChange={(val) => setEditProduct({ ...editProduct, rackId: val })}
+                  options={racks.map((r) => ({ value: r.id, label: `${r.rackName} (${r.shelfCode})` }))}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-[5px] text-xs shadow-sm"
+              >
+                Update Product Stock & Price
               </button>
             </form>
           </div>

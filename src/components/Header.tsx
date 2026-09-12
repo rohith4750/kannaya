@@ -77,39 +77,39 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="h-16 bg-[#0f172a] border-b border-slate-700/80 px-6 flex items-center justify-between sticky top-0 z-20 shadow-md">
+    <header className="h-14 bg-[#0f172a] border-b border-slate-700/80 px-5 flex items-center justify-between sticky top-0 z-20 shadow-sm text-white">
       {/* Store Brand */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <Store className="w-5 h-5 text-amber-400" />
-          <h2 className="text-sm font-bold text-slate-100 hidden md:block">
+          <Store className="w-4 h-4 text-amber-400" />
+          <h2 className="text-xs font-extrabold text-white tracking-wide hidden md:block">
             SRI LAKSHMI ELECTRICALS & HARDWARE
           </h2>
         </div>
-        <span className="text-xs text-slate-400 hidden lg:inline">| GSTIN: 36ABCDE1234F1Z5</span>
+        <span className="text-[11px] text-slate-400 hidden lg:inline">| GSTIN: 36ABCDE1234F1Z5</span>
       </div>
 
       {/* Search Input */}
       <div className="flex-1 max-w-md mx-6">
         <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Search product, barcode or phone..."
-            className="w-full bg-[#1e293b] border border-slate-700 rounded-[5px] pl-9 pr-4 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-slate-800/80 border border-slate-700 rounded-[5px] pl-9 pr-4 py-1 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {/* Role Switcher Toggle */}
         <button
           onClick={handleToggleRole}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[5px] text-xs font-bold border transition-all ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[5px] text-[11px] font-bold border transition-all ${
             currentRole === 'ADMIN'
-              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-              : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+              : 'bg-blue-500/20 text-blue-300 border-blue-500/40 hover:bg-blue-500/30'
           }`}
           title="Click to toggle between Owner Admin mode and Cashier Staff mode"
         >
@@ -120,14 +120,14 @@ export default function Header() {
             </>
           ) : (
             <>
-              <UserCheck className="w-3.5 h-3.5 text-indigo-400" />
+              <UserCheck className="w-3.5 h-3.5 text-blue-400" />
               <span>Cashier STAFF 👤</span>
             </>
           )}
         </button>
 
         {/* Live Clock */}
-        <div className="hidden sm:flex items-center gap-1.5 text-xs font-mono text-slate-300 bg-[#1e293b] px-3 py-1.5 rounded-[5px] border border-slate-700">
+        <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-slate-300 bg-slate-800/80 px-2.5 py-1 rounded-[5px] border border-slate-700">
           <Clock className="w-3.5 h-3.5 text-amber-400" />
           <span>{currentTime || 'Loading...'}</span>
         </div>
@@ -135,12 +135,12 @@ export default function Header() {
         {/* Low Stock Alert */}
         <Link
           href="/products?filter=low-stock"
-          className="relative p-2 rounded-[5px] bg-[#1e293b] border border-slate-700 text-slate-300 hover:text-amber-400 transition-colors"
+          className="relative p-1.5 rounded-[5px] bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-amber-400 transition-colors"
           title="Low Stock Products Alert"
         >
-          <Bell className="w-4 h-4" />
+          <Bell className="w-3.5 h-3.5" />
           {lowStockCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-[5px] bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-[5px] bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">
               {lowStockCount}
             </span>
           )}
@@ -149,10 +149,10 @@ export default function Header() {
         {/* User Logout Button */}
         <button
           onClick={handleLogout}
-          className="p-2 rounded-[5px] bg-[#1e293b] border border-slate-700 text-slate-400 hover:text-rose-400 transition-colors"
+          className="p-1.5 rounded-[5px] bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-rose-400 transition-colors"
           title="Sign Out of Session"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-3.5 h-3.5" />
         </button>
       </div>
     </header>
