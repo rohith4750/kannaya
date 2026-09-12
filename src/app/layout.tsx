@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import AppLayout from '@/components/AppLayout';
+import MuiProvider from '@/components/MuiProvider';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={plusJakartaSans.variable}>
       <body className={`${plusJakartaSans.className} bg-[#f8fafc] text-[#0f172a] antialiased`}>
-        <AppLayout>{children}</AppLayout>
+        <MuiProvider>
+          <AppLayout>{children}</AppLayout>
+        </MuiProvider>
       </body>
     </html>
   );
