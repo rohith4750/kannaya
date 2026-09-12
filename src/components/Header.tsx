@@ -77,11 +77,11 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="h-14 bg-[#0f172a] border-b border-slate-700/80 px-5 flex items-center justify-between sticky top-0 z-20 shadow-sm text-white">
+    <header className="h-14 bg-[#1e293b] border-b border-slate-700/80 px-5 flex items-center justify-between sticky top-0 z-20 shadow-sm text-white">
       {/* Store Brand */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <Store className="w-4 h-4 text-amber-400" />
+          <Store className="w-4 h-4 text-[#f59e0b]" />
           <h2 className="text-xs font-extrabold text-white tracking-wide hidden md:block">
             SRI LAKSHMI ELECTRICALS & HARDWARE
           </h2>
@@ -96,7 +96,7 @@ export default function Header() {
           <input
             type="text"
             placeholder="Search product, barcode or phone..."
-            className="w-full bg-slate-800/80 border border-slate-700 rounded-[5px] pl-9 pr-4 py-1 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
+            className="w-full bg-[#0f172a] border border-slate-700 rounded-[5px] pl-9 pr-4 py-1 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#2563eb] transition-colors"
           />
         </div>
       </div>
@@ -108,34 +108,34 @@ export default function Header() {
           onClick={handleToggleRole}
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[5px] text-[11px] font-bold border transition-all ${
             currentRole === 'ADMIN'
-              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-              : 'bg-blue-500/20 text-blue-300 border-blue-500/40 hover:bg-blue-500/30'
+              ? 'bg-[#f59e0b]/20 text-[#f59e0b] border-[#f59e0b]/40 hover:bg-[#f59e0b]/30'
+              : 'bg-[#2563eb]/20 text-[#2563eb] border-[#2563eb]/40 hover:bg-[#2563eb]/30'
           }`}
           title="Click to toggle between Owner Admin mode and Cashier Staff mode"
         >
           {currentRole === 'ADMIN' ? (
             <>
-              <Shield className="w-3.5 h-3.5 text-amber-400" />
+              <Shield className="w-3.5 h-3.5 text-[#f59e0b]" />
               <span>Owner ADMIN 👑</span>
             </>
           ) : (
             <>
-              <UserCheck className="w-3.5 h-3.5 text-blue-400" />
+              <UserCheck className="w-3.5 h-3.5 text-[#2563eb]" />
               <span>Cashier STAFF 👤</span>
             </>
           )}
         </button>
 
         {/* Live Clock */}
-        <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-slate-300 bg-slate-800/80 px-2.5 py-1 rounded-[5px] border border-slate-700">
-          <Clock className="w-3.5 h-3.5 text-amber-400" />
+        <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-slate-300 bg-[#0f172a] px-2.5 py-1 rounded-[5px] border border-slate-700">
+          <Clock className="w-3.5 h-3.5 text-[#f59e0b]" />
           <span>{currentTime || 'Loading...'}</span>
         </div>
 
         {/* Low Stock Alert */}
         <Link
           href="/products?filter=low-stock"
-          className="relative p-1.5 rounded-[5px] bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-amber-400 transition-colors"
+          className="relative p-1.5 rounded-[5px] bg-[#0f172a] border border-slate-700 text-slate-300 hover:text-[#f59e0b] transition-colors"
           title="Low Stock Products Alert"
         >
           <Bell className="w-3.5 h-3.5" />
@@ -149,7 +149,7 @@ export default function Header() {
         {/* User Logout Button */}
         <button
           onClick={handleLogout}
-          className="p-1.5 rounded-[5px] bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-rose-400 transition-colors"
+          className="p-1.5 rounded-[5px] bg-[#0f172a] border border-slate-700 text-slate-400 hover:text-rose-400 transition-colors"
           title="Sign Out of Session"
         >
           <LogOut className="w-3.5 h-3.5" />

@@ -3,26 +3,19 @@
 @tailwind utilities;
 
 :root {
-  /* Light Off-White Canvas & Deep Navy Blue Theme */
-  --bg-app: #f1f5f9;
-  --bg-navy-dark: #0f172a;
-  --bg-navy-header: #0f172a;
+  /* User Defined Material Color Palette */
+  --primary-blue: #2563eb;       /* Primary Blue */
+  --secondary-navy: #1e293b;     /* Dark Navy */
+  --accent-amber: #f59e0b;       /* Amber Accent */
+  --bg-app: #f8fafc;             /* Light Background */
+  --text-primary: #0f172a;       /* Dark Text */
+
   --surface-card: #ffffff;
-  --surface-card-hover: #f8fafc;
+  --surface-card-hover: #f1f5f9;
   --border-color: #cbd5e1;
   --border-dark: #334155;
-
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
   --text-muted: #64748b;
   --text-on-navy: #f8fafc;
-
-  --accent-blue: #2563eb;
-  --accent-navy: #1e3a8a;
-  --accent-sky: #0284c7;
-  --accent-amber: #d97706;
-  --accent-emerald: #059669;
-  --accent-rose: #e11d48;
 
   /* Global ERP Radius & Spacing Variables */
   --radius-mat: 5px;
@@ -60,7 +53,7 @@ body {
 }
 
 .erp-table th {
-  background-color: var(--bg-navy-dark);
+  background-color: var(--secondary-navy);
   color: var(--text-on-navy);
   font-weight: 700;
   text-transform: uppercase;
