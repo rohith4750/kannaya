@@ -1,17 +1,34 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Clock, Store, ShieldCheck, UserCheck, Shield } from 'lucide-react';
+import { Search, Bell, Clock, Store, Shield, UserCheck, LogOut, User } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
+  const router = useRouter();
   const [currentTime, setCurrentTime] = useState<string>('');
   const [lowStockCount, setLowStockCount] = useState<number>(0);
   const [currentRole, setCurrentRole] = useState<'ADMIN' | 'STAFF'>('ADMIN');
+  const [userName, setUserName] = useState<string>('Owner Admin');
 
   useEffect(() => {
     const savedRole = localStorage.getItem('kannaya_user_role') as 'ADMIN' | 'STAFF';
+    const savedName = localStorage.getItem('kannaya_user_name');
     if (savedRole) setCurrentRole(savedRole);
+    if (savedName) setUserName(savedName);
+
+    // Fetch auth status from API
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user) {
+          setCurrentRole(data.user.role || 'ADMIN');
+          setUserName(data.user.name || 'Owner Admin');
+          localStorage.setItem('kannaya_user_role', data.user.role || 'ADMIN');
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleToggleRole = () => {
@@ -19,6 +36,13 @@ export default function Header() {
     setCurrentRole(newRole);
     localStorage.setItem('kannaya_user_role', newRole);
     window.dispatchEvent(new Event('role_changed'));
+  };
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    localStorage.removeItem('kannaya_user_role');
+    localStorage.removeItem('kannaya_user_name');
+    router.push('/login');
   };
 
   useEffect(() => {
@@ -53,8 +77,8 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="h-16 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 px-6 flex items-center justify-between sticky top-0 z-20">
-      {/* Left Store Brand */}
+    <header className="h-16 bg-[#0f172a] border-b border-slate-700/80 px-6 flex items-center justify-between sticky top-0 z-20 shadow-md">
+      {/* Store Brand */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <Store className="w-5 h-5 text-amber-400" />
@@ -62,29 +86,29 @@ export default function Header() {
             SRI LAKSHMI ELECTRICALS & HARDWARE
           </h2>
         </div>
-        <span className="text-xs text-slate-500 hidden lg:inline">| GSTIN: 36ABCDE1234F1Z5</span>
+        <span className="text-xs text-slate-400 hidden lg:inline">| GSTIN: 36ABCDE1234F1Z5</span>
       </div>
 
-      {/* Search bar */}
+      {/* Search Input */}
       <div className="flex-1 max-w-md mx-6">
         <div className="relative">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Quick lookup by product name, barcode or phone..."
-            className="w-full bg-slate-900 border border-slate-700/60 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500/60 transition-colors"
+            placeholder="Search product, barcode or phone..."
+            className="w-full bg-[#1e293b] border border-slate-700 rounded-[5px] pl-9 pr-4 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors"
           />
         </div>
       </div>
 
       {/* Right Controls */}
       <div className="flex items-center gap-3">
-        {/* Role Switcher Toggle Badge */}
+        {/* Role Switcher Toggle */}
         <button
           onClick={handleToggleRole}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[5px] text-xs font-bold border transition-all ${
             currentRole === 'ADMIN'
-              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-inner'
+              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
               : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
           }`}
           title="Click to toggle between Owner Admin mode and Cashier Staff mode"
@@ -103,24 +127,33 @@ export default function Header() {
         </button>
 
         {/* Live Clock */}
-        <div className="hidden sm:flex items-center gap-1.5 text-xs font-mono text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+        <div className="hidden sm:flex items-center gap-1.5 text-xs font-mono text-slate-300 bg-[#1e293b] px-3 py-1.5 rounded-[5px] border border-slate-700">
           <Clock className="w-3.5 h-3.5 text-amber-400" />
           <span>{currentTime || 'Loading...'}</span>
         </div>
 
-        {/* Low Stock Alert Bell */}
+        {/* Low Stock Alert */}
         <Link
           href="/products?filter=low-stock"
-          className="relative p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-amber-400 hover:border-amber-500/40 transition-colors"
+          className="relative p-2 rounded-[5px] bg-[#1e293b] border border-slate-700 text-slate-300 hover:text-amber-400 transition-colors"
           title="Low Stock Products Alert"
         >
           <Bell className="w-4 h-4" />
           {lowStockCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-[5px] bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
               {lowStockCount}
             </span>
           )}
         </Link>
+
+        {/* User Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="p-2 rounded-[5px] bg-[#1e293b] border border-slate-700 text-slate-400 hover:text-rose-400 transition-colors"
+          title="Sign Out of Session"
+        >
+          <LogOut className="w-4 h-4" />
+        </button>
       </div>
     </header>
   );

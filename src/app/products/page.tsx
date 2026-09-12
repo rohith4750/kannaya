@@ -18,6 +18,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import MaterialSelect from '@/components/MaterialSelect';
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
@@ -226,10 +227,10 @@ export default function ProductsPage() {
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/80 p-6 rounded-2xl border border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#1e293b] p-6 rounded-[5px] border border-slate-700/80 shadow-md">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Package className="w-5 h-5 text-amber-400" /> Inventory & Product Catalog
+            <Package className="w-5 h-5 text-indigo-400" /> Material Inventory Catalog
           </h1>
           <p className="text-xs text-slate-400 mt-1">
             Manage stock quantities, GST rates, wholesale pricing, barcodes, and rack locations.
@@ -247,7 +248,7 @@ export default function ProductsPage() {
                 });
                 setShowAddModal(true);
               }}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 text-xs shadow-lg shadow-amber-500/10 transition-all"
+              className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-[5px] flex items-center gap-2 text-xs shadow-md transition-all"
             >
               <Plus className="w-4 h-4" /> Add Product
             </button>
@@ -256,7 +257,7 @@ export default function ProductsPage() {
       </div>
 
       {/* Filter Controls Bar */}
-      <div className="glass-panel p-4 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="bg-[#1e293b] border border-slate-700/80 p-4 rounded-[5px] flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -264,30 +265,27 @@ export default function ProductsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter by product name, barcode, brand..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+            className="w-full bg-[#0f172a] border border-slate-700 rounded-[5px] pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
           />
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <select
+          <MaterialSelect
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-amber-500"
-          >
-            <option value="">All Categories ({categories.length})</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            onChange={setSelectedCategory}
+            options={[
+              { value: '', label: `All Categories (${categories.length})` },
+              ...categories.map((c) => ({ value: c.id, label: c.name })),
+            ]}
+            className="w-48"
+          />
 
           <button
             onClick={() => setFilterLowStock(!filterLowStock)}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+            className={`px-3 py-2 rounded-[5px] text-xs font-semibold flex items-center gap-1.5 border transition-all ${
               filterLowStock
                 ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow'
-                : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                : 'bg-[#0f172a] text-slate-400 border-slate-700 hover:text-white'
             }`}
           >
             <AlertTriangle className="w-3.5 h-3.5" /> Low Stock Only
@@ -296,10 +294,10 @@ export default function ProductsPage() {
       </div>
 
       {/* Products Table */}
-      <div className="glass-panel rounded-2xl overflow-hidden">
+      <div className="bg-[#1e293b] border border-slate-700/80 rounded-[5px] overflow-hidden shadow-md">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <thead className="bg-[#0f172a] text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-700">
               <tr>
                 <th className="py-3.5 px-4">Product & Barcode</th>
                 <th className="py-3.5 px-4">Brand / Category</th>
@@ -311,16 +309,16 @@ export default function ProductsPage() {
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-700/60">
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((p) => {
                   const isLow = p.stockQuantity <= p.minStockAlert;
                   return (
-                    <tr key={p.id} className="hover:bg-slate-900/50 transition-colors">
+                    <tr key={p.id} className="hover:bg-slate-800/60 transition-colors">
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-white text-sm">{p.name}</div>
                         <div className="text-[11px] font-mono text-slate-400 flex items-center gap-2 mt-0.5">
-                          <span className="text-amber-400/90">{p.barcode}</span>
+                          <span className="text-amber-400">{p.barcode}</span>
                           <span className="text-slate-500">| GST: {p.gstPercent || 18}%</span>
                         </div>
                       </td>
@@ -329,7 +327,7 @@ export default function ProductsPage() {
                         <div className="text-[10px] text-slate-400">{p.category?.name}</div>
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 inline-flex items-center gap-1">
+                        <span className="px-2.5 py-1 rounded-[5px] text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 inline-flex items-center gap-1">
                           <Layers className="w-2.5 h-2.5" />
                           {p.rack ? `${p.rack.rackName} (${p.rack.shelfCode})` : 'Unassigned'}
                         </span>
@@ -354,7 +352,7 @@ export default function ProductsPage() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => setEditProduct(p)}
-                            className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-amber-400 transition-colors"
+                            className="p-1.5 rounded-[5px] bg-[#0f172a] text-slate-300 hover:text-amber-400 transition-colors"
                             title="Edit Stock & Price"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -362,7 +360,7 @@ export default function ProductsPage() {
                           {userRole === 'ADMIN' && (
                             <button
                               onClick={() => handleDelete(p.id)}
-                              className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-rose-400 transition-colors"
+                              className="p-1.5 rounded-[5px] bg-[#0f172a] text-slate-300 hover:text-rose-400 transition-colors"
                               title="Delete Product"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -388,10 +386,10 @@ export default function ProductsPage() {
       {/* DYNAMIC CATEGORY CREATION MODAL */}
       {showAddCategoryModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div className="bg-[#1e293b] border border-slate-700 rounded-[5px] max-w-sm w-full p-5 space-y-3 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-700 pb-2">
               <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                <FolderPlus className="w-4 h-4 text-amber-400" /> Create New Category
+                <FolderPlus className="w-4 h-4 text-indigo-400" /> Create New Category
               </h4>
               <button onClick={() => setShowAddCategoryModal(false)} className="text-slate-400 hover:text-white">
                 <X className="w-4 h-4" />
@@ -399,17 +397,17 @@ export default function ProductsPage() {
             </div>
             <form onSubmit={handleCreateCategory} className="space-y-3 text-xs">
               <div>
-                <label className="text-slate-400 uppercase text-[10px] font-semibold">Category Name</label>
+                <label className="text-slate-300 uppercase text-[10px] font-semibold">Category Name</label>
                 <input
                   type="text"
                   required
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
                   placeholder="e.g. Solar Panels, Modular Switches"
-                  className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                  className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-white"
                 />
               </div>
-              <button type="submit" className="w-full bg-amber-500 text-slate-950 font-bold py-2 rounded-xl">
+              <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-[5px]">
                 Add Category Dynamically
               </button>
             </form>
@@ -420,10 +418,10 @@ export default function ProductsPage() {
       {/* DYNAMIC BRAND CREATION MODAL */}
       {showAddBrandModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div className="bg-[#1e293b] border border-slate-700 rounded-[5px] max-w-sm w-full p-5 space-y-3 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-700 pb-2">
               <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                <Tag className="w-4 h-4 text-amber-400" /> Create New Brand
+                <Tag className="w-4 h-4 text-indigo-400" /> Create New Brand
               </h4>
               <button onClick={() => setShowAddBrandModal(false)} className="text-slate-400 hover:text-white">
                 <X className="w-4 h-4" />
@@ -431,17 +429,17 @@ export default function ProductsPage() {
             </div>
             <form onSubmit={handleCreateBrand} className="space-y-3 text-xs">
               <div>
-                <label className="text-slate-400 uppercase text-[10px] font-semibold">Brand Name</label>
+                <label className="text-slate-300 uppercase text-[10px] font-semibold">Brand Name</label>
                 <input
                   type="text"
                   required
                   value={newBrandName}
                   onChange={(e) => setNewBrandName(e.target.value)}
                   placeholder="e.g. Schneider, Anchor, Polycab"
-                  className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                  className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-white"
                 />
               </div>
-              <button type="submit" className="w-full bg-amber-500 text-slate-950 font-bold py-2 rounded-xl">
+              <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-[5px]">
                 Add Brand Dynamically
               </button>
             </form>
@@ -449,13 +447,13 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* ADD PRODUCT MODAL (WITH DYNAMIC CATEGORY & BRAND BUTTONS) */}
+      {/* ADD PRODUCT MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-[#1e293b] border border-slate-700 rounded-[5px] max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-700 pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Package className="w-5 h-5 text-amber-400" /> Add New Electrical Product
+                <Package className="w-5 h-5 text-indigo-400" /> Add New Product
               </h3>
               <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
@@ -464,14 +462,14 @@ export default function ProductsPage() {
 
             <form onSubmit={handleAddProduct} className="space-y-3 text-xs">
               <div>
-                <label className="text-slate-400 uppercase text-[10px] font-semibold">Product Name</label>
+                <label className="text-slate-300 uppercase text-[10px] font-semibold">Product Name</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Polycab 1.5 Sqmm FR Wire (Red)"
-                  className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                  className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-white"
                 />
               </div>
 
@@ -479,7 +477,7 @@ export default function ProductsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-slate-400 uppercase text-[10px] font-semibold">Category</label>
+                    <label className="text-slate-300 uppercase text-[10px] font-semibold">Category</label>
                     <button
                       type="button"
                       onClick={() => setShowAddCategoryModal(true)}
@@ -488,22 +486,16 @@ export default function ProductsPage() {
                       + Add New
                     </button>
                   </div>
-                  <select
+                  <MaterialSelect
                     value={formData.categoryId}
-                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
-                  >
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, categoryId: val })}
+                    options={categories.map((c) => ({ value: c.id, label: c.name }))}
+                  />
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-slate-400 uppercase text-[10px] font-semibold">Brand</label>
+                    <label className="text-slate-300 uppercase text-[10px] font-semibold">Brand</label>
                     <button
                       type="button"
                       onClick={() => setShowAddBrandModal(true)}
@@ -512,126 +504,114 @@ export default function ProductsPage() {
                       + Add New
                     </button>
                   </div>
-                  <select
+                  <MaterialSelect
                     value={formData.brandId}
-                    onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
-                  >
-                    {brands.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, brandId: val })}
+                    options={brands.map((b) => ({ value: b.id, label: b.name }))}
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-slate-400 uppercase text-[10px] font-semibold">HSN Code</label>
+                  <label className="text-slate-300 uppercase text-[10px] font-semibold">HSN Code</label>
                   <input
                     type="text"
                     value={formData.hsnCode}
                     onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })}
                     placeholder="8544"
-                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono"
+                    className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-white font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-400 uppercase text-[10px] font-semibold">GST Rate (%)</label>
-                  <select
+                  <MaterialSelect
+                    label="GST Rate (%)"
                     value={formData.gstPercent}
-                    onChange={(e) => setFormData({ ...formData, gstPercent: e.target.value })}
-                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono"
-                  >
-                    <option value="18">18%</option>
-                    <option value="12">12%</option>
-                    <option value="5">5%</option>
-                    <option value="28">28%</option>
-                    <option value="0">0% (Exempt)</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, gstPercent: val })}
+                    options={[
+                      { value: '18', label: '18%' },
+                      { value: '12', label: '12%' },
+                      { value: '5', label: '5%' },
+                      { value: '28', label: '28%' },
+                      { value: '0', label: '0% (Exempt)' },
+                    ]}
+                  />
                 </div>
                 <div>
-                  <label className="text-slate-400 uppercase text-[10px] font-semibold">Unit</label>
-                  <select
+                  <MaterialSelect
+                    label="Unit"
                     value={formData.unit}
-                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
-                  >
-                    <option value="pcs">pcs</option>
-                    <option value="meter">meter</option>
-                    <option value="box">box</option>
-                    <option value="roll">roll</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, unit: val })}
+                    options={[
+                      { value: 'pcs', label: 'pcs' },
+                      { value: 'meter', label: 'meter' },
+                      { value: 'box', label: 'box' },
+                      { value: 'roll', label: 'roll' },
+                    ]}
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-slate-400 uppercase text-[10px] font-semibold">Purchase Cost (₹)</label>
+                  <label className="text-slate-300 uppercase text-[10px] font-semibold">Purchase Cost (₹)</label>
                   <input
                     type="number"
                     step="0.01"
                     required
                     value={formData.purchasePrice}
                     onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
-                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                    className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-white"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-400 uppercase text-[10px] font-semibold">Retail Price (₹)</label>
+                  <label className="text-slate-300 uppercase text-[10px] font-semibold">Retail Price (₹)</label>
                   <input
                     type="number"
                     step="0.01"
                     required
                     value={formData.sellingPrice}
                     onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
-                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-emerald-400 font-bold"
+                    className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-emerald-400 font-bold"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-400 uppercase text-[10px] font-semibold">Wholesale Price (₹)</label>
+                  <label className="text-slate-300 uppercase text-[10px] font-semibold">Wholesale Price (₹)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formData.wholesalePrice}
                     onChange={(e) => setFormData({ ...formData, wholesalePrice: e.target.value })}
                     placeholder="Contractor rate"
-                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-amber-400 font-bold"
+                    className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-amber-400 font-bold"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-400 uppercase text-[10px] font-semibold">Initial Stock Qty</label>
+                  <label className="text-slate-300 uppercase text-[10px] font-semibold">Initial Stock Qty</label>
                   <input
                     type="number"
                     required
                     value={formData.stockQuantity}
                     onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
-                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                    className="w-full mt-1 bg-[#0f172a] border border-slate-700 rounded-[5px] px-3 py-2 text-white"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-400 uppercase text-[10px] font-semibold">Rack Location</label>
-                  <select
+                  <label className="text-slate-300 uppercase text-[10px] font-semibold">Rack Location</label>
+                  <MaterialSelect
                     value={formData.rackId}
-                    onChange={(e) => setFormData({ ...formData, rackId: e.target.value })}
-                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
-                  >
-                    {racks.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.rackName} ({r.shelfCode})
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, rackId: val })}
+                    options={racks.map((r) => ({ value: r.id, label: `${r.rackName} (${r.shelfCode})` }))}
+                  />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full mt-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs"
+                className="w-full mt-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-[5px] text-xs shadow-md"
               >
                 Save Product
               </button>
