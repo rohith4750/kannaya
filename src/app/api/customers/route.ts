@@ -26,9 +26,9 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json(customers);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Customers GET error:', error);
-    return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to fetch customers' }, { status: 500 });
   }
 }
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action } = body;
 
-    // 1. Record Udhar Payment (Clear Balance)
+    // 1. Record Credit Payment (Clear Balance)
     if (action === 'payment') {
       const { customerId, amount, paymentMethod = 'CASH', notes } = body;
       const payAmt = parseFloat(amount);
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
           type: LedgerType.PAYMENT,
           amount: payAmt,
           balance: newOutstanding,
-          notes: notes || `Udhar Payment received via ${paymentMethod}`,
+          notes: notes || `Credit Payment received via ${paymentMethod}`,
         },
       });
 

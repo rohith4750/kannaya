@@ -10,46 +10,17 @@ export async function POST(request: Request) {
     }
 
     const cleanEmail = email.toLowerCase().trim();
-    let user: any = null;
 
-    // Safely lookup user in PostgreSQL without throwing on unseeded DB / serverless env
-    try {
-      user = await prisma.user.findUnique({
-        where: { email: cleanEmail },
-      });
-    } catch (dbErr) {
-      console.warn('Database query fallback on login:', dbErr);
-    }
-
-    // Demo user fallback if database seed hasn't run yet or DB connection is unconfigured
-    if (!user) {
-      if (cleanEmail.includes('admin')) {
-        user = {
-          id: 'demo-admin-id',
-          name: 'Owner Admin',
-          email: 'admin@kannaya.com',
-          password: 'adminpassword123',
-          role: 'ADMIN',
-          createdAt: new Date(),
-        };
-      } else if (cleanEmail.includes('staff')) {
-        user = {
-          id: 'demo-staff-id',
-          name: 'Cashier Staff',
-          email: 'staff@kannaya.com',
-          password: 'staffpassword123',
-          role: 'STAFF',
-          createdAt: new Date(),
-        };
-      }
-    }
+    const user = await prisma.user.findUnique({
+      where: { email: cleanEmail },
+    });
 
     if (!user) {
       return NextResponse.json({ error: 'User account not found' }, { status: 404 });
     }
 
     // Verify password
-    if (user.password !== password && password !== 'adminpassword123' && password !== 'staffpassword123') {
+    if (user.password !== password) {
       return NextResponse.json(
         { error: 'Invalid credentials. Please check your password.' },
         { status: 401 }
