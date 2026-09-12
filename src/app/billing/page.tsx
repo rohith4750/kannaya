@@ -18,6 +18,7 @@ import {
   Zap,
 } from 'lucide-react';
 import MaterialSelect from '@/components/MaterialSelect';
+import InvoicePrintTemplate from '@/components/InvoicePrintTemplate';
 
 export default function BillingPOSPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -439,11 +440,12 @@ export default function BillingPOSPage() {
                 <CheckCircle className="w-5 h-5 text-emerald-700" /> Invoice Generated
               </h3>
               <div className="flex items-center gap-2">
-                <div className="w-36">
+                <div className="w-48">
                   <MaterialSelect
                     value={printerWidth}
                     onChange={(val) => setPrinterWidth(val as any)}
                     options={[
+                      { value: 'A4', label: 'A4 GST Tax Invoice (PDF)' },
                       { value: '80mm', label: '80mm Thermal' },
                       { value: '58mm', label: '58mm Thermal' },
                     ]}
@@ -455,80 +457,13 @@ export default function BillingPOSPage() {
               </div>
             </div>
 
-            {/* Thermal Print Receipt Roll Paper */}
-            <div className="bg-white text-[#4a4a4a] p-4 rounded-[5px] font-mono text-xs border border-[#cbcbcb] shadow-inner max-h-[380px] overflow-y-auto" id="thermal-receipt-printable">
-              <div className="text-center border-b border-dashed border-[#cbcbcb] pb-2 mb-2">
-                <h2 className="font-bold text-sm uppercase">{receiptData.settings?.shopName || 'VENKATA LAKSHMI ELECTRONICS'}</h2>
-                <p className="text-[10px] text-slate-600">{receiptData.settings?.address}</p>
-                <p className="text-[10px] text-slate-600">Ph: {receiptData.settings?.phone}</p>
-              </div>
-
-              <div className="flex justify-between text-[11px] mb-2 font-bold">
-                <span>Inv: {receiptData.invoice.invoiceNo}</span>
-                <span>Date: {new Date().toLocaleDateString('en-IN')}</span>
-              </div>
-
-              <div className="border-b border-dashed border-[#cbcbcb] pb-1 mb-2">
-                <p className="font-bold text-[11px]">Customer: {receiptData.invoice.customerName}</p>
-                {receiptData.invoice.customerPhone !== 'N/A' && (
-                  <p className="text-[10px]">Ph: {receiptData.invoice.customerPhone}</p>
-                )}
-              </div>
-
-              <table className="w-full text-left text-[11px] mb-2">
-                <thead>
-                  <tr className="border-b border-[#cbcbcb]">
-                    <th className="py-1">Item</th>
-                    <th className="py-1 text-center">Qty</th>
-                    <th className="py-1 text-right">Amt</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-dashed divide-[#cbcbcb]">
-                  {receiptData.invoice.items?.map((item: any) => (
-                    <tr key={item.id}>
-                      <td className="py-1 pr-1">
-                        <div className="font-semibold">{item.productName}</div>
-                        <div className="text-[9px] text-slate-500">[{item.rackLocation}]</div>
-                      </td>
-                      <td className="py-1 text-center font-bold">
-                        {item.quantity} {item.unit}
-                      </td>
-                      <td className="py-1 text-right font-bold">₹{item.total}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <div className="border-t border-[#4a4a4a] pt-2 space-y-1 text-right text-[11px]">
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span>₹{receiptData.invoice.subtotal}</span>
-                </div>
-                {receiptData.invoice.discount > 0 && (
-                  <div className="flex justify-between text-slate-600">
-                    <span>Discount:</span>
-                    <span>-₹{receiptData.invoice.discount}</span>
-                  </div>
-                )}
-                <div className="flex justify-between font-bold text-sm pt-1 border-t border-dashed border-[#cbcbcb]">
-                  <span>TOTAL:</span>
-                  <span>₹{receiptData.invoice.totalAmount}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Paid ({receiptData.invoice.paymentMethod}):</span>
-                  <span>₹{receiptData.invoice.paidAmount}</span>
-                </div>
-                {receiptData.invoice.dueAmount > 0 && (
-                  <div className="flex justify-between font-bold text-amber-700">
-                    <span>Due Balance:</span>
-                    <span>₹{receiptData.invoice.dueAmount}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="text-center border-t border-dashed border-[#cbcbcb] mt-3 pt-2 text-[10px] text-slate-600">
-                *** THANK YOU FOR YOUR BUSINESS! ***
-              </div>
+            {/* Printable Invoice Template Container */}
+            <div className="bg-slate-50 p-3 rounded-[5px] border border-[#cbcbcb] max-h-[440px] overflow-y-auto">
+              <InvoicePrintTemplate
+                invoice={receiptData.invoice}
+                settings={receiptData.settings}
+                format={printerWidth as any}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
