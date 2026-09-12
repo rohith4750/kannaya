@@ -47,10 +47,10 @@ export default function Sidebar() {
           <img src="/logo.jpg" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
         </div>
         <div className="min-w-0">
-          <h1 className="font-extrabold text-sm text-white leading-tight truncate tracking-tight">
+          <h1 className="font-bold text-sm text-white leading-tight truncate tracking-tight">
             Venkata Lakshmi
           </h1>
-          <p className="text-[10px] text-[#ffffe3] font-bold truncate">
+          <p className="text-[10px] text-[#ffffe3] font-medium truncate">
             Electronics & Hardware
           </p>
         </div>
@@ -60,12 +60,12 @@ export default function Sidebar() {
       <div className="px-3 pt-3 pb-2">
         <Link
           href="/billing"
-          className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-black py-2 px-3.5 rounded-[5px] flex items-center justify-between shadow-md transition-all group border border-[#cbcbcb]/30"
+          className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold py-2 px-3.5 rounded-[5px] flex items-center justify-between shadow-md transition-all group border border-[#cbcbcb]/30"
         >
           <span className="flex items-center gap-2 text-xs">
             <ShoppingCart className="w-4 h-4 text-[#ffffe3]" /> Quick POS Bill
           </span>
-          <span className="bg-[#ffffe3]/20 px-1.5 py-0.5 rounded-[5px] text-[10px] text-[#ffffe3] font-extrabold">
+          <span className="bg-[#ffffe3]/20 px-1.5 py-0.5 rounded-[5px] text-[10px] text-[#ffffe3] font-bold">
             F2
           </span>
         </Link>
@@ -73,7 +73,7 @@ export default function Sidebar() {
 
       {/* Navigation Links */}
       <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
-        <div className="text-[10px] font-extrabold uppercase tracking-wider text-[#cbcbcb] px-3 py-1">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-[#cbcbcb] px-3 py-1">
           Store Navigation
         </div>
         {navigation.map((item) => {
@@ -83,10 +83,10 @@ export default function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center justify-between px-3.5 py-2 rounded-[5px] text-xs font-bold transition-all ${
+              className={`flex items-center justify-between px-3.5 py-2 rounded-[5px] text-xs transition-all ${
                 isActive
-                  ? 'bg-[#6d8196] text-white shadow-md border border-[#cbcbcb]/40'
-                  : 'text-[#cbcbcb] hover:text-white hover:bg-[#6d8196]/30'
+                  ? 'bg-[#6d8196] text-white font-semibold shadow-md border border-[#cbcbcb]/40'
+                  : 'text-[#cbcbcb] font-medium hover:text-white hover:bg-[#6d8196]/30'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -94,7 +94,7 @@ export default function Sidebar() {
                 <span>{item.name}</span>
               </div>
               {item.badge && (
-                <span className={`px-1.5 py-0.5 text-[9px] font-black rounded-[5px] uppercase ${
+                <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded-[5px] uppercase ${
                   isActive ? 'bg-[#ffffe3] text-[#4a4a4a]' : 'bg-[#6d8196] text-white'
                 }`}>
                   {item.badge}

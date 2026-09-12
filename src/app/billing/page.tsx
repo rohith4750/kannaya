@@ -257,34 +257,36 @@ export default function BillingPOSPage() {
                 key={product.id}
                 onClick={() => addToCart(product)}
                 disabled={product.stockQuantity <= 0}
-                className={`text-left p-3 rounded-[5px] border transition-all flex flex-col justify-between relative group ${
+                className={`text-left p-2.5 rounded-[5px] border transition-all flex flex-col justify-between relative group ${
                   product.stockQuantity <= 0
                     ? 'opacity-40 bg-slate-100 border-[#cbcbcb] cursor-not-allowed'
                     : inCart
-                    ? 'bg-[#ffffe3] border-[#6d8196] shadow-sm'
+                    ? 'bg-[#ffffe3] border-[#6d8196] shadow-sm ring-1 ring-[#6d8196]'
                     : 'bg-white border-[#cbcbcb] hover:border-[#6d8196] hover:bg-slate-50'
                 }`}
               >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20 flex items-center gap-1">
+                <div className="flex items-center justify-between mb-1.5 gap-1 pr-6">
+                  <span className="px-1.5 py-0.5 rounded-[3px] text-[10px] font-medium bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20 flex items-center gap-1 shrink-0">
                     <Layers className="w-2.5 h-2.5 text-[#6d8196]" />
                     {product.rack ? `${product.rack.rackName} (${product.rack.shelfCode})` : 'Rack A1'}
                   </span>
-                  <span className="text-[10px] font-semibold text-slate-500">{product.brand?.name}</span>
+                  <span className="text-[10px] font-medium text-slate-500 truncate max-w-[65px] text-right">
+                    {product.brand?.name}
+                  </span>
                 </div>
 
-                <h4 className="text-xs font-bold text-[#4a4a4a] line-clamp-2 leading-snug group-hover:text-[#6d8196]">
+                <h4 className="text-xs font-semibold text-[#4a4a4a] line-clamp-2 leading-snug group-hover:text-[#6d8196] min-h-[32px]">
                   {product.name}
                 </h4>
 
-                <div className="mt-2.5 pt-2 border-t border-[#cbcbcb] flex items-center justify-between">
-                  <div className="text-xs font-extrabold text-emerald-700">
+                <div className="mt-2 pt-2 border-t border-[#cbcbcb]/70 flex items-center justify-between">
+                  <div className="text-xs font-bold text-[#4a4a4a]">
                     ₹{product.sellingPrice}
                     <span className="text-[9px] font-normal text-slate-500">/{product.unit}</span>
                   </div>
                   <span
-                    className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px] ${
-                      isLowStock ? 'bg-rose-100 text-rose-700 border border-rose-200 font-bold' : 'text-slate-500'
+                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded-[3px] ${
+                      isLowStock ? 'bg-rose-100 text-rose-700 border border-rose-200 font-semibold' : 'text-slate-500'
                     }`}
                   >
                     Stock: {product.stockQuantity}
@@ -292,7 +294,7 @@ export default function BillingPOSPage() {
                 </div>
 
                 {inCart && (
-                  <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-[5px] bg-[#6d8196] text-white font-black text-[11px] flex items-center justify-center shadow">
+                  <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-[3px] bg-[#6d8196] text-white font-semibold text-[10px] shadow-sm flex items-center justify-center">
                     {inCart.quantity}
                   </div>
                 )}
@@ -327,18 +329,18 @@ export default function BillingPOSPage() {
               <div key={item.id} className="pt-2 first:pt-0 flex items-start justify-between gap-2.5">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-[5px] bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20">
+                    <span className="px-1.5 py-0.5 text-[9px] font-medium rounded-[3px] bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20">
                       {item.rack ? `${item.rack.rackName} ${item.rack.shelfCode}` : 'Rack A1'}
                     </span>
-                    <h5 className="text-xs font-bold text-[#4a4a4a] truncate">{item.name}</h5>
+                    <h5 className="text-xs font-semibold text-[#4a4a4a] truncate">{item.name}</h5>
                   </div>
                   <div className="text-[10px] text-slate-600 mt-0.5">
                     ₹{item.effectivePrice || item.sellingPrice} x {item.quantity} {item.unit} ={' '}
-                    <span className="text-emerald-700 font-bold">
+                    <span className="text-[#4a4a4a] font-semibold">
                       ₹{(item.effectivePrice || item.sellingPrice) * item.quantity}
                     </span>
                     {item.effectivePrice && item.effectivePrice < item.sellingPrice && (
-                      <span className="text-amber-700 font-bold text-[9px] ml-1">(Wholesale!)</span>
+                      <span className="text-amber-700 font-semibold text-[9px] ml-1">(Wholesale!)</span>
                     )}
                   </div>
                 </div>
@@ -347,7 +349,7 @@ export default function BillingPOSPage() {
                   <button onClick={() => updateQuantity(item.id, -1)} className="p-0.5 text-[#4a4a4a] hover:text-[#6d8196]">
                     <Minus className="w-3 h-3" />
                   </button>
-                  <span className="w-5 text-center text-xs font-mono font-bold text-[#4a4a4a]">{item.quantity}</span>
+                  <span className="w-5 text-center text-xs font-semibold text-[#4a4a4a]">{item.quantity}</span>
                   <button onClick={() => updateQuantity(item.id, 1)} className="p-0.5 text-[#4a4a4a] hover:text-[#6d8196]">
                     <Plus className="w-3 h-3" />
                   </button>
@@ -369,7 +371,7 @@ export default function BillingPOSPage() {
         <div className="p-3.5 border-t border-[#cbcbcb] bg-slate-50 space-y-2.5">
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <label className="text-[10px] text-[#4a4a4a] uppercase font-bold">Discount (₹)</label>
+              <label className="text-[10px] text-slate-600 uppercase font-semibold">Discount (₹)</label>
               <input
                 type="number"
                 value={discount || ''}
@@ -395,32 +397,32 @@ export default function BillingPOSPage() {
 
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <label className="text-[10px] text-[#4a4a4a] uppercase font-bold">Paid Amount (₹)</label>
+              <label className="text-[10px] text-slate-600 uppercase font-semibold">Paid Amount (₹)</label>
               <input
                 type="number"
                 value={paidAmountInput}
                 onChange={(e) => setPaidAmountInput(e.target.value)}
                 placeholder={`₹${totalAmount}`}
-                className="w-full mt-1 bg-white border border-[#cbcbcb] rounded-[5px] px-2.5 py-1 text-emerald-700 font-bold focus:outline-none focus:border-[#6d8196]"
+                className="w-full mt-1 bg-white border border-[#cbcbcb] rounded-[5px] px-2.5 py-1 text-[#4a4a4a] font-semibold focus:outline-none focus:border-[#6d8196]"
               />
             </div>
             <div>
-              <label className="text-[10px] text-[#4a4a4a] uppercase font-bold">Due (Udhar Balance)</label>
-              <div className="mt-1 bg-white border border-[#cbcbcb] rounded-[5px] px-2.5 py-1 text-amber-700 font-bold">
+              <label className="text-[10px] text-slate-600 uppercase font-semibold">Due (Udhar Balance)</label>
+              <div className="mt-1 bg-white border border-[#cbcbcb] rounded-[5px] px-2.5 py-1 text-amber-700 font-semibold">
                 ₹{dueAmount.toLocaleString('en-IN')}
               </div>
             </div>
           </div>
 
           <div className="pt-2 border-t border-[#cbcbcb] flex items-center justify-between text-xs">
-            <span className="text-[#4a4a4a] font-bold">Grand Total</span>
-            <span className="text-lg font-black text-[#4a4a4a]">₹{totalAmount.toLocaleString('en-IN')}</span>
+            <span className="text-[#4a4a4a] font-semibold">Grand Total</span>
+            <span className="text-base font-bold text-[#4a4a4a]">₹{totalAmount.toLocaleString('en-IN')}</span>
           </div>
 
           <button
             onClick={handleGenerateBill}
             disabled={loading || cart.length === 0}
-            className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold py-2.5 rounded-[5px] flex items-center justify-center gap-2 shadow-sm text-xs transition-all disabled:opacity-50 border border-[#cbcbcb]/40"
+            className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold py-2.5 rounded-[5px] flex items-center justify-center gap-2 shadow-sm text-xs transition-all disabled:opacity-50 border border-[#cbcbcb]/40"
           >
             <Printer className="w-4 h-4" />
             {loading ? 'Processing...' : 'Generate Bill & Print Thermal Receipt'}

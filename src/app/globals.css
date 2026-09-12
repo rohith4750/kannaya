@@ -37,6 +37,8 @@ body, input, select, textarea, button {
   background-color: var(--bg-app);
   font-family: var(--font-plus-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Material ERP Cards */
@@ -63,7 +65,7 @@ body, input, select, textarea, button {
 .erp-table th {
   background-color: #6d8196 !important;
   color: #ffffff !important;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   font-size: 10.5px;
   letter-spacing: 0.04em;
