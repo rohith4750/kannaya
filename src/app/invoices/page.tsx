@@ -96,8 +96,6 @@ export default function InvoicesPage() {
 
   return (
     <div className="space-y-4">
-  return (
-    <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-[5px] border border-slate-300 shadow-sm">
         <div>
