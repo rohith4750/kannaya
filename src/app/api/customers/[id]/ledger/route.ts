@@ -18,6 +18,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         },
         invoices: {
           orderBy: { createdAt: 'desc' },
+          include: { items: true },
         },
       },
     });

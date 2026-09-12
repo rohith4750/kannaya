@@ -14,6 +14,12 @@ import {
   CheckCircle,
   FileText,
   AlertCircle,
+  ShoppingBag,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  Printer,
+  Package,
 } from 'lucide-react';
 import MaterialSelect from '@/components/MaterialSelect';
 
@@ -21,6 +27,8 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params);
   const [customer, setCustomer] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'itemized' | 'ledger' | 'invoices'>('itemized');
+  const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
 
   // Payment Modal State
   const [showPayModal, setShowPayModal] = useState(false);
@@ -109,31 +117,73 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
     );
   }
 
+  // Group Invoices by Date (Today, Yesterday, Date)
+  const groupInvoicesByDate = () => {
+    if (!customer.invoices) return {};
+    const groups: { [dateStr: string]: any[] } = {};
+
+    const todayStr = new Date().toLocaleDateString('en-IN');
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toLocaleDateString('en-IN');
+
+    customer.invoices.forEach((inv: any) => {
+      const d = new Date(inv.createdAt);
+      const invDateStr = d.toLocaleDateString('en-IN');
+      let displayKey = d.toLocaleDateString('en-IN', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+
+      if (invDateStr === todayStr) {
+        displayKey = `Today (${displayKey})`;
+      } else if (invDateStr === yesterdayStr) {
+        displayKey = `Yesterday (${displayKey})`;
+      }
+
+      if (!groups[displayKey]) groups[displayKey] = [];
+      groups[displayKey].push(inv);
+    });
+
+    return groups;
+  };
+
+  const invoiceGroups = groupInvoicesByDate();
+
   return (
     <div className="space-y-5 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Link
           href="/customers"
-          className="text-xs text-[#4a4a4a] hover:text-[#6d8196] flex items-center gap-1.5 font-bold bg-white border border-[#cbcbcb] px-3 py-1.5 rounded-[5px] transition-colors shadow-sm"
+          className="text-xs text-[#4a4a4a] hover:text-[#6d8196] flex items-center gap-1.5 font-bold bg-white border border-[#cbcbcb] px-3 py-1.5 rounded-[5px] transition-colors shadow-sm w-fit"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Customer Credit Accounts
+          <ArrowLeft className="w-4 h-4" /> Back to Customer Accounts
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => window.print()}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-[#cbcbcb] px-3 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-sm"
+          >
+            <Printer className="w-3.5 h-3.5 text-slate-600" /> Print Statement
+          </button>
+
           {customer.outstanding > 0 && (
             <>
               <button
                 onClick={() => setShowPayModal(true)}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-sm"
+                className="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-sm"
               >
                 <DollarSign className="w-4 h-4" /> Clear Udhar Payment
               </button>
               <button
                 onClick={handleWhatsAppReminder}
-                className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-4 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-sm border border-[#cbcbcb]/40"
+                className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-3 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-sm border border-[#cbcbcb]/40"
               >
-                <MessageSquare className="w-4 h-4" /> Send WhatsApp Reminder
+                <MessageSquare className="w-4 h-4" /> WhatsApp Reminder
               </button>
             </>
           )}
@@ -141,86 +191,312 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       </div>
 
       {/* Customer Overview Card */}
-      <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm space-y-6">
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-[#cbcbcb] pb-5">
+      <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm space-y-5">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-[#cbcbcb] pb-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-[#4a4a4a]">{customer.name}</h1>
-            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 mt-2">
-              <span className="flex items-center gap-1 font-medium"><Phone className="w-3.5 h-3.5 text-[#6d8196]" /> {customer.phone}</span>
-              {customer.email && <span className="flex items-center gap-1 font-medium"><Mail className="w-3.5 h-3.5 text-[#6d8196]" /> {customer.email}</span>}
-              {customer.address && <span className="flex items-center gap-1 font-medium"><MapPin className="w-3.5 h-3.5 text-emerald-700" /> {customer.address}</span>}
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-extrabold text-[#4a4a4a]">{customer.name}</h1>
+              {customer.outstanding > 0 ? (
+                <span className="px-2.5 py-0.5 rounded-[5px] text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                  Udhar Due
+                </span>
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-[5px] text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  Clear
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 mt-2">
+              <span className="flex items-center gap-1 font-semibold">
+                <Phone className="w-3.5 h-3.5 text-[#6d8196]" /> {customer.phone}
+              </span>
+              {customer.email && (
+                <span className="flex items-center gap-1 font-medium">
+                  <Mail className="w-3.5 h-3.5 text-[#6d8196]" /> {customer.email}
+                </span>
+              )}
+              {customer.address && (
+                <span className="flex items-center gap-1 font-medium">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-700" /> {customer.address}
+                </span>
+              )}
             </div>
           </div>
 
-          <div className="bg-[#ffffe3] p-4 rounded-[5px] border border-[#cbcbcb] min-w-[220px] text-right">
-            <span className="text-[10px] text-slate-500 uppercase font-bold">Outstanding Udhar Balance</span>
+          <div className="bg-[#ffffe3] p-4 rounded-[5px] border border-[#cbcbcb] min-w-[220px] text-right shadow-sm">
+            <span className="text-[10px] text-slate-500 uppercase font-bold">Current Udhar Outstanding</span>
             <div className={`text-3xl font-black ${customer.outstanding > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
               ₹{customer.outstanding.toLocaleString('en-IN')}
             </div>
-            <span className="text-[11px] text-slate-500 mt-1 block">Credit Limit: ₹{customer.creditLimit.toLocaleString('en-IN')}</span>
+            <span className="text-[11px] text-slate-500 mt-0.5 block">
+              Credit Limit: ₹{customer.creditLimit.toLocaleString('en-IN')}
+            </span>
           </div>
         </div>
 
         {/* Financial Stat Pills */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          <div className="bg-slate-50 p-4 rounded-[5px] border border-[#cbcbcb]">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="bg-slate-50 p-3.5 rounded-[5px] border border-[#cbcbcb]">
             <span className="text-slate-500 text-[10px] uppercase font-bold block mb-1">Total Lifetime Purchases</span>
-            <div className="text-2xl font-extrabold text-[#4a4a4a]">₹{customer.totalPurchases.toLocaleString('en-IN')}</div>
+            <div className="text-xl font-extrabold text-[#4a4a4a]">₹{customer.totalPurchases.toLocaleString('en-IN')}</div>
           </div>
-          <div className="bg-slate-50 p-4 rounded-[5px] border border-[#cbcbcb]">
+          <div className="bg-slate-50 p-3.5 rounded-[5px] border border-[#cbcbcb]">
             <span className="text-slate-500 text-[10px] uppercase font-bold block mb-1">Total Paid Amount</span>
-            <div className="text-2xl font-extrabold text-emerald-700">₹{customer.totalPaid.toLocaleString('en-IN')}</div>
+            <div className="text-xl font-extrabold text-emerald-700">₹{customer.totalPaid.toLocaleString('en-IN')}</div>
           </div>
-          <div className="bg-slate-50 p-4 rounded-[5px] border border-[#cbcbcb]">
-            <span className="text-slate-500 text-[10px] uppercase font-bold block mb-1">Invoices Count</span>
-            <div className="text-2xl font-extrabold text-[#6d8196]">{customer.invoices?.length || 0} Bills</div>
+          <div className="bg-slate-50 p-3.5 rounded-[5px] border border-[#cbcbcb]">
+            <span className="text-slate-500 text-[10px] uppercase font-bold block mb-1">Total Invoices Issued</span>
+            <div className="text-xl font-extrabold text-[#6d8196]">{customer.invoices?.length || 0} Bills</div>
           </div>
         </div>
       </div>
 
-      {/* Customer Chronological Ledger Statement Table */}
-      <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm space-y-4">
-        <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
-          <History className="w-4 h-4 text-[#6d8196]" /> Complete Account Ledger Statement
-        </h3>
+      {/* TABS NAVIGATION */}
+      <div className="bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm overflow-hidden">
+        <div className="flex border-b border-[#cbcbcb] bg-slate-50 text-xs font-bold">
+          <button
+            onClick={() => setActiveTab('itemized')}
+            className={`flex-1 py-3 px-4 flex items-center justify-center gap-2 border-r border-[#cbcbcb] transition-colors ${
+              activeTab === 'itemized'
+                ? 'bg-white text-[#6d8196] border-b-2 border-b-[#6d8196] font-extrabold'
+                : 'text-slate-600 hover:text-[#4a4a4a]'
+            }`}
+          >
+            <ShoppingBag className="w-4 h-4 text-[#6d8196]" /> Daily Itemized Purchase Breakdown
+          </button>
+          <button
+            onClick={() => setActiveTab('ledger')}
+            className={`flex-1 py-3 px-4 flex items-center justify-center gap-2 border-r border-[#cbcbcb] transition-colors ${
+              activeTab === 'ledger'
+                ? 'bg-white text-[#6d8196] border-b-2 border-b-[#6d8196] font-extrabold'
+                : 'text-slate-600 hover:text-[#4a4a4a]'
+            }`}
+          >
+            <History className="w-4 h-4 text-[#6d8196]" /> Financial Ledger & Payments
+          </button>
+          <button
+            onClick={() => setActiveTab('invoices')}
+            className={`flex-1 py-3 px-4 flex items-center justify-center gap-2 transition-colors ${
+              activeTab === 'invoices'
+                ? 'bg-white text-[#6d8196] border-b-2 border-b-[#6d8196] font-extrabold'
+                : 'text-slate-600 hover:text-[#4a4a4a]'
+            }`}
+          >
+            <FileText className="w-4 h-4 text-[#6d8196]" /> Invoices List ({customer.invoices?.length || 0})
+          </button>
+        </div>
 
-        <div className="space-y-2.5">
-          {customer.ledger?.length > 0 ? (
-            customer.ledger.map((entry: any) => (
-              <div
-                key={entry.id}
-                className={`p-3.5 rounded-[5px] border flex items-center justify-between text-xs ${
-                  entry.type === 'SALE' ? 'bg-[#ffffe3] border-[#cbcbcb]' : 'bg-emerald-50 border-emerald-200'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-2 py-0.5 rounded-[5px] text-[10px] font-bold ${
-                        entry.type === 'SALE' ? 'bg-amber-700 text-white' : 'bg-emerald-700 text-white'
+        {/* TAB 1: DAILY ITEMIZED PURCHASE BREAKDOWN */}
+        {activeTab === 'itemized' && (
+          <div className="p-4 space-y-4 text-xs">
+            {Object.keys(invoiceGroups).length === 0 ? (
+              <div className="py-8 text-center text-slate-500 font-medium">
+                No purchase history or bills recorded for this customer yet.
+              </div>
+            ) : (
+              Object.entries(invoiceGroups).map(([dateLabel, invs]) => (
+                <div key={dateLabel} className="border border-[#cbcbcb] rounded-[5px] overflow-hidden bg-white">
+                  {/* Date Section Header */}
+                  <div className="bg-[#4a4a4a] text-white px-3.5 py-2 flex items-center justify-between font-bold">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-[#ffffe3]" />
+                      <span>{dateLabel}</span>
+                    </div>
+                    <span className="text-[11px] font-medium text-[#ffffe3]">
+                      {invs.length} Bill{invs.length > 1 ? 's' : ''} • Total Day Purchase: ₹
+                      {invs.reduce((sum, inv) => sum + inv.totalAmount, 0).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+
+                  {/* Bills under Date */}
+                  <div className="divide-y divide-slate-200">
+                    {invs.map((inv: any) => {
+                      const isExpanded = expandedInvoiceId === inv.id;
+                      return (
+                        <div key={inv.id} className="p-3.5 space-y-2.5">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                              <div className="flex items-center gap-2 font-bold text-[#4a4a4a] text-xs">
+                                <Link
+                                  href={`/invoices/${inv.id}`}
+                                  className="text-[#6d8196] hover:underline font-mono"
+                                >
+                                  Invoice #{inv.invoiceNo}
+                                </Link>
+                                <span className="text-slate-400">•</span>
+                                <span>{new Date(inv.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
+                                  {inv.paymentMethod}
+                                </span>
+                              </div>
+                              <div className="text-[11px] text-slate-500 mt-0.5">
+                                Items Count: {inv.items?.length || 0} product(s)
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <div className="text-right">
+                                <div className="font-extrabold text-sm text-[#4a4a4a]">
+                                  ₹{inv.totalAmount.toLocaleString('en-IN')}
+                                </div>
+                                {inv.dueAmount > 0 ? (
+                                  <span className="text-[10px] text-amber-700 font-bold block">
+                                    Added to Udhar: ₹{inv.dueAmount.toLocaleString('en-IN')}
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] text-emerald-700 font-bold block">
+                                    Paid Fully
+                                  </span>
+                                )}
+                              </div>
+
+                              <button
+                                onClick={() => setExpandedInvoiceId(isExpanded ? null : inv.id)}
+                                className="bg-slate-100 hover:bg-slate-200 text-slate-700 p-1.5 rounded-[5px] border border-[#cbcbcb]"
+                                title="Toggle Items List"
+                              >
+                                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Items Table for this Invoice */}
+                          <div className="bg-slate-50 rounded-[5px] border border-[#cbcbcb] p-2.5 overflow-x-auto">
+                            <table className="w-full text-left text-[11px] border-collapse">
+                              <thead>
+                                <tr className="border-b border-[#cbcbcb] text-slate-500 font-bold uppercase text-[9px]">
+                                  <th className="pb-1 px-2">Item / Product Name</th>
+                                  <th className="pb-1 px-2 text-center">Unit Price</th>
+                                  <th className="pb-1 px-2 text-center">Qty</th>
+                                  <th className="pb-1 px-2 text-right">Total Price</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-200">
+                                {inv.items?.map((item: any) => (
+                                  <tr key={item.id}>
+                                    <td className="py-1.5 px-2 font-bold text-[#4a4a4a]">
+                                      <div className="flex items-center gap-1.5">
+                                        <Package className="w-3.5 h-3.5 text-[#6d8196] shrink-0" />
+                                        <span>{item.productName}</span>
+                                      </div>
+                                    </td>
+                                    <td className="py-1.5 px-2 text-center text-slate-600 font-mono">
+                                      ₹{item.price.toLocaleString('en-IN')}
+                                    </td>
+                                    <td className="py-1.5 px-2 text-center font-bold text-slate-800">
+                                      {item.quantity} {item.unit}
+                                    </td>
+                                    <td className="py-1.5 px-2 text-right font-extrabold text-slate-900 font-mono">
+                                      ₹{item.total.toLocaleString('en-IN')}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* TAB 2: FINANCIAL LEDGER & PAYMENTS */}
+        {activeTab === 'ledger' && (
+          <div className="p-4 space-y-3 text-xs">
+            {customer.ledger?.length > 0 ? (
+              customer.ledger.map((entry: any) => (
+                <div
+                  key={entry.id}
+                  className={`p-3.5 rounded-[5px] border flex items-center justify-between text-xs ${
+                    entry.type === 'SALE' ? 'bg-[#ffffe3] border-[#cbcbcb]' : 'bg-emerald-50 border-emerald-200'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-0.5 rounded-[5px] text-[10px] font-bold ${
+                          entry.type === 'SALE' ? 'bg-amber-700 text-white' : 'bg-emerald-700 text-white'
+                        }`}
+                      >
+                        {entry.type}
+                      </span>
+                      <span className="font-bold text-[#4a4a4a]">{entry.notes}</span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-1">
+                      {new Date(entry.createdAt).toLocaleString('en-IN')}
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <div
+                      className={`font-extrabold text-base ${
+                        entry.type === 'SALE' ? 'text-amber-700' : 'text-emerald-700'
                       }`}
                     >
-                      {entry.type}
-                    </span>
-                    <span className="font-bold text-[#4a4a4a]">{entry.notes}</span>
-                  </div>
-                  <div className="text-[10px] text-slate-500 mt-1">
-                    {new Date(entry.createdAt).toLocaleString('en-IN')}
+                      {entry.type === 'SALE' ? '+' : '-'}₹{entry.amount.toLocaleString('en-IN')}
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-medium">
+                      Running Balance: ₹{entry.balance.toLocaleString('en-IN')}
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <p className="text-xs text-slate-500 py-6 text-center">No ledger entries recorded yet.</p>
+            )}
+          </div>
+        )}
 
-                <div className="text-right">
-                  <div className={`font-extrabold text-base ${entry.type === 'SALE' ? 'text-amber-700' : 'text-emerald-700'}`}>
-                    {entry.type === 'SALE' ? '+' : '-'}₹{entry.amount.toLocaleString('en-IN')}
-                  </div>
-                  <div className="text-[10px] text-slate-500 font-medium">Balance: ₹{entry.balance.toLocaleString('en-IN')}</div>
-                </div>
+        {/* TAB 3: INVOICES LIST */}
+        {activeTab === 'invoices' && (
+          <div className="p-4 text-xs">
+            {customer.invoices?.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#4a4a4a] text-white font-semibold text-[11px]">
+                      <th className="py-2.5 px-3">Invoice No</th>
+                      <th className="py-2.5 px-3">Date</th>
+                      <th className="py-2.5 px-3">Total Amount</th>
+                      <th className="py-2.5 px-3">Paid Amount</th>
+                      <th className="py-2.5 px-3">Due Amount</th>
+                      <th className="py-2.5 px-3">Payment Mode</th>
+                      <th className="py-2.5 px-3 text-right">View</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {customer.invoices.map((inv: any) => (
+                      <tr key={inv.id} className="hover:bg-slate-50">
+                        <td className="py-2.5 px-3 font-bold text-[#6d8196] font-mono">{inv.invoiceNo}</td>
+                        <td className="py-2.5 px-3 text-slate-600">
+                          {new Date(inv.createdAt).toLocaleDateString('en-IN')}
+                        </td>
+                        <td className="py-2.5 px-3 font-bold text-[#4a4a4a]">₹{inv.totalAmount.toLocaleString('en-IN')}</td>
+                        <td className="py-2.5 px-3 font-bold text-emerald-700">₹{inv.paidAmount.toLocaleString('en-IN')}</td>
+                        <td className="py-2.5 px-3 font-bold text-amber-700">₹{inv.dueAmount.toLocaleString('en-IN')}</td>
+                        <td className="py-2.5 px-3">{inv.paymentMethod}</td>
+                        <td className="py-2.5 px-3 text-right">
+                          <Link
+                            href={`/invoices/${inv.id}`}
+                            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-[5px] border border-[#cbcbcb] text-[11px] font-bold"
+                          >
+                            Open Bill
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))
-          ) : (
-            <p className="text-xs text-slate-500 py-6 text-center">No ledger entries found for this customer.</p>
-          )}
-        </div>
+            ) : (
+              <p className="text-xs text-slate-500 py-6 text-center">No invoices generated for this customer.</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* RECORD PAYMENT MODAL */}

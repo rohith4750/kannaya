@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Users,
   Search,
@@ -13,6 +14,9 @@ import {
   CheckCircle,
   X,
   CreditCard,
+  Package,
+  FileText,
+  ExternalLink,
 } from 'lucide-react';
 import MaterialSelect from '@/components/MaterialSelect';
 
@@ -236,20 +240,22 @@ export default function CustomersPage() {
 
               {/* Action Buttons */}
               <div className="mt-4 pt-2.5 border-t border-slate-200 flex items-center justify-between gap-1.5">
+                <Link
+                  href={`/customers/${c.id}`}
+                  className="bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 font-bold py-1.5 px-2 rounded-[5px] text-[11px] flex items-center gap-1 transition-colors shadow-sm"
+                  title="View Daily Itemized Purchase Statement"
+                >
+                  <FileText className="w-3.5 h-3.5 text-[#6d8196]" /> Items & Ledger
+                </Link>
+
                 <button
                   onClick={() => setPayModalCustomer(c)}
                   disabled={c.outstanding <= 0}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-2.5 rounded-[5px] text-xs flex items-center justify-center gap-1 transition-colors disabled:opacity-40 shadow-sm"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-2 rounded-[5px] text-xs flex items-center justify-center gap-1 transition-colors disabled:opacity-40 shadow-sm"
                 >
                   <DollarSign className="w-3.5 h-3.5" /> Clear Payment
                 </button>
-                <button
-                  onClick={() => handleOpenLedger(c)}
-                  className="bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 p-1.5 rounded-[5px] text-xs"
-                  title="View Ledger History"
-                >
-                  <HistoryIcon className="w-4 h-4" />
-                </button>
+
                 {c.outstanding > 0 && (
                   <button
                     onClick={() => handleSendWhatsAppReminder(c)}
@@ -418,52 +424,81 @@ export default function CustomersPage() {
           <div className="bg-white border border-slate-300 rounded-[5px] max-w-2xl w-full p-5 space-y-3 max-h-[85vh] flex flex-col shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 pb-2">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Customer Ledger Statement</h3>
+                <h3 className="text-sm font-bold text-slate-900">Customer Itemized Statement & Ledger</h3>
                 <p className="text-xs text-slate-500">{customerLedgerData.name} ({customerLedgerData.phone})</p>
               </div>
-              <button onClick={() => setLedgerModalCustomer(null)} className="text-slate-400 hover:text-slate-700">
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/customers/${customerLedgerData.id}`}
+                  className="text-xs bg-[#6d8196] hover:bg-[#5b6f84] text-white px-2.5 py-1 rounded-[5px] font-bold flex items-center gap-1"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" /> Full Statement Page
+                </Link>
+                <button onClick={() => setLedgerModalCustomer(null)} className="text-slate-400 hover:text-slate-700 p-1">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+            <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
               {customerLedgerData.ledger?.map((entry: any) => (
                 <div
                   key={entry.id}
-                  className={`p-3 rounded-[5px] border flex items-center justify-between text-xs ${
+                  className={`p-3 rounded-[5px] border space-y-2 text-xs ${
                     entry.type === 'SALE'
-                      ? 'bg-amber-50 border-amber-200'
-                      : 'bg-emerald-50 border-emerald-200'
+                      ? 'bg-amber-50/70 border-amber-200'
+                      : 'bg-emerald-50/70 border-emerald-200'
                   }`}
                 >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`px-2 py-0.5 rounded-[5px] text-[10px] font-bold ${
-                          entry.type === 'SALE'
-                            ? 'bg-amber-600 text-white'
-                            : 'bg-emerald-600 text-white'
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-2 py-0.5 rounded-[5px] text-[10px] font-bold ${
+                            entry.type === 'SALE'
+                              ? 'bg-amber-600 text-white'
+                              : 'bg-emerald-600 text-white'
+                          }`}
+                        >
+                          {entry.type}
+                        </span>
+                        <span className="font-bold text-slate-900">{entry.notes}</span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 mt-1">
+                        Date: {new Date(entry.createdAt).toLocaleString('en-IN')}
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <div
+                        className={`font-black text-sm ${
+                          entry.type === 'SALE' ? 'text-amber-700' : 'text-emerald-700'
                         }`}
                       >
-                        {entry.type}
-                      </span>
-                      <span className="font-semibold text-slate-900">{entry.notes}</span>
-                    </div>
-                    <div className="text-[10px] text-slate-500 mt-1">
-                      {new Date(entry.createdAt).toLocaleString('en-IN')}
+                        {entry.type === 'SALE' ? '+' : '-'}₹{entry.amount.toLocaleString('en-IN')}
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-medium">Balance: ₹{entry.balance.toLocaleString('en-IN')}</div>
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <div
-                      className={`font-black text-xs ${
-                        entry.type === 'SALE' ? 'text-amber-700' : 'text-emerald-700'
-                      }`}
-                    >
-                      {entry.type === 'SALE' ? '+' : '-'}₹{entry.amount.toLocaleString('en-IN')}
+                  {/* Itemized Items Breakdown if Invoice exists */}
+                  {entry.invoice?.items && entry.invoice.items.length > 0 && (
+                    <div className="bg-white rounded-[5px] border border-amber-200 p-2 text-[11px]">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">
+                        Items Purchased in this Bill:
+                      </div>
+                      <div className="space-y-1">
+                        {entry.invoice.items.map((item: any) => (
+                          <div key={item.id} className="flex items-center justify-between text-slate-700">
+                            <span className="font-semibold flex items-center gap-1">
+                              <Package className="w-3 h-3 text-[#6d8196]" /> {item.productName} ({item.quantity} {item.unit})
+                            </span>
+                            <span className="font-mono font-bold text-slate-900">₹{item.total.toLocaleString('en-IN')}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="text-[10px] text-slate-500 font-medium">Balance: ₹{entry.balance.toLocaleString('en-IN')}</div>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>
