@@ -226,9 +226,9 @@ export default function BillingPOSPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-5rem)] flex flex-col lg:flex-row gap-5">
+    <div className="h-full flex flex-col lg:flex-row gap-5 overflow-hidden">
       {/* Product Catalog */}
-      <div className="flex-1 flex flex-col min-w-0 bg-white rounded-[5px] border border-slate-300 p-4 overflow-hidden shadow-sm">
+      <div className="flex-1 flex flex-col min-w-0 bg-white rounded-[5px] border border-[#cbcbcb] p-4 overflow-hidden shadow-sm">
         <div className="flex gap-3 mb-3">
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -239,10 +239,10 @@ export default function BillingPOSPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDownSearch}
               placeholder="Scan Barcode or Search product..."
-              className="w-full bg-slate-50 border border-slate-300 rounded-[5px] pl-10 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white"
+              className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-10 pr-4 py-2 text-xs text-[#4a4a4a] placeholder-slate-400 focus:outline-none focus:border-[#6d8196] focus:bg-white"
             />
           </div>
-          <div className="bg-blue-50 border border-blue-200 px-3 py-2 rounded-[5px] flex items-center gap-2 text-xs font-bold text-blue-700">
+          <div className="bg-[#6d8196]/10 border border-[#6d8196]/30 px-3 py-2 rounded-[5px] flex items-center gap-2 text-xs font-bold text-[#6d8196]">
             <Barcode className="w-4 h-4" /> Barcode Active
           </div>
         </div>
@@ -259,25 +259,25 @@ export default function BillingPOSPage() {
                 disabled={product.stockQuantity <= 0}
                 className={`text-left p-3 rounded-[5px] border transition-all flex flex-col justify-between relative group ${
                   product.stockQuantity <= 0
-                    ? 'opacity-40 bg-slate-100 border-slate-200 cursor-not-allowed'
+                    ? 'opacity-40 bg-slate-100 border-[#cbcbcb] cursor-not-allowed'
                     : inCart
-                    ? 'bg-blue-50/80 border-blue-600 shadow-sm'
-                    : 'bg-white border-slate-300 hover:border-blue-500 hover:bg-slate-50'
+                    ? 'bg-[#ffffe3] border-[#6d8196] shadow-sm'
+                    : 'bg-white border-[#cbcbcb] hover:border-[#6d8196] hover:bg-slate-50'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1">
-                    <Layers className="w-2.5 h-2.5 text-blue-600" />
+                  <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20 flex items-center gap-1">
+                    <Layers className="w-2.5 h-2.5 text-[#6d8196]" />
                     {product.rack ? `${product.rack.rackName} (${product.rack.shelfCode})` : 'Rack A1'}
                   </span>
                   <span className="text-[10px] font-semibold text-slate-500">{product.brand?.name}</span>
                 </div>
 
-                <h4 className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-blue-700">
+                <h4 className="text-xs font-bold text-[#4a4a4a] line-clamp-2 leading-snug group-hover:text-[#6d8196]">
                   {product.name}
                 </h4>
 
-                <div className="mt-2.5 pt-2 border-t border-slate-200 flex items-center justify-between">
+                <div className="mt-2.5 pt-2 border-t border-[#cbcbcb] flex items-center justify-between">
                   <div className="text-xs font-extrabold text-emerald-700">
                     ₹{product.sellingPrice}
                     <span className="text-[9px] font-normal text-slate-500">/{product.unit}</span>
@@ -292,7 +292,7 @@ export default function BillingPOSPage() {
                 </div>
 
                 {inCart && (
-                  <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-[5px] bg-blue-600 text-white font-black text-[11px] flex items-center justify-center shadow">
+                  <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-[5px] bg-[#6d8196] text-white font-black text-[11px] flex items-center justify-center shadow">
                     {inCart.quantity}
                   </div>
                 )}
@@ -303,9 +303,9 @@ export default function BillingPOSPage() {
       </div>
 
       {/* Cart & Billing Checkout */}
-      <div className="w-full lg:w-[400px] bg-white border border-slate-300 rounded-[5px] flex flex-col h-full overflow-hidden shadow-sm">
+      <div className="w-full lg:w-[400px] bg-white border border-[#cbcbcb] rounded-[5px] flex flex-col h-full overflow-hidden shadow-sm">
         {/* Customer Selector */}
-        <div className="p-3.5 border-b border-slate-200 bg-slate-50">
+        <div className="p-3.5 border-b border-[#cbcbcb] bg-slate-50">
           <MaterialSelect
             label="Customer Credit Account"
             value={selectedCustomerId}
@@ -321,16 +321,16 @@ export default function BillingPOSPage() {
         </div>
 
         {/* Cart List */}
-        <div className="flex-1 overflow-y-auto p-3.5 space-y-2 divide-y divide-slate-200">
+        <div className="flex-1 overflow-y-auto p-3.5 space-y-2 divide-y divide-[#cbcbcb]">
           {cart.length > 0 ? (
             cart.map((item) => (
               <div key={item.id} className="pt-2 first:pt-0 flex items-start justify-between gap-2.5">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-[5px] bg-blue-50 text-blue-700 border border-blue-200">
+                    <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-[5px] bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20">
                       {item.rack ? `${item.rack.rackName} ${item.rack.shelfCode}` : 'Rack A1'}
                     </span>
-                    <h5 className="text-xs font-bold text-slate-900 truncate">{item.name}</h5>
+                    <h5 className="text-xs font-bold text-[#4a4a4a] truncate">{item.name}</h5>
                   </div>
                   <div className="text-[10px] text-slate-600 mt-0.5">
                     ₹{item.effectivePrice || item.sellingPrice} x {item.quantity} {item.unit} ={' '}
@@ -343,12 +343,12 @@ export default function BillingPOSPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-[5px] border border-slate-300">
-                  <button onClick={() => updateQuantity(item.id, -1)} className="p-0.5 text-slate-600 hover:text-slate-900">
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-[5px] border border-[#cbcbcb]">
+                  <button onClick={() => updateQuantity(item.id, -1)} className="p-0.5 text-[#4a4a4a] hover:text-[#6d8196]">
                     <Minus className="w-3 h-3" />
                   </button>
-                  <span className="w-5 text-center text-xs font-mono font-bold text-slate-900">{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.id, 1)} className="p-0.5 text-slate-600 hover:text-slate-900">
+                  <span className="w-5 text-center text-xs font-mono font-bold text-[#4a4a4a]">{item.quantity}</span>
+                  <button onClick={() => updateQuantity(item.id, 1)} className="p-0.5 text-[#4a4a4a] hover:text-[#6d8196]">
                     <Plus className="w-3 h-3" />
                   </button>
                 </div>
@@ -366,16 +366,16 @@ export default function BillingPOSPage() {
         </div>
 
         {/* Calculations & Submit */}
-        <div className="p-3.5 border-t border-slate-200 bg-slate-50 space-y-2.5">
+        <div className="p-3.5 border-t border-[#cbcbcb] bg-slate-50 space-y-2.5">
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <label className="text-[10px] text-slate-700 uppercase font-bold">Discount (₹)</label>
+              <label className="text-[10px] text-[#4a4a4a] uppercase font-bold">Discount (₹)</label>
               <input
                 type="number"
                 value={discount || ''}
                 onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
                 placeholder="0"
-                className="w-full mt-1 bg-white border border-slate-300 rounded-[5px] px-2.5 py-1 text-slate-900"
+                className="w-full mt-1 bg-white border border-[#cbcbcb] rounded-[5px] px-2.5 py-1 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
               />
             </div>
             <div>
@@ -395,32 +395,32 @@ export default function BillingPOSPage() {
 
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <label className="text-[10px] text-slate-700 uppercase font-bold">Paid Amount (₹)</label>
+              <label className="text-[10px] text-[#4a4a4a] uppercase font-bold">Paid Amount (₹)</label>
               <input
                 type="number"
                 value={paidAmountInput}
                 onChange={(e) => setPaidAmountInput(e.target.value)}
                 placeholder={`₹${totalAmount}`}
-                className="w-full mt-1 bg-white border border-slate-300 rounded-[5px] px-2.5 py-1 text-emerald-700 font-bold"
+                className="w-full mt-1 bg-white border border-[#cbcbcb] rounded-[5px] px-2.5 py-1 text-emerald-700 font-bold focus:outline-none focus:border-[#6d8196]"
               />
             </div>
             <div>
-              <label className="text-[10px] text-slate-700 uppercase font-bold">Due (Udhar Balance)</label>
-              <div className="mt-1 bg-white border border-slate-300 rounded-[5px] px-2.5 py-1 text-amber-700 font-bold">
+              <label className="text-[10px] text-[#4a4a4a] uppercase font-bold">Due (Udhar Balance)</label>
+              <div className="mt-1 bg-white border border-[#cbcbcb] rounded-[5px] px-2.5 py-1 text-amber-700 font-bold">
                 ₹{dueAmount.toLocaleString('en-IN')}
               </div>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
-            <span className="text-slate-700 font-bold">Grand Total</span>
-            <span className="text-lg font-black text-slate-900">₹{totalAmount.toLocaleString('en-IN')}</span>
+          <div className="pt-2 border-t border-[#cbcbcb] flex items-center justify-between text-xs">
+            <span className="text-[#4a4a4a] font-bold">Grand Total</span>
+            <span className="text-lg font-black text-[#4a4a4a]">₹{totalAmount.toLocaleString('en-IN')}</span>
           </div>
 
           <button
             onClick={handleGenerateBill}
             disabled={loading || cart.length === 0}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-[5px] flex items-center justify-center gap-2 shadow-sm text-xs transition-all disabled:opacity-50"
+            className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold py-2.5 rounded-[5px] flex items-center justify-center gap-2 shadow-sm text-xs transition-all disabled:opacity-50 border border-[#cbcbcb]/40"
           >
             <Printer className="w-4 h-4" />
             {loading ? 'Processing...' : 'Generate Bill & Print Thermal Receipt'}
@@ -430,42 +430,42 @@ export default function BillingPOSPage() {
 
       {/* THERMAL PRINT RECEIPT MODAL */}
       {showReceiptModal && receiptData && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#1e293b] border border-slate-700 rounded-[5px] max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-700 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-emerald-400" /> Invoice Generated
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-3">
+              <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-700" /> Invoice Generated
               </h3>
               <div className="flex items-center gap-2">
                 <select
                   value={printerWidth}
                   onChange={(e) => setPrinterWidth(e.target.value as any)}
-                  className="bg-[#0f172a] border border-slate-700 text-xs text-slate-200 px-2 py-1 rounded-[5px]"
+                  className="bg-white border border-[#cbcbcb] text-xs text-[#4a4a4a] px-2 py-1 rounded-[5px]"
                 >
                   <option value="80mm">80mm Thermal</option>
                   <option value="58mm">58mm Thermal</option>
                 </select>
-                <button onClick={() => setShowReceiptModal(false)} className="text-slate-400 hover:text-white p-1">
+                <button onClick={() => setShowReceiptModal(false)} className="text-slate-400 hover:text-[#4a4a4a] p-1">
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
             {/* Thermal Print Receipt Roll Paper */}
-            <div className="bg-white text-slate-950 p-4 rounded-[5px] font-mono text-xs shadow-inner max-h-[380px] overflow-y-auto" id="thermal-receipt-printable">
-              <div className="text-center border-b border-dashed border-slate-400 pb-2 mb-2">
+            <div className="bg-white text-[#4a4a4a] p-4 rounded-[5px] font-mono text-xs border border-[#cbcbcb] shadow-inner max-h-[380px] overflow-y-auto" id="thermal-receipt-printable">
+              <div className="text-center border-b border-dashed border-[#cbcbcb] pb-2 mb-2">
                 <h2 className="font-bold text-sm uppercase">{receiptData.settings?.shopName || 'VENKATA LAKSHMI ELECTRONICS'}</h2>
-                <p className="text-[10px] text-slate-700">{receiptData.settings?.address}</p>
-                <p className="text-[10px] text-slate-700">Ph: {receiptData.settings?.phone}</p>
+                <p className="text-[10px] text-slate-600">{receiptData.settings?.address}</p>
+                <p className="text-[10px] text-slate-600">Ph: {receiptData.settings?.phone}</p>
                 <p className="text-[10px] font-bold mt-1">GSTIN: {receiptData.settings?.gstin}</p>
               </div>
 
-              <div className="flex justify-between text-[11px] mb-2">
+              <div className="flex justify-between text-[11px] mb-2 font-bold">
                 <span>Inv: {receiptData.invoice.invoiceNo}</span>
                 <span>Date: {new Date().toLocaleDateString('en-IN')}</span>
               </div>
 
-              <div className="border-b border-dashed border-slate-400 pb-1 mb-2">
+              <div className="border-b border-dashed border-[#cbcbcb] pb-1 mb-2">
                 <p className="font-bold text-[11px]">Customer: {receiptData.invoice.customerName}</p>
                 {receiptData.invoice.customerPhone !== 'N/A' && (
                   <p className="text-[10px]">Ph: {receiptData.invoice.customerPhone}</p>
@@ -474,18 +474,18 @@ export default function BillingPOSPage() {
 
               <table className="w-full text-left text-[11px] mb-2">
                 <thead>
-                  <tr className="border-b border-slate-400">
+                  <tr className="border-b border-[#cbcbcb]">
                     <th className="py-1">Item</th>
                     <th className="py-1 text-center">Qty</th>
                     <th className="py-1 text-right">Amt</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-dashed divide-slate-300">
+                <tbody className="divide-y divide-dashed divide-[#cbcbcb]">
                   {receiptData.invoice.items?.map((item: any) => (
                     <tr key={item.id}>
                       <td className="py-1 pr-1">
                         <div className="font-semibold">{item.productName}</div>
-                        <div className="text-[9px] text-slate-600">[{item.rackLocation}]</div>
+                        <div className="text-[9px] text-slate-500">[{item.rackLocation}]</div>
                       </td>
                       <td className="py-1 text-center font-bold">
                         {item.quantity} {item.unit}
@@ -496,18 +496,18 @@ export default function BillingPOSPage() {
                 </tbody>
               </table>
 
-              <div className="border-t border-slate-950 pt-2 space-y-1 text-right text-[11px]">
+              <div className="border-t border-[#4a4a4a] pt-2 space-y-1 text-right text-[11px]">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
                   <span>₹{receiptData.invoice.subtotal}</span>
                 </div>
                 {receiptData.invoice.discount > 0 && (
-                  <div className="flex justify-between text-slate-700">
+                  <div className="flex justify-between text-slate-600">
                     <span>Discount:</span>
                     <span>-₹{receiptData.invoice.discount}</span>
                   </div>
                 )}
-                <div className="flex justify-between font-bold text-sm pt-1 border-t border-dashed border-slate-400">
+                <div className="flex justify-between font-bold text-sm pt-1 border-t border-dashed border-[#cbcbcb]">
                   <span>TOTAL:</span>
                   <span>₹{receiptData.invoice.totalAmount}</span>
                 </div>
@@ -516,14 +516,14 @@ export default function BillingPOSPage() {
                   <span>₹{receiptData.invoice.paidAmount}</span>
                 </div>
                 {receiptData.invoice.dueAmount > 0 && (
-                  <div className="flex justify-between font-bold text-rose-700">
+                  <div className="flex justify-between font-bold text-amber-700">
                     <span>Due Balance:</span>
                     <span>₹{receiptData.invoice.dueAmount}</span>
                   </div>
                 )}
               </div>
 
-              <div className="text-center border-t border-dashed border-slate-400 mt-3 pt-2 text-[10px] text-slate-700">
+              <div className="text-center border-t border-dashed border-[#cbcbcb] mt-3 pt-2 text-[10px] text-slate-600">
                 *** THANK YOU FOR YOUR BUSINESS! ***
               </div>
             </div>
@@ -531,13 +531,13 @@ export default function BillingPOSPage() {
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={handlePrintThermal}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-[5px] flex items-center justify-center gap-2 text-xs transition-colors"
+                className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold py-2.5 px-4 rounded-[5px] flex items-center justify-center gap-2 text-xs transition-colors shadow-sm"
               >
                 <Printer className="w-4 h-4" /> Print Receipt
               </button>
               <button
                 onClick={handleWhatsAppShare}
-                className="bg-emerald-800 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-[5px] flex items-center justify-center gap-2 text-xs transition-colors"
+                className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 px-4 rounded-[5px] flex items-center justify-center gap-2 text-xs transition-colors shadow-sm"
               >
                 <MessageSquare className="w-4 h-4" /> Share WhatsApp
               </button>
