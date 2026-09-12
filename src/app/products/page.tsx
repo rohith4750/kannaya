@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import {
   Package,
   Plus,
@@ -20,7 +20,7 @@ import {
 import { useSearchParams } from 'next/navigation';
 import MaterialSelect from '@/components/MaterialSelect';
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
   const initialFilter = searchParams.get('filter') || '';
 
@@ -702,5 +702,19 @@ export default function ProductsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-xs text-slate-500 font-medium flex items-center justify-center gap-2">
+          <Package className="w-4 h-4 animate-spin text-[#6d8196]" /> Loading inventory products catalog...
+        </div>
+      }
+    >
+      <ProductsContent />
+    </Suspense>
   );
 }
