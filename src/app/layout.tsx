@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 
 export const metadata: Metadata = {
   title: 'Kannaya ERP - Electrical & Hardware Shop Management OS',
@@ -16,12 +15,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-[#f1f5f9] text-slate-900 antialiased flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <Header />
-          <main className="flex-1 p-5 overflow-y-auto">{children}</main>
-        </div>
+      <body className="bg-[#f1f5f9] text-slate-900 antialiased font-sans">
+        <AppLayout>{children}</AppLayout>
       </body>
     </html>
   );
