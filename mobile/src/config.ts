@@ -1,6 +1,8 @@
 // Configuration for Mobile App connecting to Next.js Backend
-// For Android Emulator use: 'http://10.0.2.2:3000/api'
-// For Physical Device use your computer's Local WiFi IP e.g.: 'http://192.168.1.100:3000/api'
-// For Local Web / Testing use: 'http://localhost:3000/api'
+// Local Wi-Fi IPv4 Address of your development computer: 192.168.31.178
+// When using Expo Go on a physical phone, the phone connects via Wi-Fi IP to host machine.
 
-export const API_BASE_URL = 'http://localhost:3000/api';
+export const LOCAL_IP = '192.168.31.178';
+export const PORT = '3000';
+
+export const API_BASE_URL = `http://${LOCAL_IP}:${PORT}/api`;
