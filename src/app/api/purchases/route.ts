@@ -54,7 +54,7 @@ export async function POST(request: Request) {
           const targetReceived = Math.min(poItem.quantity, Math.max(0, parseFloat(receivedQty) || 0));
           const delta = targetReceived - (poItem.receivedQuantity || 0);
 
-          if (delta > 0) {
+          if (poItem.productId && delta > 0) {
             // Update product stock with newly arrived quantity
             await tx.product.update({
               where: { id: poItem.productId },
@@ -233,7 +233,7 @@ export async function DELETE(request: Request) {
       // 1. Rollback Product Stock quantities for received items
       for (const item of existingPo.items) {
         const qtyToDecrement = item.receivedQuantity || 0;
-        if (qtyToDecrement > 0) {
+        if (item.productId && qtyToDecrement > 0) {
           await tx.product.update({
             where: { id: item.productId },
             data: {

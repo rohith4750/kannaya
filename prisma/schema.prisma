@@ -174,8 +174,8 @@ model InvoiceItem {
   id           String   @id @default(cuid())
   invoiceId    String
   invoice      Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  productId    String
-  product      Product  @relation(fields: [productId], references: [id])
+  productId    String?
+  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   productName  String
   unit         String
   price        Float
@@ -202,8 +202,8 @@ model PurchaseOrderItem {
   id              String        @id @default(cuid())
   purchaseOrderId String
   purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
-  productId       String
-  product         Product       @relation(fields: [productId], references: [id])
+  productId       String?
+  product         Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
   price           Float
   quantity        Float
   receivedQuantity Float        @default(0)

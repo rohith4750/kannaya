@@ -30,6 +30,14 @@ export async function POST(request: Request) {
 
     // Perform database transaction
     const result = await prisma.$transaction(async (tx) => {
+      // Find valid product IDs existing in database
+      const itemIds = items.map((it: any) => it.id).filter((id: any) => typeof id === 'string' && id.trim().length > 0);
+      const dbProducts = await tx.product.findMany({
+        where: { id: { in: itemIds } },
+        select: { id: true },
+      });
+      const validProductIdSet = new Set(dbProducts.map((p) => p.id));
+
       // 1. Create Invoice
       const invoice = await tx.invoice.create({
         data: {
@@ -46,15 +54,18 @@ export async function POST(request: Request) {
           paymentMethod: paymentMethod as PaymentMethod,
           status: 'COMPLETED',
           items: {
-            create: items.map((item: any) => ({
-              productId: item.id,
-              productName: item.name,
-              unit: item.unit || 'pcs',
-              price: parseFloat(item.sellingPrice),
-              quantity: parseFloat(item.quantity),
-              total: parseFloat(item.sellingPrice) * parseFloat(item.quantity),
-              rackLocation: item.rack ? `${item.rack.rackName} ${item.rack.shelfCode}` : 'Default',
-            })),
+            create: items.map((item: any) => {
+              const isValidDbProduct = validProductIdSet.has(item.id);
+              return {
+                productId: isValidDbProduct ? item.id : null,
+                productName: item.name,
+                unit: item.unit || 'pcs',
+                price: parseFloat(item.sellingPrice),
+                quantity: parseFloat(item.quantity),
+                total: parseFloat(item.sellingPrice) * parseFloat(item.quantity),
+                rackLocation: item.rack ? `${item.rack.rackName} ${item.rack.shelfCode}` : (item.rackLocation || 'Default'),
+              };
+            }),
           },
         },
         include: {
@@ -62,16 +73,22 @@ export async function POST(request: Request) {
         },
       });
 
-      // 2. Deduct product stock
+      // 2. Deduct product stock (only for valid catalog products in DB)
       for (const item of items) {
-        await tx.product.update({
-          where: { id: item.id },
-          data: {
-            stockQuantity: {
-              decrement: parseFloat(item.quantity),
-            },
-          },
-        });
+        if (validProductIdSet.has(item.id)) {
+          try {
+            await tx.product.update({
+              where: { id: item.id },
+              data: {
+                stockQuantity: {
+                  decrement: parseFloat(item.quantity),
+                },
+              },
+            });
+          } catch (err) {
+            console.warn(`Skipping stock deduction for item: ${item.id}`);
+          }
+        }
       }
 
       // 3. Customer Udhar & Ledger Update
