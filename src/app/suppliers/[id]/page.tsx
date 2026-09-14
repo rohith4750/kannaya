@@ -91,7 +91,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
       if (setData && !setData.error) setShopSettings(setData);
     } catch (e) {
       console.error(e);
-    } fontally {
+    } finally {
       setLoading(false);
     }
   };
