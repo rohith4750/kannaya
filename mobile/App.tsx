@@ -2874,7 +2874,16 @@ export default function App() {
                 Supplier: {poModalSupplier.name}
               </Text>
 
-              <Text style={styles.inputLabel}>Select Stock Product to Order</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+                <Text style={styles.inputLabel}>Select Stock Product to Order</Text>
+                <TouchableOpacity
+                  style={{ backgroundColor: '#059669', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, flexDirection: 'row', alignItems: 'center' }}
+                  onPress={() => setAddProductModalVisible(true)}
+                >
+                  <Ionicons name="add-circle-outline" size={12} color="#ffffff" style={{ marginRight: 2 }} />
+                  <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: 'bold' }}>+ New Product</Text>
+                </TouchableOpacity>
+              </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 6 }}>
                 {products.map((p) => (
                   <TouchableOpacity
@@ -3056,6 +3065,54 @@ export default function App() {
                   disabled={updatingCust}
                 >
                   <Text style={styles.closeBtnText}>{updatingCust ? 'Updating...' : 'Save Changes'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Add Supplier Modal */}
+      {addSupplierModalVisible && (
+        <Modal visible transparent animationType="slide">
+          <View style={styles.modalBg}>
+            <View style={styles.modalCard}>
+              <Text style={[styles.modalTitle, { color: '#0f172a', textAlign: 'left' }]}>Add Wholesale Supplier Profile</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Supplier / Company Name *"
+                placeholderTextColor="#94a3b8"
+                value={newSuppName}
+                onChangeText={setNewSuppName}
+              />
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Phone Number *"
+                placeholderTextColor="#94a3b8"
+                keyboardType="phone-pad"
+                value={newSuppPhone}
+                onChangeText={setNewSuppPhone}
+              />
+              <TextInput
+                style={styles.modalInput}
+                placeholder="GSTIN (optional)"
+                placeholderTextColor="#94a3b8"
+                value={newSuppGstin}
+                onChangeText={setNewSuppGstin}
+              />
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                <TouchableOpacity
+                  style={[styles.closeBtn, { backgroundColor: '#94a3b8', flex: 1 }]}
+                  onPress={() => setAddSupplierModalVisible(false)}
+                >
+                  <Text style={styles.closeBtnText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.closeBtn, { backgroundColor: '#db2777', flex: 1 }]}
+                  onPress={handleCreateSupplier}
+                  disabled={savingSupp}
+                >
+                  <Text style={styles.closeBtnText}>{savingSupp ? 'Saving...' : 'Save Supplier'}</Text>
                 </TouchableOpacity>
               </View>
             </View>

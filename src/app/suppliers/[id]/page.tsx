@@ -49,6 +49,12 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
     { productId: '', price: '', quantity: '1' },
   ]);
 
+  // Inline product creation modal state inside PO
+  const [showInlineProdModal, setShowInlineProdModal] = useState(false);
+  const [newProdName, setNewProdName] = useState('');
+  const [newProdPrice, setNewProdPrice] = useState('');
+  const [newProdCost, setNewProdCost] = useState('');
+
   const loadSupplierData = async () => {
     try {
       const [suppRes, prodRes] = await Promise.all([
@@ -167,6 +173,49 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
       });
       const data = await res.json();
       if (data.whatsappUrl) window.open(data.whatsappUrl, '_blank');
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleCreateInlineProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProdName.trim() || !newProdPrice) return;
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newProdName.trim(),
+          sellingPrice: parseFloat(newProdPrice),
+          purchasePrice: parseFloat(newProdCost) || 0,
+          stockQuantity: 0,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data) {
+        setShowInlineProdModal(false);
+        setNewProdName('');
+        setNewProdPrice('');
+        setNewProdCost('');
+        // Reload products list & auto select the created product in PO
+        const prodRes = await fetch('/api/products');
+        const prodData = await prodRes.json();
+        if (Array.isArray(prodData)) {
+          setProducts(prodData);
+          if (poItems.length > 0) {
+            const updated = [...poItems];
+            updated[updated.length - 1] = {
+              productId: data.id,
+              price: String(data.purchasePrice || data.sellingPrice || 0),
+              quantity: '1',
+            };
+            setPoItems(updated);
+          }
+        }
+      } else {
+        alert(data.error || 'Failed to create product');
+      }
     } catch (e) {
       console.error(e);
     }
@@ -671,13 +720,22 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
               <div className="flex-1 overflow-y-auto min-h-0 border border-[#cbcbcb] rounded-[5px] p-3 space-y-2 bg-slate-50">
                 <div className="flex items-center justify-between font-bold text-[#4a4a4a] pb-1 border-b border-[#cbcbcb]">
                   <span>Ordered Products List</span>
-                  <button
-                    type="button"
-                    onClick={handleAddPoItem}
-                    className="text-[#6d8196] hover:underline text-[11px] flex items-center gap-1 font-bold"
-                  >
-                    <PlusCircle className="w-3.5 h-3.5" /> Add Item Line
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowInlineProdModal(true)}
+                      className="text-emerald-700 hover:underline text-[11px] flex items-center gap-1 font-bold bg-emerald-50 px-2 py-0.5 rounded-[5px] border border-emerald-200"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" /> Create New Product
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddPoItem}
+                      className="text-[#6d8196] hover:underline text-[11px] flex items-center gap-1 font-bold"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" /> Add Line
+                    </button>
+                  </div>
                 </div>
 
                 {poItems.map((item, idx) => (
@@ -758,6 +816,70 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                   className="w-1/2 bg-[#6d8196] hover:bg-[#5b6f84] text-white py-2 rounded-[5px] font-bold shadow-sm"
                 >
                   Save Stock Purchase Order
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* INLINE CREATE PRODUCT MODAL */}
+      {showInlineProdModal && (
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-sm w-full p-5 space-y-4 shadow-2xl">
+            <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
+              <Package className="w-4 h-4 text-emerald-700" /> Create New Store Product
+            </h3>
+            <form onSubmit={handleCreateInlineProduct} className="space-y-3 text-xs">
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Product Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={newProdName}
+                  onChange={(e) => setNewProdName(e.target.value)}
+                  placeholder="e.g. Havells 4sqmm Red Wire"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Selling Price (₹) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={newProdPrice}
+                    onChange={(e) => setNewProdPrice(e.target.value)}
+                    placeholder="MRP / Retail Price"
+                    className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Wholesale Cost (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newProdCost}
+                    onChange={(e) => setNewProdCost(e.target.value)}
+                    placeholder="Cost Price"
+                    className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowInlineProdModal(false)}
+                  className="w-1/2 bg-slate-100 border border-[#cbcbcb] text-[#4a4a4a] py-2 rounded-[5px] font-bold hover:bg-slate-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 bg-emerald-700 hover:bg-emerald-800 text-white py-2 rounded-[5px] font-bold shadow-sm"
+                >
+                  Create & Select
                 </button>
               </div>
             </form>
