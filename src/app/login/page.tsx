@@ -110,7 +110,7 @@ export default function LoginPage() {
               <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-400 to-emerald-400 opacity-60 blur group-hover:opacity-100 transition duration-500"></div>
               <div className="relative w-36 h-36 rounded-full bg-white p-2 border-4 border-emerald-100/30 shadow-2xl flex items-center justify-center overflow-hidden">
                 <img
-                  src="/logo.jpg"
+                  src="/logo.png"
                   alt="Venkata Lakshmi Electronics Logo"
                   className="w-full h-full object-contain rounded-full"
                 />

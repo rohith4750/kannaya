@@ -162,7 +162,7 @@ export default function InvoicePrintTemplate({
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b-2 border-[#6d8196] pb-4">
         <div className="flex items-center gap-3.5">
           <div className="w-16 h-16 rounded-full bg-white p-1 border-2 border-[#6d8196] shadow-md flex items-center justify-center overflow-hidden shrink-0">
-            <img src="/logo.jpg" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
+            <img src="/logo.png" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
           </div>
           <div>
             <h1 className="text-xl font-extrabold text-[#4a4a4a] tracking-tight">{shopName}</h1>

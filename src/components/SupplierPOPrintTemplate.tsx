@@ -45,7 +45,7 @@ export default function SupplierPOPrintTemplate({
       <div className="flex justify-between items-start border-b-2 border-slate-900 pb-6 mb-6">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-xl border border-slate-200 p-1 flex items-center justify-center bg-slate-50">
-            <img src="/logo.jpg" alt="Logo" className="max-h-full max-w-full object-contain rounded-lg" />
+            <img src="/logo.png" alt="Logo" className="max-h-full max-w-full object-contain rounded-lg" />
           </div>
           <div>
             <h1 className="text-xl font-black tracking-tight text-slate-900 uppercase">{shopName}</h1>

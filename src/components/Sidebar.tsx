@@ -128,7 +128,7 @@ export default function Sidebar() {
       <div className="h-14 px-3.5 flex items-center justify-between bg-[#383838] flex-shrink-0">
         <div className="flex items-center gap-2.5 overflow-hidden">
           <div className="w-8 h-8 rounded-full bg-white p-0.5 border border-[#cbcbcb] flex items-center justify-center shadow-md overflow-hidden shrink-0">
-            <img src="/logo.jpg" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
+            <img src="/logo.png" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
           </div>
           {!isCollapsed && (
             <div className="min-w-0">
