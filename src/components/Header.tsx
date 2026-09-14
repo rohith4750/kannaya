@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Clock, Shield, UserCheck, LogOut } from 'lucide-react';
+import { Bell, Clock, Shield, UserCheck, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -83,17 +83,8 @@ export default function Header() {
         <span className="font-bold text-xs text-white truncate max-w-[110px] sm:max-w-none">Venkata Lakshmi</span>
       </div>
 
-      {/* Search Input - Clean & Direct */}
-      <div className="flex-1 max-w-md">
-        <div className="relative">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#cbcbcb]" />
-          <input
-            type="text"
-            placeholder="Search products..."
-            className="w-full bg-[#4a4a4a] rounded-[5px] pl-8 sm:pl-9 pr-3 py-1.5 text-xs text-white placeholder-[#cbcbcb] focus:outline-none focus:bg-[#525252] transition-colors"
-          />
-        </div>
-      </div>
+      {/* Empty Spacer */}
+      <div className="flex-1"></div>
 
       {/* Right Controls */}
       <div className="flex items-center gap-2.5">
