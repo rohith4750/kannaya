@@ -45,10 +45,16 @@ import {
   recordCustomerPayment,
   deleteInvoice,
   getCategories,
+  getSuppliers,
+  createSupplier,
+  recordSupplierPayment,
+  getRacks,
+  createRack,
+  askKannayaAI,
 } from './src/api';
 
 type Role = 'ADMIN' | 'STAFF';
-type TabType = 'dashboard' | 'pos' | 'inventory' | 'invoices' | 'customers' | 'settings';
+type TabType = 'dashboard' | 'pos' | 'inventory' | 'invoices' | 'customers' | 'suppliers' | 'racks' | 'ai' | 'settings';
 
 export default function App() {
   const { width, height } = useWindowDimensions();
@@ -97,6 +103,36 @@ export default function App() {
   const [customerSearch, setCustomerSearch] = useState('');
   const [customerFilter, setCustomerFilter] = useState('ALL'); // ALL or UDHAR
   const [invoiceDetailsModal, setInvoiceDetailsModal] = useState<any>(null);
+
+  // Suppliers State
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [supplierSearch, setSupplierSearch] = useState('');
+  const [addSupplierModalVisible, setAddSupplierModalVisible] = useState(false);
+  const [newSuppName, setNewSuppName] = useState('');
+  const [newSuppPhone, setNewSuppPhone] = useState('');
+  const [newSuppGstin, setNewSuppGstin] = useState('');
+  const [savingSupp, setSavingSupp] = useState(false);
+  const [supplierPayModal, setSupplierPayModal] = useState<any>(null);
+  const [suppPayAmount, setSuppPayAmount] = useState('');
+  const [recordingSuppPay, setRecordingSuppPay] = useState(false);
+
+  // Racks & Storage State
+  const [racks, setRacks] = useState<any[]>([]);
+  const [addRackModalVisible, setAddRackModalVisible] = useState(false);
+  const [newRackName, setNewRackName] = useState('');
+  const [newShelfCode, setNewShelfCode] = useState('');
+  const [savingRack, setSavingRack] = useState(false);
+
+  // Kannaya AI Assistant State
+  const [aiMessages, setAiMessages] = useState<any[]>([
+    {
+      id: '1',
+      sender: 'ai',
+      text: 'Hello! I am **Kannaya AI**, your intelligent electrical store assistant. How can I help you today?',
+    },
+  ]);
+  const [aiInput, setAiInput] = useState('');
+  const [aiQuerying, setAiQuerying] = useState(false);
 
   // Settings State
   const [settings, setSettings] = useState<any>({
@@ -240,6 +276,12 @@ export default function App() {
       } else if (activeTab === 'customers') {
         const custs = await getCustomers();
         setCustomers(custs);
+      } else if (activeTab === 'suppliers') {
+        const supps = await getSuppliers();
+        setSuppliers(supps);
+      } else if (activeTab === 'racks') {
+        const rks = await getRacks();
+        setRacks(rks);
       } else if (activeTab === 'settings') {
         const s = await getShopSettings();
         setSettings(s);
@@ -501,6 +543,100 @@ export default function App() {
       Alert.alert('Payment Error', e.message || 'Failed to record payment');
     } finally {
       setRecordingPay(false);
+    }
+  };
+
+  // Kannaya AI Assistant Handler
+  const handleAskAI = async (queryText?: string) => {
+    const textToAsk = (queryText || aiInput).trim();
+    if (!textToAsk || aiQuerying) return;
+
+    const userMsg = { id: Date.now().toString(), sender: 'user', text: textToAsk };
+    setAiMessages((prev) => [...prev, userMsg]);
+    if (!queryText) setAiInput('');
+    setAiQuerying(true);
+
+    try {
+      const res = await askKannayaAI(textToAsk);
+      const aiMsg = {
+        id: (Date.now() + 1).toString(),
+        sender: 'ai',
+        text: res.answer || 'Analysis completed.',
+        data: res.data,
+        actionButton: res.actionButton,
+      };
+      setAiMessages((prev) => [...prev, aiMsg]);
+    } catch (err: any) {
+      setAiMessages((prev) => [
+        ...prev,
+        { id: (Date.now() + 1).toString(), sender: 'ai', text: 'Sorry, I encountered an error checking store data.' },
+      ]);
+    } finally {
+      setAiQuerying(false);
+    }
+  };
+
+  // Supplier Handlers
+  const handleCreateSupplier = async () => {
+    if (!newSuppName.trim()) {
+      Alert.alert('Error', 'Please enter supplier name');
+      return;
+    }
+    setSavingSupp(true);
+    try {
+      await createSupplier({ name: newSuppName.trim(), phone: newSuppPhone.trim(), gstin: newSuppGstin.trim() });
+      Alert.alert('Success', 'Supplier added successfully');
+      setAddSupplierModalVisible(false);
+      setNewSuppName('');
+      setNewSuppPhone('');
+      setNewSuppGstin('');
+      loadTabContent();
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to add supplier');
+    } finally {
+      setSavingSupp(false);
+    }
+  };
+
+  const handleRecordSupplierPay = async () => {
+    if (!supplierPayModal || !suppPayAmount) return;
+    const payAmt = parseFloat(suppPayAmount);
+    if (!payAmt || payAmt <= 0) {
+      Alert.alert('Error', 'Please enter a valid payment amount');
+      return;
+    }
+    setRecordingSuppPay(true);
+    try {
+      await recordSupplierPayment(supplierPayModal.id, payAmt);
+      Alert.alert('Success', `Payment of ₹${payAmt} recorded for ${supplierPayModal.name}`);
+      setSupplierPayModal(null);
+      setSuppPayAmount('');
+      loadTabContent();
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to record supplier payment');
+    } finally {
+      setRecordingSuppPay(false);
+    }
+  };
+
+  // Storage Rack Handler
+  const handleCreateRack = async () => {
+    if (!newRackName.trim()) {
+      Alert.alert('Error', 'Please enter rack name');
+      return;
+    }
+    setSavingRack(true);
+    try {
+      await createRack({ rackName: newRackName.trim(), shelfCode: newShelfCode.trim() });
+      Alert.alert('Success', 'Storage rack location added successfully');
+      setAddRackModalVisible(false);
+      setNewRackName('');
+      setNewShelfCode('');
+      loadTabContent();
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to add rack');
+    } finally {
+      setSavingRack(false);
     }
   };
 
@@ -905,10 +1041,7 @@ export default function App() {
 
                   <TouchableOpacity
                     style={styles.shortcutBtn}
-                    onPress={() => {
-                      if (role === 'ADMIN') setActiveTab('inventory');
-                      else setAddCustModalVisible(true);
-                    }}
+                    onPress={() => setActiveTab('inventory')}
                     activeOpacity={0.8}
                   >
                     <View style={[styles.shortcutIconBg, { backgroundColor: '#f0f9ff' }]}>
@@ -937,6 +1070,53 @@ export default function App() {
                       <Ionicons name="receipt" size={20} color="#9333ea" />
                     </View>
                     <Text style={styles.shortcutText}>Bills</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Secondary Modules Shortcuts Row */}
+                <View style={[styles.shortcutRow, { marginTop: -4 }]}>
+                  <TouchableOpacity
+                    style={styles.shortcutBtn}
+                    onPress={() => setActiveTab('suppliers')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.shortcutIconBg, { backgroundColor: '#fdf2f8' }]}>
+                      <Ionicons name="business" size={20} color="#db2777" />
+                    </View>
+                    <Text style={styles.shortcutText}>Suppliers</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.shortcutBtn}
+                    onPress={() => setActiveTab('ai')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.shortcutIconBg, { backgroundColor: '#eff6ff' }]}>
+                      <Ionicons name="sparkles" size={20} color="#2563eb" />
+                    </View>
+                    <Text style={styles.shortcutText}>Kannaya AI</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.shortcutBtn}
+                    onPress={() => setActiveTab('racks')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.shortcutIconBg, { backgroundColor: '#f5f3ff' }]}>
+                      <Ionicons name="layers" size={20} color="#7c3aed" />
+                    </View>
+                    <Text style={styles.shortcutText}>Racks</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.shortcutBtn}
+                    onPress={() => setActiveTab('settings')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.shortcutIconBg, { backgroundColor: '#f1f5f9' }]}>
+                      <Ionicons name="settings" size={20} color="#475569" />
+                    </View>
+                    <Text style={styles.shortcutText}>Settings</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -1597,6 +1777,236 @@ export default function App() {
               </View>
             )}
 
+            {/* SCREEN: SUPPLIERS & PURCHASE LEDGER */}
+            {activeTab === 'suppliers' && (
+              <View style={styles.flexScreen}>
+                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
+                  <View style={styles.searchBarWrapper}>
+                    <Ionicons name="search-outline" size={18} color="#94a3b8" style={{ marginRight: 6 }} />
+                    <TextInput
+                      style={styles.searchInputFlex}
+                      placeholder="Search supplier name or phone..."
+                      placeholderTextColor="#94a3b8"
+                      value={supplierSearch}
+                      onChangeText={setSupplierSearch}
+                    />
+                  </View>
+
+                  {role === 'ADMIN' && (
+                    <TouchableOpacity
+                      style={[styles.addPrimaryBtn, { backgroundColor: '#db2777' }]}
+                      onPress={() => setAddSupplierModalVisible(true)}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="add-circle" size={16} color="#ffffff" style={{ marginRight: 2 }} />
+                      <Text style={styles.addPrimaryBtnText}>Supplier</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* Total Supplier Outstanding Due Header Card */}
+                <View style={[styles.todayCard, { backgroundColor: '#831843', marginBottom: 10 }]}>
+                  <Text style={{ color: '#fbcfe8', fontSize: 11, fontWeight: 'bold' }}>TOTAL SUPPLIER PENDING DUES</Text>
+                  <Text style={{ color: '#ffffff', fontSize: 22, fontWeight: '900', marginTop: 2 }}>
+                    ₹{suppliers.reduce((acc, s) => acc + (s.outstanding || 0), 0).toLocaleString('en-IN')}
+                  </Text>
+                </View>
+
+                <FlatList
+                  data={suppliers.filter((s) => s.name?.toLowerCase().includes(supplierSearch.toLowerCase()))}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={{ paddingBottom: 20 }}
+                  refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#db2777']} />
+                  }
+                  ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                      <Ionicons name="business-outline" size={48} color="#cbd5e1" />
+                      <Text style={styles.emptyText}>No suppliers registered yet.</Text>
+                    </View>
+                  }
+                  renderItem={({ item }) => (
+                    <View style={styles.customerCard}>
+                      <View style={styles.invRow}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.invNo}>{item.name}</Text>
+                          <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Phone: {item.phone || 'N/A'}</Text>
+                          {item.gstin ? (
+                            <Text style={{ fontSize: 10, color: '#94a3b8', marginTop: 1 }}>GSTIN: {item.gstin}</Text>
+                          ) : null}
+                        </View>
+
+                        <View style={{ alignItems: 'flex-end' }}>
+                          <Text style={{ fontSize: 10, color: '#94a3b8', fontWeight: 'bold' }}>PENDING DUE</Text>
+                          <Text style={[styles.invAmount, { color: item.outstanding > 0 ? '#dc2626' : '#059669', fontSize: 16 }]}>
+                            ₹{(item.outstanding || 0).toLocaleString('en-IN')}
+                          </Text>
+
+                          {role === 'ADMIN' && item.outstanding > 0 && (
+                            <TouchableOpacity
+                              style={[styles.collectPayBtn, { backgroundColor: '#db2777', marginTop: 6 }]}
+                              onPress={() => {
+                                setSupplierPayModal(item);
+                                setSuppPayAmount(String(item.outstanding));
+                              }}
+                            >
+                              <Ionicons name="cash-outline" size={12} color="#ffffff" style={{ marginRight: 2 }} />
+                              <Text style={styles.collectPayBtnText}>Pay Supplier ₹</Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      </View>
+                    </View>
+                  )}
+                />
+              </View>
+            )}
+
+            {/* SCREEN: KANNAYA AI ASSISTANT */}
+            {activeTab === 'ai' && (
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                style={styles.flexScreen}
+              >
+                {/* AI Assistant Header Banner */}
+                <View style={{ backgroundColor: '#1e293b', padding: 12, borderRadius: 12, marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center' }}>
+                    <Ionicons name="sparkles" size={20} color="#ffffff" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: '#f8fafc', fontSize: 14, fontWeight: 'bold' }}>Kannaya AI Business Assistant</Text>
+                    <Text style={{ color: '#94a3b8', fontSize: 10 }}>Real-time intelligence on store inventory, dues & profits</Text>
+                  </View>
+                </View>
+
+                {/* Quick AI Prompts */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, marginBottom: 10 }}>
+                  <View style={{ flexDirection: 'row', gap: 6 }}>
+                    {[
+                      'Who owes highest udhar?',
+                      'Show low stock items',
+                      'Today profit summary',
+                      'Top selling items',
+                    ].map((prompt, idx) => (
+                      <TouchableOpacity
+                        key={idx}
+                        style={{ backgroundColor: '#ffffff', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: '#cbd5e1' }}
+                        onPress={() => handleAskAI(prompt)}
+                      >
+                        <Text style={{ fontSize: 11, color: '#2563eb', fontWeight: 'bold' }}>✨ {prompt}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ScrollView>
+
+                <FlatList
+                  data={aiMessages}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={{ paddingBottom: 16 }}
+                  renderItem={({ item }) => (
+                    <View style={{
+                      alignSelf: item.sender === 'user' ? 'flex-end' : 'flex-start',
+                      backgroundColor: item.sender === 'user' ? '#0284c7' : '#ffffff',
+                      padding: 12,
+                      borderRadius: 12,
+                      marginBottom: 8,
+                      maxWidth: '85%',
+                      borderWidth: item.sender === 'ai' ? 1 : 0,
+                      borderColor: '#e2e8f0',
+                    }}>
+                      <Text style={{ color: item.sender === 'user' ? '#ffffff' : '#334155', fontSize: 13, lineHeight: 18 }}>
+                        {item.text}
+                      </Text>
+                      {item.data && (
+                        <View style={{ marginTop: 8, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#f1f5f9' }}>
+                          {Object.entries(item.data).map(([k, v]: any) => (
+                            <Text key={k} style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>
+                              <Text style={{ fontWeight: 'bold' }}>{k}:</Text> {String(v)}
+                            </Text>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  )}
+                />
+
+                <View style={{ flexDirection: 'row', gap: 8, paddingTop: 8 }}>
+                  <TextInput
+                    style={[styles.searchInputFlex, { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#cbd5e1' }]}
+                    placeholder="Ask Kannaya AI anything..."
+                    placeholderTextColor="#94a3b8"
+                    value={aiInput}
+                    onChangeText={setAiInput}
+                    onSubmitEditing={() => handleAskAI()}
+                  />
+                  <TouchableOpacity
+                    style={{ backgroundColor: '#2563eb', paddingHorizontal: 16, justifyContent: 'center', alignItems: 'center', borderRadius: 8 }}
+                    onPress={() => handleAskAI()}
+                    disabled={aiQuerying}
+                  >
+                    {aiQuerying ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <Ionicons name="send" size={16} color="#ffffff" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </KeyboardAvoidingView>
+            )}
+
+            {/* SCREEN: RACKS & SHELF STORAGE */}
+            {activeTab === 'racks' && (
+              <View style={styles.flexScreen}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#0f172a' }}>Storage Racks & Locations</Text>
+                  {role === 'ADMIN' && (
+                    <TouchableOpacity
+                      style={[styles.addPrimaryBtn, { backgroundColor: '#7c3aed' }]}
+                      onPress={() => setAddRackModalVisible(true)}
+                    >
+                      <Ionicons name="add-circle" size={16} color="#ffffff" style={{ marginRight: 2 }} />
+                      <Text style={styles.addPrimaryBtnText}>New Rack</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                <FlatList
+                  data={racks}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={{ paddingBottom: 20 }}
+                  refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#7c3aed']} />
+                  }
+                  ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                      <Ionicons name="layers-outline" size={48} color="#cbd5e1" />
+                      <Text style={styles.emptyText}>No storage rack locations created yet.</Text>
+                    </View>
+                  }
+                  renderItem={({ item }) => (
+                    <View style={styles.customerCard}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#f5f3ff', justifyContent: 'center', alignItems: 'center' }}>
+                            <Ionicons name="layers" size={18} color="#7c3aed" />
+                          </View>
+                          <View>
+                            <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#1e293b' }}>Rack {item.rackName}</Text>
+                            <Text style={{ fontSize: 11, color: '#64748b' }}>Shelf Code: {item.shelfCode || 'Main'}</Text>
+                          </View>
+                        </View>
+                        <View style={{ backgroundColor: '#f5f3ff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                          <Text style={{ fontSize: 11, color: '#7c3aed', fontWeight: 'bold' }}>
+                            {item.products?.length || 0} Items Stored
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  )}
+                />
+              </View>
+            )}
+
             {/* SCREEN 6: STORE SETTINGS (Admin Only) */}
             {activeTab === 'settings' && role === 'ADMIN' && (
               <KeyboardAvoidingView
@@ -1813,6 +2223,56 @@ export default function App() {
             ]}
           >
             Udhar
+          </Text>
+        </TouchableOpacity>
+
+        {role === 'ADMIN' && (
+          <TouchableOpacity
+            style={[styles.navTab, activeTab === 'suppliers' && styles.activeTab]}
+            onPress={() => setActiveTab('suppliers')}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.activePillIndicator, activeTab === 'suppliers' && styles.activePillVisible]} />
+            <Ionicons
+              name={activeTab === 'suppliers' ? 'business' : 'business-outline'}
+              size={18}
+              color={activeTab === 'suppliers' ? '#38bdf8' : '#94a3b8'}
+              style={{ marginBottom: 2 }}
+            />
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.navText,
+                isSmallScreen && { fontSize: 8.5 },
+                activeTab === 'suppliers' && styles.activeNavText,
+              ]}
+            >
+              Suppliers
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={[styles.navTab, activeTab === 'ai' && styles.activeTab]}
+          onPress={() => setActiveTab('ai')}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.activePillIndicator, activeTab === 'ai' && styles.activePillVisible]} />
+          <Ionicons
+            name={activeTab === 'ai' ? 'sparkles' : 'sparkles-outline'}
+            size={18}
+            color={activeTab === 'ai' ? '#38bdf8' : '#94a3b8'}
+            style={{ marginBottom: 2 }}
+          />
+          <Text
+            numberOfLines={1}
+            style={[
+              styles.navText,
+              isSmallScreen && { fontSize: 8.5 },
+              activeTab === 'ai' && styles.activeNavText,
+            ]}
+          >
+            AI
           </Text>
         </TouchableOpacity>
 

@@ -386,3 +386,94 @@ export async function getCategories() {
     return [];
   }
 }
+
+/**
+ * Suppliers CRUD API Functions
+ */
+export async function getSuppliers() {
+  console.log(`[API GET] Fetching suppliers`);
+  try {
+    const res = await fetchWithFallback('/suppliers');
+    if (!res.ok) throw new Error('Failed to fetch suppliers');
+    return await res.json();
+  } catch (err: any) {
+    console.warn('[API Exception] GET suppliers:', err);
+    return [];
+  }
+}
+
+export async function createSupplier(payload: any) {
+  console.log(`[API POST] Creating Supplier`, payload);
+  const res = await fetchWithFallback('/suppliers', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to create supplier');
+  return data;
+}
+
+export async function recordSupplierPayment(supplierId: string, amount: number, notes?: string) {
+  console.log(`[API POST] Recording Supplier Payment`);
+  const res = await fetchWithFallback('/suppliers', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'payment',
+      supplierId,
+      amount,
+      notes,
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.success) throw new Error(data.error || 'Failed to record supplier payment');
+  return data;
+}
+
+/**
+ * Racks & Storage API Functions
+ */
+export async function getRacks() {
+  console.log(`[API GET] Fetching storage racks`);
+  try {
+    const res = await fetchWithFallback('/racks');
+    if (!res.ok) throw new Error('Failed to fetch storage racks');
+    return await res.json();
+  } catch (err: any) {
+    console.warn('[API Exception] GET racks:', err);
+    return [];
+  }
+}
+
+export async function createRack(payload: any) {
+  console.log(`[API POST] Creating Storage Rack`, payload);
+  const res = await fetchWithFallback('/racks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to create rack');
+  return data;
+}
+
+/**
+ * Kannaya AI Assistant API
+ */
+export async function askKannayaAI(query: string) {
+  console.log(`[API POST] Asking Kannaya AI: ${query}`);
+  try {
+    const res = await fetchWithFallback('/ai-assistant', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to query Kannaya AI');
+    return data;
+  } catch (err: any) {
+    console.error('[API Exception] Kannaya AI:', err);
+    throw err;
+  }
+}
