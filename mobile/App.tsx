@@ -677,8 +677,8 @@ export default function App() {
   // RENDER PIN LOCK SCREEN WHEN UNAUTHENTICATED
   if (!isAuthenticated) {
     return (
-      <SafeAreaView style={[styles.pinContainer, { paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0 }]}>
-        <StatusBar hidden={true} translucent backgroundColor="transparent" />
+      <SafeAreaView style={styles.pinContainer}>
+        <StatusBar barStyle="light-content" backgroundColor="#0f172a" translucent={false} />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1 }}
@@ -774,7 +774,7 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0 }]}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#0f172a' }}>
       <StatusBar barStyle="light-content" backgroundColor="#0f172a" translucent={false} />
 
       {/* App Top Header Bar */}
@@ -784,20 +784,18 @@ export default function App() {
             <View style={styles.headerLogoContainer}>
               <Image source={shopLogo} style={styles.headerLogoImg} resizeMode="cover" />
             </View>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={[styles.brandTitle, isSmallScreen && { fontSize: 12 }]} numberOfLines={1}>
                 Venkata Lakshmi Electronics
               </Text>
               <Text style={styles.brandSubtitle} numberOfLines={1}>
-                Proprietor: Konala Kannaya Reddy | {currentUser?.name || role}
+                Proprietor: Konala Kannaya Reddy
               </Text>
             </View>
           </View>
         </View>
 
-
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <View style={styles.roleBadge}>
             <Ionicons name={role === 'ADMIN' ? 'shield-checkmark' : 'person'} size={12} color="#38bdf8" style={{ marginRight: 4 }} />
             <Text style={styles.roleText}>{role}</Text>
