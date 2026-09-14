@@ -45,9 +45,12 @@ import {
   recordCustomerPayment,
   deleteInvoice,
   getCategories,
+  createCategory,
   getSuppliers,
   createSupplier,
   recordSupplierPayment,
+  getPurchaseOrders,
+  createPurchaseOrder,
   getRacks,
   createRack,
   askKannayaAI,
@@ -146,6 +149,26 @@ export default function App() {
   const [savingSettings, setSavingSettings] = useState(false);
   const [newPinInput, setNewPinInput] = useState('');
   const [updatingPin, setUpdatingPin] = useState(false);
+
+  // Category & Purchase Order States
+  const [addCategoryModalVisible, setAddCategoryModalVisible] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatDesc, setNewCatDesc] = useState('');
+  const [savingCategory, setSavingCategory] = useState(false);
+
+  const [purchaseOrders, setPurchaseOrders] = useState<any[]>([]);
+  const [poModalSupplier, setPoModalSupplier] = useState<any>(null);
+  const [poNumber, setPoNumber] = useState('');
+  const [poPaidAmount, setPoPaidAmount] = useState('');
+  const [poNotes, setPoNotes] = useState('');
+  const [poProductId, setPoProductId] = useState('');
+  const [poPrice, setPoPrice] = useState('');
+  const [poQty, setPoQty] = useState('1');
+  const [savingPO, setSavingPO] = useState(false);
+  const [expandedSupplierId, setExpandedSupplierId] = useState<string | null>(null);
+
+  const [newProdCategoryId, setNewProdCategoryId] = useState('');
+  const [editProdCategoryId, setEditProdCategoryId] = useState('');
 
   // Product CRUD States
   const [addProductModalVisible, setAddProductModalVisible] = useState(false);
@@ -295,8 +318,12 @@ export default function App() {
         const custs = await getCustomers();
         setCustomers(custs);
       } else if (activeTab === 'suppliers') {
-        const supps = await getSuppliers();
+        const [supps, pos] = await Promise.all([
+          getSuppliers(),
+          getPurchaseOrders(),
+        ]);
         setSuppliers(supps);
+        setPurchaseOrders(pos);
       } else if (activeTab === 'racks') {
         const rks = await getRacks();
         setRacks(rks);
@@ -400,6 +427,72 @@ export default function App() {
     }
   };
 
+  // Category & Purchase Order Handlers
+  const handleCreateCategory = async () => {
+    if (!newCatName.trim()) {
+      Alert.alert('Missing Details', 'Please enter a category name.');
+      return;
+    }
+    setSavingCategory(true);
+    try {
+      await createCategory({ name: newCatName.trim(), description: newCatDesc.trim() });
+      Alert.alert('Category Created', `Category "${newCatName.trim()}" created successfully!`);
+      setAddCategoryModalVisible(false);
+      setNewCatName('');
+      setNewCatDesc('');
+      loadTabContent();
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to create category');
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
+  const handleCreatePurchaseOrder = async () => {
+    if (!poModalSupplier || !poProductId || !poQty) {
+      Alert.alert('Missing Details', 'Please select a product and enter ordered quantity.');
+      return;
+    }
+    const qty = parseFloat(poQty);
+    const price = parseFloat(poPrice) || 0;
+    if (qty <= 0) {
+      Alert.alert('Invalid Quantity', 'Please enter a valid quantity.');
+      return;
+    }
+
+    setSavingPO(true);
+    try {
+      const generatedPoNumber = poNumber.trim() ? poNumber.trim() : `PO-${Date.now().toString().slice(-6)}`;
+      await createPurchaseOrder({
+        supplierId: poModalSupplier.id,
+        poNumber: generatedPoNumber,
+        items: [
+          {
+            productId: poProductId,
+            price,
+            quantity: qty,
+          },
+        ],
+        paidAmount: poPaidAmount ? parseFloat(poPaidAmount) : price * qty,
+        notes: poNotes.trim() || `Stock Purchase Order #${generatedPoNumber}`,
+      });
+
+      Alert.alert('Stock Order Saved', `Purchase Order #${generatedPoNumber} created & inventory updated!`);
+      setPoModalSupplier(null);
+      setPoNumber('');
+      setPoPaidAmount('');
+      setPoNotes('');
+      setPoProductId('');
+      setPoPrice('');
+      setPoQty('1');
+      loadTabContent();
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to create purchase order');
+    } finally {
+      setSavingPO(false);
+    }
+  };
+
   // Product CRUD Functions
   const handleCreateProduct = async () => {
     if (!newProdName.trim() || !newProdPrice) {
@@ -413,6 +506,7 @@ export default function App() {
         sellingPrice: parseFloat(newProdPrice) || 0,
         purchasePrice: parseFloat(newProdPurchasePrice) || 0,
         stockQuantity: parseFloat(newProdStock) || 0,
+        categoryId: newProdCategoryId || undefined,
       });
       Alert.alert('Product Added', `${newProdName} added to inventory!`);
       setAddProductModalVisible(false);
@@ -420,6 +514,7 @@ export default function App() {
       setNewProdPrice('');
       setNewProdPurchasePrice('');
       setNewProdStock('');
+      setNewProdCategoryId('');
       loadTabContent();
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to add product');
@@ -437,6 +532,7 @@ export default function App() {
         name: editProdName || editProdModal.name,
         sellingPrice: parseFloat(editProdPrice),
         stockQuantity: parseFloat(editProdStock),
+        categoryId: editProdCategoryId || undefined,
       });
       Alert.alert('Product Updated', `${editProdModal.name} updated!`);
       setEditProdModal(null);
@@ -1588,14 +1684,25 @@ export default function App() {
                   </View>
 
                   {role === 'ADMIN' && (
-                    <TouchableOpacity
-                      style={styles.addPrimaryBtn}
-                      onPress={() => setAddProductModalVisible(true)}
-                      activeOpacity={0.8}
-                    >
-                      <Ionicons name="add" size={18} color="#ffffff" style={{ marginRight: 2 }} />
-                      <Text style={styles.addPrimaryBtnText}>Product</Text>
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', gap: 6 }}>
+                      <TouchableOpacity
+                        style={[styles.addPrimaryBtn, { backgroundColor: '#6d8196' }]}
+                        onPress={() => setAddCategoryModalVisible(true)}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="folder-open-outline" size={16} color="#ffffff" style={{ marginRight: 2 }} />
+                        <Text style={styles.addPrimaryBtnText}>Category</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.addPrimaryBtn}
+                        onPress={() => setAddProductModalVisible(true)}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="add" size={18} color="#ffffff" style={{ marginRight: 2 }} />
+                        <Text style={styles.addPrimaryBtnText}>Product</Text>
+                      </TouchableOpacity>
+                    </View>
                   )}
                 </View>
 
@@ -1997,39 +2104,110 @@ export default function App() {
                       <Text style={styles.emptyText}>No suppliers registered yet.</Text>
                     </View>
                   }
-                  renderItem={({ item }) => (
-                    <View style={styles.customerCard}>
-                      <View style={styles.invRow}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.invNo}>{item.name}</Text>
-                          <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Phone: {item.phone || 'N/A'}</Text>
-                          {item.gstin ? (
-                            <Text style={{ fontSize: 10, color: '#94a3b8', marginTop: 1 }}>GSTIN: {item.gstin}</Text>
-                          ) : null}
+                  renderItem={({ item }) => {
+                    const isExpanded = expandedSupplierId === item.id;
+                    const suppOrders = purchaseOrders.filter((po) => po.supplierId === item.id || po.supplier?.id === item.id);
+                    return (
+                      <View style={styles.customerCard}>
+                        <View style={styles.invRow}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.invNo}>{item.name}</Text>
+                            <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Phone: {item.phone || 'N/A'}</Text>
+                            {item.gstin ? (
+                              <Text style={{ fontSize: 10, color: '#94a3b8', marginTop: 1 }}>GSTIN: {item.gstin}</Text>
+                            ) : null}
+                          </View>
+
+                          <View style={{ alignItems: 'flex-end' }}>
+                            <Text style={{ fontSize: 10, color: '#94a3b8', fontWeight: 'bold' }}>PENDING DUE</Text>
+                            <Text style={[styles.invAmount, { color: item.outstanding > 0 ? '#dc2626' : '#059669', fontSize: 16 }]}>
+                              ₹{(item.outstanding || 0).toLocaleString('en-IN')}
+                            </Text>
+
+                            <View style={{ flexDirection: 'row', gap: 6, marginTop: 6 }}>
+                              {role === 'ADMIN' && (
+                                <TouchableOpacity
+                                  style={[styles.collectPayBtn, { backgroundColor: '#6d8196' }]}
+                                  onPress={() => {
+                                    setPoModalSupplier(item);
+                                    if (products.length > 0) {
+                                      setPoProductId(products[0].id);
+                                      setPoPrice(String(products[0].purchasePrice || products[0].sellingPrice || ''));
+                                    }
+                                  }}
+                                >
+                                  <Ionicons name="bag-add-outline" size={12} color="#ffffff" style={{ marginRight: 2 }} />
+                                  <Text style={styles.collectPayBtnText}>+ Order Stock</Text>
+                                </TouchableOpacity>
+                              )}
+
+                              {role === 'ADMIN' && item.outstanding > 0 && (
+                                <TouchableOpacity
+                                  style={[styles.collectPayBtn, { backgroundColor: '#db2777' }]}
+                                  onPress={() => {
+                                    setSupplierPayModal(item);
+                                    setSuppPayAmount(String(item.outstanding));
+                                  }}
+                                >
+                                  <Ionicons name="cash-outline" size={12} color="#ffffff" style={{ marginRight: 2 }} />
+                                  <Text style={styles.collectPayBtnText}>Pay ₹</Text>
+                                </TouchableOpacity>
+                              )}
+
+                              <TouchableOpacity
+                                style={[styles.outlineEditBtn, { backgroundColor: '#f1f5f9' }]}
+                                onPress={() => setExpandedSupplierId(isExpanded ? null : item.id)}
+                              >
+                                <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={14} color="#475569" />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
                         </View>
 
-                        <View style={{ alignItems: 'flex-end' }}>
-                          <Text style={{ fontSize: 10, color: '#94a3b8', fontWeight: 'bold' }}>PENDING DUE</Text>
-                          <Text style={[styles.invAmount, { color: item.outstanding > 0 ? '#dc2626' : '#059669', fontSize: 16 }]}>
-                            ₹{(item.outstanding || 0).toLocaleString('en-IN')}
-                          </Text>
+                        {/* Expandable Purchase Orders Section for Supplier */}
+                        {isExpanded && (
+                          <View style={{ marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderColor: '#e2e8f0' }}>
+                            <Text style={{ fontSize: 11, fontWeight: '800', color: '#0f172a', marginBottom: 6 }}>
+                              Stock Purchase Orders & Items History ({suppOrders.length})
+                            </Text>
+                            {suppOrders.length === 0 ? (
+                              <Text style={{ fontSize: 10, color: '#94a3b8', fontStyle: 'italic' }}>No purchase orders recorded for this supplier.</Text>
+                            ) : (
+                              suppOrders.map((po: any) => (
+                                <View key={po.id} style={{ backgroundColor: '#f8fafc', padding: 8, borderRadius: 6, borderWidth: 1, borderColor: '#cbd5e1', marginBottom: 6 }}>
+                                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#6d8196', fontFamily: 'monospace' }}>
+                                      PO #{po.poNumber}
+                                    </Text>
+                                    <Text style={{ fontSize: 10, color: '#64748b' }}>
+                                      {new Date(po.createdAt).toLocaleDateString('en-IN')}
+                                    </Text>
+                                  </View>
 
-                          {role === 'ADMIN' && item.outstanding > 0 && (
-                            <TouchableOpacity
-                              style={[styles.collectPayBtn, { backgroundColor: '#db2777', marginTop: 6 }]}
-                              onPress={() => {
-                                setSupplierPayModal(item);
-                                setSuppPayAmount(String(item.outstanding));
-                              }}
-                            >
-                              <Ionicons name="cash-outline" size={12} color="#ffffff" style={{ marginRight: 2 }} />
-                              <Text style={styles.collectPayBtnText}>Pay Supplier ₹</Text>
-                            </TouchableOpacity>
-                          )}
-                        </View>
+                                  <View style={{ marginTop: 4 }}>
+                                    {(po.items && po.items.length > 0 ? po.items : []).map((it: any, idx: number) => (
+                                      <Text key={idx} style={{ fontSize: 10, color: '#334155', fontWeight: '600' }}>
+                                        • {it.product?.name || it.productName || 'Stock Product'}: {it.quantity} qty @ ₹{it.price} (Total: ₹{it.total})
+                                      </Text>
+                                    ))}
+                                  </View>
+
+                                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4, paddingTop: 4, borderTopWidth: 1, borderColor: '#e2e8f0' }}>
+                                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#0f172a' }}>
+                                      PO Total: ₹{po.totalAmount}
+                                    </Text>
+                                    <Text style={{ fontSize: 10, fontWeight: '800', color: po.dueAmount > 0 ? '#d97706' : '#059669' }}>
+                                      {po.dueAmount > 0 ? `Due: ₹${po.dueAmount}` : 'Fully Paid'}
+                                    </Text>
+                                  </View>
+                                </View>
+                              ))
+                            )}
+                          </View>
+                        )}
                       </View>
-                    </View>
-                  )}
+                    );
+                  }}
                 />
               </View>
             )}
@@ -2545,6 +2723,22 @@ export default function App() {
                 value={newProdStock}
                 onChangeText={setNewProdStock}
               />
+
+              <Text style={styles.inputLabel}>Select Category</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 6 }}>
+                {categories.map((c) => (
+                  <TouchableOpacity
+                    key={c.id}
+                    style={[styles.filterChip, newProdCategoryId === c.id && styles.filterChipActive]}
+                    onPress={() => setNewProdCategoryId(c.id)}
+                  >
+                    <Text style={[styles.filterChipText, newProdCategoryId === c.id && styles.filterChipTextActive]}>
+                      {c.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
               <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
                 <TouchableOpacity
                   style={[styles.closeBtn, { backgroundColor: '#94a3b8', flex: 1 }]}
@@ -2595,6 +2789,21 @@ export default function App() {
                 onChangeText={setEditProdStock}
               />
 
+              <Text style={styles.inputLabel}>Category</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 6 }}>
+                {categories.map((c) => (
+                  <TouchableOpacity
+                    key={c.id}
+                    style={[styles.filterChip, editProdCategoryId === c.id && styles.filterChipActive]}
+                    onPress={() => setEditProdCategoryId(c.id)}
+                  >
+                    <Text style={[styles.filterChipText, editProdCategoryId === c.id && styles.filterChipTextActive]}>
+                      {c.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
               <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
                 <TouchableOpacity
                   style={[styles.closeBtn, { backgroundColor: '#94a3b8', flex: 1 }]}
@@ -2608,6 +2817,132 @@ export default function App() {
                   disabled={updatingProd}
                 >
                   <Text style={styles.closeBtnText}>{updatingProd ? 'Updating...' : 'Save Changes'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Add Category Modal */}
+      {addCategoryModalVisible && (
+        <Modal visible transparent animationType="slide">
+          <View style={styles.modalBg}>
+            <View style={styles.modalCard}>
+              <Text style={[styles.modalTitle, { color: '#0f172a', textAlign: 'left' }]}>Add Product Category</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Category Name (e.g., Wires & Cables)"
+                placeholderTextColor="#94a3b8"
+                value={newCatName}
+                onChangeText={setNewCatName}
+              />
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Description (optional)"
+                placeholderTextColor="#94a3b8"
+                value={newCatDesc}
+                onChangeText={setNewCatDesc}
+              />
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                <TouchableOpacity
+                  style={[styles.closeBtn, { backgroundColor: '#94a3b8', flex: 1 }]}
+                  onPress={() => setAddCategoryModalVisible(false)}
+                >
+                  <Text style={styles.closeBtnText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.closeBtn, { backgroundColor: '#059669', flex: 1 }]}
+                  onPress={handleCreateCategory}
+                  disabled={savingCategory}
+                >
+                  <Text style={styles.closeBtnText}>{savingCategory ? 'Saving...' : 'Save Category'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* New Stock Purchase Order Modal */}
+      {poModalSupplier && (
+        <Modal visible transparent animationType="slide">
+          <View style={styles.modalBg}>
+            <View style={styles.modalCard}>
+              <Text style={[styles.modalTitle, { color: '#0f172a', textAlign: 'left' }]}>New Stock Purchase Order</Text>
+              <Text style={{ fontSize: 12, color: '#6d8196', fontWeight: 'bold', marginBottom: 8 }}>
+                Supplier: {poModalSupplier.name}
+              </Text>
+
+              <Text style={styles.inputLabel}>Select Stock Product to Order</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 6 }}>
+                {products.map((p) => (
+                  <TouchableOpacity
+                    key={p.id}
+                    style={[styles.filterChip, poProductId === p.id && styles.filterChipActive]}
+                    onPress={() => {
+                      setPoProductId(p.id);
+                      setPoPrice(String(p.purchasePrice || p.sellingPrice || ''));
+                    }}
+                  >
+                    <Text style={[styles.filterChipText, poProductId === p.id && styles.filterChipTextActive]}>
+                      {p.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <Text style={styles.inputLabel}>Wholesale Unit Cost Price (₹)</Text>
+              <TextInput
+                style={styles.modalInput}
+                keyboardType="numeric"
+                placeholder="Unit Price"
+                placeholderTextColor="#94a3b8"
+                value={poPrice}
+                onChangeText={setPoPrice}
+              />
+
+              <Text style={styles.inputLabel}>Quantity Ordered</Text>
+              <TextInput
+                style={styles.modalInput}
+                keyboardType="numeric"
+                placeholder="Quantity"
+                placeholderTextColor="#94a3b8"
+                value={poQty}
+                onChangeText={setPoQty}
+              />
+
+              <Text style={styles.inputLabel}>Initial Payment Made Now (₹)</Text>
+              <TextInput
+                style={styles.modalInput}
+                keyboardType="numeric"
+                placeholder="Amount Paid Now (leave blank if full)"
+                placeholderTextColor="#94a3b8"
+                value={poPaidAmount}
+                onChangeText={setPoPaidAmount}
+              />
+
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Order Notes / Ref (optional)"
+                placeholderTextColor="#94a3b8"
+                value={poNotes}
+                onChangeText={setPoNotes}
+              />
+
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                <TouchableOpacity
+                  style={[styles.closeBtn, { backgroundColor: '#94a3b8', flex: 1 }]}
+                  onPress={() => setPoModalSupplier(null)}
+                >
+                  <Text style={styles.closeBtnText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.closeBtn, { backgroundColor: '#6d8196', flex: 1 }]}
+                  onPress={handleCreatePurchaseOrder}
+                  disabled={savingPO}
+                >
+                  <Text style={styles.closeBtnText}>{savingPO ? 'Saving...' : 'Save Stock Order'}</Text>
                 </TouchableOpacity>
               </View>
             </View>

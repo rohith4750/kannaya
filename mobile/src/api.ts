@@ -477,3 +477,42 @@ export async function askKannayaAI(query: string) {
     throw err;
   }
 }
+
+/**
+ * Category & Purchase Order API Functions
+ */
+export async function createCategory(payload: { name: string; description?: string }) {
+  console.log(`[API POST] Creating Category`, payload);
+  const res = await fetchWithFallback('/categories', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to create category');
+  return data;
+}
+
+export async function getPurchaseOrders() {
+  console.log(`[API GET] Fetching purchase orders`);
+  try {
+    const res = await fetchWithFallback('/purchases');
+    if (!res.ok) throw new Error('Failed to fetch purchase orders');
+    return await res.json();
+  } catch (err: any) {
+    console.warn('[API Exception] GET purchases:', err);
+    return [];
+  }
+}
+
+export async function createPurchaseOrder(payload: any) {
+  console.log(`[API POST] Creating Purchase Order`, payload);
+  const res = await fetchWithFallback('/purchases', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.success) throw new Error(data.error || 'Failed to create purchase order');
+  return data;
+}
