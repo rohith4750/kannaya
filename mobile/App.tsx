@@ -191,7 +191,7 @@ export default function App() {
       }
     } catch (e: any) {
       console.error('[PIN Lock UI Error] Exception thrown during authentication:', e);
-      setPinError(e.message || 'Invalid PIN. Try 1234 (Admin) or 0000 (Staff)');
+      setPinError(e.message || 'Invalid Security PIN code');
       setPinInput('');
     } finally {
       setVerifyingPin(false);

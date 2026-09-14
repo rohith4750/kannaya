@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     }
 
     if (!user) {
-      return NextResponse.json({ error: 'Invalid PIN code. Try 1234 (Admin) or 0000 (Staff)' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid Security PIN code' }, { status: 401 });
     }
 
     const sessionData = {
