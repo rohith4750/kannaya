@@ -166,12 +166,14 @@ export default function App() {
   const [newCustName, setNewCustName] = useState('');
   const [newCustPhone, setNewCustPhone] = useState('');
   const [newCustAddress, setNewCustAddress] = useState('');
+  const [newCustCreditLimit, setNewCustCreditLimit] = useState('50000');
   const [savingCust, setSavingCust] = useState(false);
 
   const [editCustModal, setEditCustModal] = useState<any>(null);
   const [editCustName, setEditCustName] = useState('');
   const [editCustPhone, setEditCustPhone] = useState('');
   const [editCustAddress, setEditCustAddress] = useState('');
+  const [editCustCreditLimit, setEditCustCreditLimit] = useState('50000');
   const [updatingCust, setUpdatingCust] = useState(false);
 
   const [payCustModal, setPayCustModal] = useState<any>(null);
@@ -221,9 +223,8 @@ export default function App() {
         setRole(userRole);
         setIsAuthenticated(true);
         setPinInput('');
-        if (userRole === 'STAFF') {
-          setActiveTab('pos');
-        }
+        // Always navigate directly to dashboard after login as requested
+        setActiveTab('dashboard');
       }
     } catch (e: any) {
       console.error('[PIN Lock UI Error] Exception thrown during authentication:', e);
@@ -244,7 +245,24 @@ export default function App() {
       setCurrentUser(null);
       setPinInput('');
       setPinError('');
+      setActiveTab('dashboard');
       setCart([]);
+      // Reset all active modals & screen states
+      setReceiptModal(null);
+      setInvoiceDetailsModal(null);
+      setAddSupplierModalVisible(false);
+      setSupplierPayModal(null);
+      setAddRackModalVisible(false);
+      setAddProductModalVisible(false);
+      setEditProdModal(null);
+      setAddCustModalVisible(false);
+      setEditCustModal(null);
+      setPayCustModal(null);
+      setPosSearchQuery('');
+      setInventorySearch('');
+      setInvoiceSearch('');
+      setCustomerSearch('');
+      setSupplierSearch('');
     }
   };
 
@@ -462,15 +480,17 @@ export default function App() {
     setSavingCust(true);
     try {
       await createCustomer({
-        name: newCustName,
-        phone: newCustPhone,
-        address: newCustAddress,
+        name: newCustName.trim(),
+        phone: newCustPhone.trim(),
+        address: newCustAddress.trim(),
+        creditLimit: parseFloat(newCustCreditLimit) || 50000,
       });
       Alert.alert('Customer Profile Created', `${newCustName} added successfully!`);
       setAddCustModalVisible(false);
       setNewCustName('');
       setNewCustPhone('');
       setNewCustAddress('');
+      setNewCustCreditLimit('50000');
       loadTabContent();
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to create customer');
@@ -491,6 +511,7 @@ export default function App() {
         name: editCustName.trim(),
         phone: editCustPhone.trim(),
         address: editCustAddress.trim(),
+        creditLimit: parseFloat(editCustCreditLimit) || 50000,
       });
       Alert.alert('Customer Updated', `${editCustName} profile updated!`);
       setEditCustModal(null);
@@ -671,77 +692,214 @@ export default function App() {
     });
   };
 
-  const handleGeneratePDF = async (invoice: any) => {
-    if (!invoice) return;
-    try {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <style>
-              body { font-family: Arial, sans-serif; padding: 24px; color: #0f172a; }
-              .header { text-align: center; border-bottom: 2px solid #059669; padding-bottom: 12px; }
-              .shop-name { font-size: 22px; font-weight: bold; color: #059669; text-transform: uppercase; }
-              .subtitle { font-size: 11px; color: #64748b; margin-top: 4px; }
-              .inv-meta { margin-top: 18px; font-size: 12px; display: flex; justify-content: space-between; border-bottom: 1px dashed #cbd5e1; padding-bottom: 12px; }
-              table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-              th { background-color: #f1f5f9; padding: 8px; font-size: 11px; text-align: left; border-bottom: 2px solid #cbd5e1; text-transform: uppercase; }
-              td { padding: 10px 8px; font-size: 12px; border-bottom: 1px solid #e2e8f0; }
-              .total-box { margin-top: 20px; text-align: right; font-size: 16px; font-weight: bold; color: #059669; }
-              .footer { margin-top: 36px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 12px; }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <div class="shop-name">${settings?.shopName || 'VENKATA LAKSHMI ELECTRONICS'}</div>
-              <div class="subtitle">Proprietor: Konala Kannaya Reddy • GSTIN: ${settings?.gstin || '36ABCDE1234F1Z5'}</div>
-              <div class="subtitle">Phone: ${settings?.phone || '+91 98765 43210'} | ${settings?.address || 'Main Market Road'}</div>
+  const generateA4GSTInvoiceHTML = (invoice: any, shopSettings: any) => {
+    const shopName = shopSettings?.shopName || 'VENKATA LAKSHMI ELECTRONICS';
+    const tagline = shopSettings?.tagline || 'Complete Electrical & Hardware Solutions';
+    const phone = shopSettings?.phone || '+91 98765 43210';
+    const address = shopSettings?.address || 'Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001';
+    const gstin = shopSettings?.gstin || '36ABCDE1234F1Z5';
+    const defaultGstPercent = shopSettings?.defaultGstPercent || 18;
+    const termsConditions = shopSettings?.termsConditions || 'Goods once sold will not be taken back or exchanged. Subject to local jurisdiction.';
+
+    const totalAmount = invoice.totalAmount || 0;
+    const paidAmount = invoice.paidAmount !== undefined ? invoice.paidAmount : (invoice.paymentMethod === 'CREDIT' ? 0 : totalAmount);
+    const dueAmount = invoice.dueAmount !== undefined ? invoice.dueAmount : Math.max(0, totalAmount - paidAmount);
+    const discount = invoice.discount || 0;
+
+    const taxAmount = (totalAmount * defaultGstPercent) / (100 + defaultGstPercent);
+    const cgst = taxAmount / 2;
+    const sgst = taxAmount / 2;
+    const taxableAmount = totalAmount - taxAmount;
+
+    const itemsList = (invoice.items && invoice.items.length > 0)
+      ? invoice.items
+      : [{ productName: 'POS Billed Items', quantity: 1, price: totalAmount, total: totalAmount, rackLocation: 'A1', hsnCode: '8544', unit: 'pcs', gstPercent: defaultGstPercent }];
+
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>GST Tax Invoice - ${invoice.invoiceNo || 'Receipt'}</title>
+          <style>
+            * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+            body { margin: 0; padding: 24px; color: #334155; background: #ffffff; font-size: 12px; }
+            .invoice-card { max-width: 800px; margin: 0 auto; border: 1px solid #cbd5e1; padding: 28px; border-radius: 8px; }
+            .header-flex { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #475569; padding-bottom: 16px; }
+            .brand-box { display: flex; align-items: center; gap: 12px; }
+            .shop-title { font-size: 18px; font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase; }
+            .shop-tagline { font-size: 11px; font-weight: 700; color: #475569; margin: 2px 0 0 0; }
+            .shop-sub { font-size: 10px; color: #64748b; margin: 2px 0 0 0; }
+            .invoice-tag-box { text-align: right; }
+            .gst-tag { display: inline-block; background: #475569; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
+            .inv-meta-line { font-size: 11px; color: #475569; margin-top: 2px; }
+            .inv-meta-bold { font-weight: 800; color: #0f172a; font-family: monospace; }
+            
+            .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; background: #f8fafc; padding: 14px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 16px; }
+            .meta-section-title { font-size: 10px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+            .cust-name { font-size: 13px; font-weight: 800; color: #0f172a; }
+            .cust-sub { font-size: 11px; color: #475569; margin-top: 2px; }
+            .status-badge { display: inline-block; background: #dcfce7; color: #166534; font-weight: 800; font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+            
+            table { width: 100%; border-collapse: collapse; margin-top: 16px; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; }
+            th { background: #334155; color: #ffffff; font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 8px 10px; text-align: left; }
+            td { padding: 8px 10px; font-size: 11px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+            tr:last-child td { border-bottom: none; }
+            .text-center { text-align: center; }
+            .text-right { text-align: right; }
+            .font-bold { font-weight: 700; }
+            .font-mono { font-family: monospace; }
+            
+            .summary-flex { display: flex; justify-content: space-between; gap: 16px; margin-top: 16px; }
+            .terms-box { flex: 1; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; font-size: 10px; color: #64748b; }
+            .calc-box { width: 280px; background: #fffde7; border: 1px solid #fef08a; border-radius: 6px; padding: 12px; font-size: 11px; }
+            .calc-row { display: flex; justify-content: space-between; margin-bottom: 4px; color: #475569; }
+            .calc-total { display: flex; justify-content: space-between; border-top: 2px solid #334155; padding-top: 6px; margin-top: 6px; font-size: 14px; font-weight: 800; color: #0f172a; }
+            .calc-paid { display: flex; justify-content: space-between; border-top: 1px solid #cbd5e1; padding-top: 4px; margin-top: 6px; font-weight: 700; color: #166534; }
+            .calc-due { display: flex; justify-content: space-between; font-weight: 700; color: #92400e; margin-top: 2px; }
+
+            .sig-flex { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 36px; pt: 16px; border-top: 1px solid #e2e8f0; }
+            .sig-box { text-align: left; }
+            .sig-box-right { text-align: right; }
+            .sig-title { font-weight: 700; color: #0f172a; font-size: 11px; }
+            .sig-space { height: 32px; }
+            .sig-sub { font-size: 9px; color: #64748b; text-transform: uppercase; font-weight: 600; }
+          </style>
+        </head>
+        <body>
+          <div class="invoice-card">
+            <!-- Header -->
+            <div class="header-flex">
+              <div class="brand-box">
+                <div>
+                  <h1 class="shop-title">${shopName}</h1>
+                  <p class="shop-tagline">${tagline}</p>
+                  <p class="shop-sub">${address}</p>
+                  <p class="shop-sub">Phone: ${phone} | GSTIN: <span class="font-bold font-mono">${gstin}</span></p>
+                </div>
+              </div>
+              <div class="invoice-tag-box">
+                <div class="gst-tag">GST TAX INVOICE</div>
+                <div class="inv-meta-line">Invoice #: <span class="inv-meta-bold">${invoice.invoiceNo || 'INV-001'}</span></div>
+                <div class="inv-meta-line">Date: ${new Date(invoice.createdAt || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                <div class="inv-meta-line">Time: ${new Date(invoice.createdAt || Date.now()).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</div>
+              </div>
             </div>
 
-
-            <div class="inv-meta">
+            <!-- Customer & Payment Details -->
+            <div class="meta-grid">
               <div>
-                <strong>Bill No:</strong> #${invoice.invoiceNo}<br/>
-                <strong>Customer:</strong> ${invoice.customerName || 'Walk-in Customer'}
+                <div class="meta-section-title">Billed To (Customer Details)</div>
+                <div class="cust-name">${invoice.customerName || 'Walk-in Customer'}</div>
+                ${invoice.customerPhone && invoice.customerPhone !== 'N/A' ? `<div class="cust-sub">Phone: ${invoice.customerPhone}</div>` : ''}
+                ${invoice.customerAddress ? `<div class="cust-sub">${invoice.customerAddress}</div>` : ''}
               </div>
               <div style="text-align: right;">
-                <strong>Date:</strong> ${new Date(invoice.createdAt || Date.now()).toLocaleDateString('en-IN')}<br/>
-                <strong>Payment Mode:</strong> ${invoice.paymentMethod || 'CASH'}
+                <div class="meta-section-title">Payment & Status Information</div>
+                <div class="cust-sub">Payment Mode: <span class="font-bold font-mono">${invoice.paymentMethod || 'CASH'}</span></div>
+                <div class="cust-sub">Status: <span class="status-badge">${invoice.status || 'COMPLETED'}</span></div>
+                <div class="cust-sub">Billed By: Counter Cashier</div>
               </div>
             </div>
 
+            <!-- Items Table -->
             <table>
               <thead>
                 <tr>
-                  <th>Item Name</th>
-                  <th style="text-align: center;">Qty</th>
-                  <th style="text-align: right;">Price (₹)</th>
-                  <th style="text-align: right;">Total Amount (₹)</th>
+                  <th style="width: 30px;" class="text-center">#</th>
+                  <th>Item Description</th>
+                  <th class="text-center">Loc</th>
+                  <th class="text-center">HSN</th>
+                  <th class="text-center">Qty</th>
+                  <th class="text-right">Rate (₹)</th>
+                  <th class="text-right">GST %</th>
+                  <th class="text-right">Total Amount (₹)</th>
                 </tr>
               </thead>
               <tbody>
-                ${(invoice.items && invoice.items.length > 0 ? invoice.items : [{ productName: 'POS Items', quantity: 1, price: invoice.totalAmount, total: invoice.totalAmount }]).map((item: any) => `
+                ${itemsList.map((item: any, idx: number) => `
                   <tr>
-                    <td>${item.productName || item.name || 'Item'}</td>
-                    <td style="text-align: center;">${item.quantity || 1}</td>
-                    <td style="text-align: right;">₹${(item.price || item.sellingPrice || invoice.totalAmount).toLocaleString('en-IN')}</td>
-                    <td style="text-align: right;">₹${(item.total || ((item.price || item.sellingPrice || invoice.totalAmount) * (item.quantity || 1))).toLocaleString('en-IN')}</td>
+                    <td class="text-center font-bold">${idx + 1}</td>
+                    <td class="font-bold">${item.productName || item.name || 'Product Item'}</td>
+                    <td class="text-center font-mono">${item.rackLocation || 'A1'}</td>
+                    <td class="text-center font-mono">${item.hsnCode || '8544'}</td>
+                    <td class="text-center font-bold">${item.quantity || 1} ${item.unit || 'pcs'}</td>
+                    <td class="text-right font-mono">₹${(item.price || item.sellingPrice || 0).toLocaleString('en-IN')}</td>
+                    <td class="text-right font-mono">${item.gstPercent || defaultGstPercent}%</td>
+                    <td class="text-right font-bold font-mono">₹${(item.total || ((item.price || 0) * (item.quantity || 1))).toLocaleString('en-IN')}</td>
                   </tr>
                 `).join('')}
               </tbody>
             </table>
 
-            <div class="total-box">
-              Grand Total: ₹${(invoice.totalAmount || 0).toLocaleString('en-IN')}
+            <!-- Summary & Terms -->
+            <div class="summary-flex">
+              <div class="terms-box">
+                <strong style="color: #0f172a; text-transform: uppercase;">Terms & Conditions:</strong><br/>
+                ${termsConditions}<br/><br/>
+                ${shopSettings?.bankDetails ? `<strong>Bank Account:</strong> ${shopSettings.bankDetails}<br/>` : ''}
+                ${shopSettings?.upiId ? `<strong>UPI ID:</strong> ${shopSettings.upiId}` : ''}
+              </div>
+              <div class="calc-box">
+                <div class="calc-row">
+                  <span>Taxable Amount:</span>
+                  <span class="font-mono font-bold">₹${taxableAmount.toFixed(2)}</span>
+                </div>
+                <div class="calc-row">
+                  <span>CGST (${(defaultGstPercent / 2).toFixed(1)}%):</span>
+                  <span class="font-mono">₹${cgst.toFixed(2)}</span>
+                </div>
+                <div class="calc-row">
+                  <span>SGST (${(defaultGstPercent / 2).toFixed(1)}%):</span>
+                  <span class="font-mono">₹${sgst.toFixed(2)}</span>
+                </div>
+                ${discount > 0 ? `
+                  <div class="calc-row" style="color: #be123c;">
+                    <span>Special Discount:</span>
+                    <span class="font-mono">-₹${discount.toLocaleString('en-IN')}</span>
+                  </div>
+                ` : ''}
+                <div class="calc-total">
+                  <span>Net Payable:</span>
+                  <span>₹${totalAmount.toLocaleString('en-IN')}</span>
+                </div>
+                <div class="calc-paid">
+                  <span>Amount Paid:</span>
+                  <span>₹${paidAmount.toLocaleString('en-IN')}</span>
+                </div>
+                ${dueAmount > 0 ? `
+                  <div class="calc-due">
+                    <span>Balance Credit Due:</span>
+                    <span>₹${dueAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                ` : ''}
+              </div>
             </div>
 
-            <div class="footer">
-              Thank you for your business! • Kannaya Digital ERP Receipt
+            <!-- Signatures -->
+            <div class="sig-flex">
+              <div class="sig-box">
+                <div class="sig-title">Customer Signature</div>
+                <div class="sig-space"></div>
+                <div class="sig-sub">Verified & Received in Good Condition</div>
+              </div>
+              <div class="sig-box-right">
+                <div class="sig-title">For ${shopName}</div>
+                <div class="sig-space"></div>
+                <div class="sig-sub">Authorized Signatory</div>
+              </div>
             </div>
-          </body>
-        </html>
-      `;
+          </div>
+        </body>
+      </html>
+    `;
+  };
+
+  const handleGeneratePDF = async (invoice: any) => {
+    if (!invoice) return;
+    try {
+      const html = generateA4GSTInvoiceHTML(invoice, settings);
 
       if (Platform.OS === 'web') {
         await Print.printAsync({ html });
@@ -750,7 +908,7 @@ export default function App() {
           const canShare = await Sharing.isAvailableAsync();
           if (canShare) {
             const { uri } = await Print.printToFileAsync({ html });
-            await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: `Bill #${invoice.invoiceNo}` });
+            await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: `GST Tax Invoice #${invoice.invoiceNo}` });
           } else {
             await Print.printAsync({ html });
           }
@@ -1708,71 +1866,85 @@ export default function App() {
                       <Text style={styles.emptyText}>No customer accounts found.</Text>
                     </View>
                   }
-                  renderItem={({ item }) => (
-                    <View style={styles.customerCard}>
-                      <View style={styles.invRow}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.invNo}>{item.name}</Text>
-                          <TouchableOpacity
-                            onPress={() => handleCallCustomer(item.phone)}
-                            style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}
-                          >
-                            <Ionicons name="call-outline" size={12} color="#0284c7" />
-                            <Text style={[styles.invCust, { color: '#0284c7' }]}>{item.phone || 'N/A'}</Text>
-                          </TouchableOpacity>
-                          {item.address ? (
-                            <Text style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{item.address}</Text>
-                          ) : null}
-                        </View>
+                  renderItem={({ item }) => {
+                    const limit = item.creditLimit || 50000;
+                    const due = item.outstanding || 0;
+                    const available = Math.max(0, limit - due);
+                    return (
+                      <View style={styles.customerCard}>
+                        <View style={styles.invRow}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.invNo}>{item.name}</Text>
+                            <TouchableOpacity
+                              onPress={() => handleCallCustomer(item.phone)}
+                              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}
+                            >
+                              <Ionicons name="call-outline" size={12} color="#0284c7" />
+                              <Text style={[styles.invCust, { color: '#0284c7' }]}>{item.phone || 'N/A'}</Text>
+                            </TouchableOpacity>
+                            {item.address ? (
+                              <Text style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{item.address}</Text>
+                            ) : null}
+                            <View style={{ marginTop: 6, flexDirection: 'row', gap: 8 }}>
+                              <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b' }}>
+                                Credit Limit: ₹{limit.toLocaleString('en-IN')}
+                              </Text>
+                              <Text style={{ fontSize: 10, fontWeight: '700', color: available > 5000 ? '#059669' : '#dc2626' }}>
+                                Avail: ₹{available.toLocaleString('en-IN')}
+                              </Text>
+                            </View>
+                          </View>
 
-                        <View style={{ alignItems: 'flex-end' }}>
-                          <Text style={[styles.invAmount, { color: item.outstanding > 0 ? '#d97706' : '#059669' }]}>
-                            Udhar: ₹{(item.outstanding || 0).toLocaleString('en-IN')}
-                          </Text>
+                          <View style={{ alignItems: 'flex-end' }}>
+                            <Text style={[styles.invAmount, { color: due > 0 ? '#d97706' : '#059669' }]}>
+                              Udhar: ₹{due.toLocaleString('en-IN')}
+                            </Text>
 
-                          <View style={{ flexDirection: 'row', gap: 6, marginTop: 6 }}>
-                            {item.outstanding > 0 && (
-                              <TouchableOpacity
-                                style={styles.collectPayBtn}
-                                onPress={() => {
-                                  setPayCustModal(item);
-                                  setPayAmount(String(item.outstanding));
-                                }}
-                              >
-                                <Ionicons name="cash-outline" size={12} color="#ffffff" style={{ marginRight: 2 }} />
-                                <Text style={styles.collectPayBtnText}>Collect ₹</Text>
-                              </TouchableOpacity>
-                            )}
-
-                            {role === 'ADMIN' && (
-                              <>
+                            <View style={{ flexDirection: 'row', gap: 6, marginTop: 6 }}>
+                              {due > 0 && (
                                 <TouchableOpacity
-                                  style={styles.outlineEditBtn}
+                                  style={styles.collectPayBtn}
                                   onPress={() => {
-                                    setEditCustModal(item);
-                                    setEditCustName(item.name);
-                                    setEditCustPhone(item.phone || '');
-                                    setEditCustAddress(item.address || '');
+                                    setPayCustModal(item);
+                                    setPayAmount(String(due));
                                   }}
-                                  activeOpacity={0.7}
                                 >
-                                  <Ionicons name="create-outline" size={12} color="#0284c7" />
+                                  <Ionicons name="cash-outline" size={12} color="#ffffff" style={{ marginRight: 2 }} />
+                                  <Text style={styles.collectPayBtnText}>Collect ₹</Text>
                                 </TouchableOpacity>
+                              )}
 
-                                <TouchableOpacity
-                                  style={styles.outlineDeleteBtn}
-                                  onPress={() => handleDeleteCustomer(item.id, item.name)}
-                                  activeOpacity={0.7}
-                                >
-                                  <Ionicons name="trash-outline" size={12} color="#dc2626" />
-                                </TouchableOpacity>
-                              </>
-                            )}
+                              {role === 'ADMIN' && (
+                                <>
+                                  <TouchableOpacity
+                                    style={styles.outlineEditBtn}
+                                    onPress={() => {
+                                      setEditCustModal(item);
+                                      setEditCustName(item.name);
+                                      setEditCustPhone(item.phone || '');
+                                      setEditCustAddress(item.address || '');
+                                      setEditCustCreditLimit(String(item.creditLimit || 50000));
+                                    }}
+                                    activeOpacity={0.7}
+                                  >
+                                    <Ionicons name="create-outline" size={12} color="#0284c7" />
+                                  </TouchableOpacity>
+
+                                  <TouchableOpacity
+                                    style={styles.outlineDeleteBtn}
+                                    onPress={() => handleDeleteCustomer(item.id, item.name)}
+                                    activeOpacity={0.7}
+                                  >
+                                    <Ionicons name="trash-outline" size={12} color="#dc2626" />
+                                  </TouchableOpacity>
+                                </>
+                              )}
+                            </View>
                           </View>
                         </View>
                       </View>
-                    </View>
-                  )}
+                    );
+                  }}
                 />
               </View>
             )}
@@ -2451,14 +2623,14 @@ export default function App() {
               <Text style={[styles.modalTitle, { color: '#0f172a', textAlign: 'left' }]}>Add New Customer Profile</Text>
               <TextInput
                 style={styles.modalInput}
-                placeholder="Customer Name"
+                placeholder="Customer Name *"
                 placeholderTextColor="#94a3b8"
                 value={newCustName}
                 onChangeText={setNewCustName}
               />
               <TextInput
                 style={styles.modalInput}
-                placeholder="Phone Number"
+                placeholder="Phone Number *"
                 placeholderTextColor="#94a3b8"
                 keyboardType="phone-pad"
                 value={newCustPhone}
@@ -2470,6 +2642,14 @@ export default function App() {
                 placeholderTextColor="#94a3b8"
                 value={newCustAddress}
                 onChangeText={setNewCustAddress}
+              />
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Credit Limit (e.g. 50000)"
+                placeholderTextColor="#94a3b8"
+                keyboardType="numeric"
+                value={newCustCreditLimit}
+                onChangeText={setNewCustCreditLimit}
               />
               <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
                 <TouchableOpacity
@@ -2518,6 +2698,14 @@ export default function App() {
                 style={styles.modalInput}
                 value={editCustAddress}
                 onChangeText={setEditCustAddress}
+              />
+
+              <Text style={styles.inputLabel}>Credit Limit (₹)</Text>
+              <TextInput
+                style={styles.modalInput}
+                keyboardType="numeric"
+                value={editCustCreditLimit}
+                onChangeText={setEditCustCreditLimit}
               />
 
               <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
