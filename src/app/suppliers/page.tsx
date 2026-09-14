@@ -2,12 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Truck, Plus, DollarSign, MessageSquare, Phone, Mail, Building, X, FileText, Trash2 } from 'lucide-react';
+import { Truck, Plus, DollarSign, MessageSquare, Phone, Mail, Building, X, FileText, Trash2, Printer } from 'lucide-react';
+import ConfirmModal from '@/components/ConfirmModal';
 
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [showAddSupplierModal, setShowAddSupplierModal] = useState(false);
   const [payModalSupplier, setPayModalSupplier] = useState<any>(null);
+  const [deleteModalSupplier, setDeleteModalSupplier] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Form states
   const [name, setName] = useState('');
@@ -80,13 +83,13 @@ export default function SuppliersPage() {
     }
   };
 
-  const handleDeleteSupplier = async (supplierId: string, supplierName: string) => {
-    if (!window.confirm(`Are you sure you want to delete supplier "${supplierName}"? This will also remove their purchase orders and ledger history.`)) {
-      return;
-    }
+  const confirmDeleteSupplier = async () => {
+    if (!deleteModalSupplier) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`/api/suppliers?id=${supplierId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/suppliers?id=${deleteModalSupplier.id}`, { method: 'DELETE' });
       if (res.ok) {
+        setDeleteModalSupplier(null);
         loadSuppliers();
       } else {
         const err = await res.json();
@@ -94,6 +97,8 @@ export default function SuppliersPage() {
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -120,52 +125,70 @@ export default function SuppliersPage() {
   const totalSupplierDueAll = suppliers.reduce((sum, s) => sum + s.outstanding, 0);
 
   return (
-    <div className="space-y-5">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm">
+    <div className="space-y-4 w-full">
+      {/* Top Title & Header Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm">
         <div>
-          <h1 className="text-xl font-bold text-[#4a4a4a] flex items-center gap-2">
+          <h1 className="text-xl font-extrabold text-[#4a4a4a] flex items-center gap-2">
             <Truck className="w-5 h-5 text-[#6d8196]" /> Supplier Directory & Purchase Dues
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-0.5">
             Manage wholesale suppliers, purchase order ledger, pending payables, and reorder notices.
           </p>
         </div>
+
         <div className="flex items-center gap-3">
-          <div className="bg-[#6d8196]/10 border border-[#6d8196]/30 px-3.5 py-1.5 rounded-[5px] text-xs">
-            <span className="text-[#4a4a4a]">Total Supplier Pending: </span>
-            <span className="font-extrabold text-[#6d8196]">₹{totalSupplierDueAll.toLocaleString('en-IN')}</span>
+          <div className="bg-[#ffffe3] border border-[#cbcbcb] px-3.5 py-1.5 rounded-[5px] text-xs shadow-sm">
+            <span className="text-slate-500 font-bold text-[10px] uppercase">Total Supplier Pending: </span>
+            <span className="font-extrabold text-[#6d8196] font-mono">₹{totalSupplierDueAll.toLocaleString('en-IN')}</span>
           </div>
+
+          <button
+            onClick={() => window.print()}
+            className="bg-slate-100 hover:bg-slate-200 text-[#4a4a4a] border border-[#cbcbcb] px-3.5 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all"
+          >
+            <Printer className="w-4 h-4 text-[#6d8196]" /> Print Directory PDF
+          </button>
+
           <button
             onClick={() => setShowAddSupplierModal(true)}
-            className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold px-4 py-2 rounded-[5px] flex items-center gap-2 text-xs shadow-sm transition-all border border-[#cbcbcb]/40"
+            className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-3.5 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-sm border border-[#cbcbcb]/40"
           >
             <Plus className="w-4 h-4" /> Add Supplier
           </button>
         </div>
       </div>
 
-      {/* Supplier Grid */}
+      {/* SUPPLIERS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {suppliers.map((s) => (
-          <div key={s.id} className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm flex flex-col justify-between hover:border-[#6d8196] transition-colors">
-            <div>
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-[#4a4a4a] truncate">{s.name}</h3>
+          <div
+            key={s.id}
+            className="bg-white border border-[#cbcbcb] rounded-[5px] p-4 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow space-y-4"
+          >
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-2 border-b border-[#cbcbcb] pb-2.5">
+                <div>
+                  <h3 className="font-extrabold text-base text-[#4a4a4a] leading-tight">{s.name}</h3>
+                  {s.contactPerson && (
+                    <span className="text-xs text-slate-500 font-medium">Contact: {s.contactPerson}</span>
+                  )}
+                </div>
                 {s.outstanding > 0 ? (
-                  <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/30">
+                  <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
                     Payment Due
                   </span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    Paid
+                  <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    Paid Clear
                   </span>
                 )}
               </div>
 
-              <div className="text-xs text-slate-500 mt-1 space-y-1">
+              {/* Contact Info */}
+              <div className="space-y-1 text-xs text-slate-600">
                 <div className="flex items-center gap-1.5 font-medium">
-                  <Phone className="w-3 h-3 text-[#6d8196]" /> {s.phone} ({s.contactPerson || 'Sales Head'})
+                  <Phone className="w-3.5 h-3.5 text-[#6d8196]" /> {s.phone} ({s.contactPerson || 'Sales Head'})
                 </div>
                 {s.address && <div className="text-[11px] text-slate-500 truncate">{s.address}</div>}
               </div>
@@ -212,7 +235,7 @@ export default function SuppliersPage() {
               </button>
 
               <button
-                onClick={() => handleDeleteSupplier(s.id, s.name)}
+                onClick={() => setDeleteModalSupplier(s)}
                 className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 p-2 rounded-[5px] text-xs transition-colors"
                 title="Delete Supplier Account"
               >
@@ -223,9 +246,25 @@ export default function SuppliersPage() {
         ))}
       </div>
 
+      {/* CONFIRMATION DELETE MODAL */}
+      <ConfirmModal
+        isOpen={!!deleteModalSupplier}
+        title="Delete Supplier Account"
+        message={
+          deleteModalSupplier
+            ? `Are you sure you want to delete supplier "${deleteModalSupplier.name}"? This action will permanently remove all associated purchase orders, item records, and ledger history.`
+            : ''
+        }
+        confirmText="Delete Supplier"
+        confirmVariant="danger"
+        isLoading={deleting}
+        onConfirm={confirmDeleteSupplier}
+        onClose={() => setDeleteModalSupplier(null)}
+      />
+
       {/* ADD SUPPLIER MODAL */}
       {showAddSupplierModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-md w-full p-5 space-y-4 shadow-xl">
             <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
               <Truck className="w-5 h-5 text-[#6d8196]" /> Add Wholesale Supplier
@@ -243,14 +282,15 @@ export default function SuppliersPage() {
                   className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Contact Person</label>
                   <input
                     type="text"
                     value={contactPerson}
                     onChange={(e) => setContactPerson(e.target.value)}
-                    placeholder="Vikram Sharma"
+                    placeholder="e.g. Vikram Sharma"
                     className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
                   />
                 </div>
@@ -261,18 +301,30 @@ export default function SuppliersPage() {
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="9848012345"
+                    placeholder="e.g. 9848012345"
                     className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
                   />
                 </div>
               </div>
+
               <div>
-                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Address / Market Depot</label>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Email Address</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="sales@abcelectricals.com"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Warehouse / Market Address</label>
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Wholesale Market, Hub 1"
+                  placeholder="Wholesale Electrical Market, Hubli"
                   className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
                 />
               </div>
@@ -287,7 +339,7 @@ export default function SuppliersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 bg-[#6d8196] hover:bg-[#5b6f84] text-white py-2 rounded-[5px] font-bold"
+                  className="w-1/2 bg-[#6d8196] hover:bg-[#5b6f84] text-white py-2 rounded-[5px] font-bold shadow-sm"
                 >
                   Save Supplier
                 </button>
@@ -297,20 +349,13 @@ export default function SuppliersPage() {
         </div>
       )}
 
-      {/* RECORD SUPPLIER PAYMENT MODAL */}
+      {/* RECORD PAYMENT MODAL */}
       {payModalSupplier && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-md w-full p-5 space-y-4 shadow-xl">
             <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
-              <DollarSign className="w-5 h-5 text-[#6d8196]" /> Pay Supplier Account
+              <DollarSign className="w-5 h-5 text-emerald-700" /> Pay Supplier Account ({payModalSupplier.name})
             </h3>
-
-            <div className="bg-[#ffffe3] p-3 rounded-[5px] border border-[#cbcbcb] text-xs">
-              <div className="font-bold text-[#4a4a4a]">{payModalSupplier.name}</div>
-              <div className="text-[#6d8196] font-bold mt-1">
-                Pending Due Balance: ₹{payModalSupplier.outstanding.toLocaleString('en-IN')}
-              </div>
-            </div>
 
             <form onSubmit={handleRecordPayment} className="space-y-3 text-xs">
               <div>
@@ -323,17 +368,17 @@ export default function SuppliersPage() {
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
                   placeholder={`Max ₹${payModalSupplier.outstanding}`}
-                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#6d8196] font-bold text-lg focus:outline-none focus:border-[#6d8196]"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-emerald-700 font-bold text-lg focus:outline-none focus:border-[#6d8196]"
                 />
               </div>
 
               <div>
-                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Notes / Transaction Reference</label>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Notes / Bank Ref</label>
                 <input
                   type="text"
                   value={paymentNotes}
                   onChange={(e) => setPaymentNotes(e.target.value)}
-                  placeholder="e.g. Bank RTGS Transfer for Polycab shipment"
+                  placeholder="e.g. Paid via Bank RTGS Transfer"
                   className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
                 />
               </div>
@@ -348,9 +393,9 @@ export default function SuppliersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 bg-[#6d8196] hover:bg-[#5b6f84] text-white py-2 rounded-[5px] font-bold"
+                  className="w-1/2 bg-emerald-700 hover:bg-emerald-800 text-white py-2 rounded-[5px] font-bold"
                 >
-                  Record Payment
+                  Clear Dues
                 </button>
               </div>
             </form>

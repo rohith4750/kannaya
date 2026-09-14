@@ -19,6 +19,7 @@ import {
   Edit3,
 } from 'lucide-react';
 import MaterialSelect from '@/components/MaterialSelect';
+import AdminSecurityGuard from '@/components/AdminSecurityGuard';
 
 interface InternalUser {
   id: string;
@@ -193,44 +194,48 @@ export default function UsersPage() {
   const staffCount = users.filter((u) => u.role === 'STAFF').length;
 
   return (
-    <div className="space-y-4">
-      {/* Top Header Card */}
-      <div className="bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-[#cbcbcb] bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[5px] bg-[#6d8196]/10 border border-[#6d8196]/30 flex items-center justify-center text-[#6d8196]">
-              <ShieldCheck className="w-6 h-6" />
+    <AdminSecurityGuard
+      moduleName="User Management System"
+      moduleDescription="Manages store staff accounts, system roles, PIN codes, and access permissions."
+    >
+      <div className="space-y-4">
+        {/* Top Header Card */}
+        <div className="bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-[#cbcbcb] bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-[5px] bg-[#6d8196]/10 border border-[#6d8196]/30 flex items-center justify-center text-[#6d8196]">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-base font-bold text-[#4a4a4a]">Internal User Management & Access Control</h1>
+                <p className="text-xs text-slate-500 font-medium">
+                  Create and manage internal store accounts and 4-Digit Security PINs for Cashiers and Shop Admins.
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-base font-bold text-[#4a4a4a]">Internal User Management & Access Control</h1>
-              <p className="text-xs text-slate-500 font-medium">
-                Create and manage internal store accounts and 4-Digit Security PINs for Cashiers and Shop Admins.
-              </p>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setFormError('');
+                  setPinCode('0000');
+                  setShowCreateModal(true);
+                }}
+                className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold px-3.5 py-2 rounded-[5px] flex items-center gap-2 text-xs transition-all shadow-sm border border-[#cbcbcb]/40"
+              >
+                <UserPlus className="w-4 h-4" /> Create Internal User
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                setFormError('');
-                setPinCode('0000');
-                setShowCreateModal(true);
-              }}
-              className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold px-3.5 py-2 rounded-[5px] flex items-center gap-2 text-xs transition-all shadow-sm border border-[#cbcbcb]/40"
-            >
-              <UserPlus className="w-4 h-4" /> Create Internal User
-            </button>
-          </div>
-        </div>
-
-        {/* Metrics Summary Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#cbcbcb] bg-white border-b border-[#cbcbcb] text-xs">
-          <div className="p-3 flex items-center justify-between">
-            <span className="text-slate-500 font-medium flex items-center gap-2">
-              <Users className="w-4 h-4 text-[#6d8196]" /> Total Accounts
-            </span>
-            <span className="font-bold text-[#4a4a4a] text-sm">{users.length}</span>
-          </div>
+          {/* Metrics Summary Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#cbcbcb] bg-white border-b border-[#cbcbcb] text-xs">
+            <div className="p-3 flex items-center justify-between">
+              <span className="text-slate-500 font-medium flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#6d8196]" /> Total Accounts
+              </span>
+              <span className="font-bold text-[#4a4a4a] text-sm">{users.length}</span>
+            </div>
           <div className="p-3 flex items-center justify-between">
             <span className="text-slate-500 font-medium flex items-center gap-2">
               <Shield className="w-4 h-4 text-purple-600" /> Admin Users
@@ -686,6 +691,7 @@ export default function UsersPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </AdminSecurityGuard>
   );
 }

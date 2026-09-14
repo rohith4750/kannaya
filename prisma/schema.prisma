@@ -211,18 +211,54 @@ model PurchaseOrderItem {
 }
 
 model ShopSettings {
-  id                String   @id @default("default")
-  shopName          String   @default("VENKATA LAKSHMI ELECTRONICS")
-  tagline           String   @default("Complete Electrical & Hardware Solutions")
-  phone             String   @default("+91 98765 43210")
-  email             String?  @default("info@venkatalakshmi.com")
-  address           String   @default("Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001")
-  gstin             String   @default("36ABCDE1234F1Z5")
-  printerType       String   @default("80mm")
-  defaultGstPercent Float    @default(18)
-  defaultHsnCode    String   @default("8544")
-  termsConditions   String   @default("Goods once sold will not be taken back or exchanged. Subject to local jurisdiction.")
-  bankDetails       String?  @default("State Bank of India A/C: 1234567890 | IFSC: SBIN0001234")
-  upiId             String?  @default("9876543210@paytm")
-  updatedAt         DateTime @updatedAt @default(now())
+  id                      String   @id @default("default")
+  shopName                String   @default("VENKATA LAKSHMI ELECTRONICS")
+  tagline                 String   @default("Complete Electrical & Hardware Solutions")
+  phone                   String   @default("+91 98765 43210")
+  email                   String?  @default("info@venkatalakshmi.com")
+  address                 String   @default("Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001")
+  gstin                   String   @default("36ABCDE1234F1Z5")
+  printerType             String   @default("80mm")
+  defaultGstPercent       Float    @default(18)
+  defaultHsnCode          String   @default("8544")
+  termsConditions         String   @default("Goods once sold will not be taken back or exchanged. Subject to local jurisdiction.")
+  bankDetails             String?  @default("State Bank of India A/C: 1234567890 | IFSC: SBIN0001234")
+  upiId                   String?  @default("9876543210@paytm")
+
+  // SMTP Email Alert Settings
+  smtpHost                String?  @default("smtp.gmail.com")
+  smtpPort                Int?     @default(587)
+  smtpUser                String?
+  smtpPass                String?
+  smtpSenderEmail         String?
+  alertRecipientEmail     String?
+  enableCreditLimitAlerts Boolean  @default(true)
+
+  updatedAt               DateTime @updatedAt @default(now())
+}
+
+enum ExpenseCategory {
+  RENT
+  ELECTRICITY
+  SALARY
+  TRANSPORT
+  TEA_SNACKS
+  MAINTENANCE
+  SUPPLIES
+  TAX
+  OTHER
+}
+
+model Expense {
+  id            String          @id @default(cuid())
+  title         String
+  category      ExpenseCategory @default(OTHER)
+  amount        Float
+  paymentMethod PaymentMethod   @default(CASH)
+  expenseDate   DateTime        @default(now())
+  notes         String?
+  recipientName String?
+  receiptRef    String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }

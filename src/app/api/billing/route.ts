@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { LedgerType, PaymentMethod } from '@prisma/client';
+import { sendCreditLimitExceededAlert } from '@/lib/mailer';
 
 export async function POST(request: Request) {
   try {
@@ -122,12 +123,27 @@ export async function POST(request: Request) {
       return { invoice, customer: updatedCustomer };
     });
 
+    // Check if credit limit exceeded & dispatch asynchronous SMTP email alert
+    let creditLimitExceededAlertSent = false;
+    if (result.customer && result.customer.outstanding > result.customer.creditLimit) {
+      creditLimitExceededAlertSent = true;
+      sendCreditLimitExceededAlert({
+        customerName: result.customer.name,
+        customerPhone: result.customer.phone,
+        customerEmail: result.customer.email || undefined,
+        creditLimit: result.customer.creditLimit,
+        currentOutstanding: result.customer.outstanding,
+        invoiceNo: result.invoice.invoiceNo,
+      }).catch((e) => console.error('Background SMTP Alert error:', e));
+    }
+
     const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
 
     return NextResponse.json({
       success: true,
       invoice: result.invoice,
       customer: result.customer,
+      creditLimitExceededAlertSent,
       settings,
     });
   } catch (error: any) {

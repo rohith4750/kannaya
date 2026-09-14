@@ -73,80 +73,85 @@ export default function CategoriesBrandsPage() {
   };
 
   return (
-    <div className="space-y-5">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm">
-        <div>
-          <h1 className="text-xl font-bold text-[#4a4a4a] flex items-center gap-2">
-            <FolderPlus className="w-5 h-5 text-[#6d8196]" /> Categories & Brands Taxonomy
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Dynamically manage product categories, manufacturer brands, and taxonomy structures.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowCatModal(true)}
-            className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold px-4 py-2 rounded-[5px] flex items-center gap-2 text-xs transition-all shadow-sm"
-          >
-            <Plus className="w-4 h-4" /> Add Category
-          </button>
-          <button
-            onClick={() => setShowBrandModal(true)}
-            className="bg-[#4a4a4a] hover:bg-[#383838] text-white font-bold px-4 py-2 rounded-[5px] flex items-center gap-2 text-xs transition-all shadow-sm"
-          >
-            <Plus className="w-4 h-4" /> Add Brand
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Categories List Card */}
-        <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-3">
-            <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2">
-              <FolderPlus className="w-4 h-4 text-[#6d8196]" /> Product Categories ({categories.length})
-            </h3>
+    <div className="w-full h-[calc(100vh-105px)] flex flex-col overflow-hidden">
+      <div className="bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm overflow-hidden p-5 flex flex-col h-full space-y-4">
+        {/* Single Container Top Header Banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#cbcbcb] pb-4 shrink-0">
+          <div>
+            <h1 className="text-lg font-bold text-[#4a4a4a] flex items-center gap-2">
+              <FolderPlus className="w-5 h-5 text-[#6d8196]" /> Categories & Brands Taxonomy
+            </h1>
+            <p className="text-xs text-slate-500 mt-1">
+              Dynamically manage product categories, manufacturer brands, and taxonomy structures.
+            </p>
           </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCatModal(true)}
+              className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold px-3.5 py-1.5 rounded-[5px] flex items-center gap-2 text-xs transition-all shadow-sm border border-[#cbcbcb]/40"
+            >
+              <Plus className="w-4 h-4" /> Add Category
+            </button>
+            <button
+              onClick={() => setShowBrandModal(true)}
+              className="bg-[#4a4a4a] hover:bg-[#383838] text-white font-bold px-3.5 py-1.5 rounded-[5px] flex items-center gap-2 text-xs transition-all shadow-sm border border-[#cbcbcb]/40"
+            >
+              <Plus className="w-4 h-4" /> Add Brand
+            </button>
+          </div>
+        </div>
 
-          <div className="space-y-2">
-            {categories.map((c) => (
-              <div
-                key={c.id}
-                className="bg-slate-50 p-3 rounded-[5px] border border-[#cbcbcb] flex items-center justify-between text-xs"
-              >
-                <div>
-                  <div className="font-bold text-[#4a4a4a]">{c.name}</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">{c.description || 'General Category'}</div>
+        {/* Categories & Brands Independent Scroll Lists */}
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-hidden">
+          {/* Categories List Container */}
+          <div className="flex flex-col h-full min-h-0 space-y-3 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-2 shrink-0">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#4a4a4a] flex items-center gap-1.5">
+                <FolderPlus className="w-4 h-4 text-[#6d8196]" /> Product Categories ({categories.length})
+              </h3>
+            </div>
+
+            {/* Internal Independent Scroll for Categories */}
+            <div className="flex-1 overflow-y-auto min-h-0 pr-1.5 space-y-2 custom-scrollbar">
+              {categories.map((c) => (
+                <div
+                  key={c.id}
+                  className="bg-slate-50 p-3 rounded-[5px] border border-[#cbcbcb] flex items-center justify-between text-xs hover:border-[#6d8196] transition-colors"
+                >
+                  <div>
+                    <div className="font-bold text-[#4a4a4a]">{c.name}</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">{c.description || 'General Category'}</div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-[5px] text-[10px] font-bold bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20 shrink-0 ml-2">
+                    {c._count?.products || 0} Products
+                  </span>
                 </div>
-                <span className="px-2.5 py-1 rounded-[5px] text-[10px] font-bold bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20">
-                  {c._count?.products || 0} Products
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Brands List Card */}
-        <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-3">
-            <h3 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2">
-              <Tag className="w-4 h-4 text-[#6d8196]" /> Manufacturer Brands ({brands.length})
-            </h3>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            {brands.map((b) => (
-              <div
-                key={b.id}
-                className="bg-slate-50 p-3 rounded-[5px] border border-[#cbcbcb] flex items-center justify-between text-xs"
-              >
-                <span className="font-bold text-[#4a4a4a]">{b.name}</span>
-                <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-semibold bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20">
-                  {b._count?.products || 0} Products
-                </span>
-              </div>
-            ))}
+          {/* Brands List Container */}
+          <div className="flex flex-col h-full min-h-0 space-y-3 overflow-hidden border-l-0 lg:border-l border-[#cbcbcb]/60 pl-0 lg:pl-6">
+            <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-2 shrink-0">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#4a4a4a] flex items-center gap-1.5">
+                <Tag className="w-4 h-4 text-[#6d8196]" /> Manufacturer Brands ({brands.length})
+              </h3>
+            </div>
+
+            {/* Internal Independent Scroll for Brands */}
+            <div className="flex-1 overflow-y-auto min-h-0 pr-1.5 grid grid-cols-2 gap-2 content-start custom-scrollbar">
+              {brands.map((b) => (
+                <div
+                  key={b.id}
+                  className="bg-slate-50 p-3 rounded-[5px] border border-[#cbcbcb] flex items-center justify-between text-xs hover:border-[#6d8196] transition-colors h-[50px]"
+                >
+                  <span className="font-bold text-[#4a4a4a] truncate pr-2">{b.name}</span>
+                  <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-semibold bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20 shrink-0">
+                    {b._count?.products || 0} Products
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

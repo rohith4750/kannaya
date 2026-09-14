@@ -18,6 +18,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import MaterialSelect from '@/components/MaterialSelect';
 
 function ProductsContent() {
@@ -32,6 +33,9 @@ function ProductsContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterLowStock, setFilterLowStock] = useState(initialFilter === 'low-stock');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState('');
+  const [selectedRack, setSelectedRack] = useState('');
+  const [stockFilter, setStockFilter] = useState(initialFilter === 'low-stock' ? 'LOW_STOCK' : 'ALL');
   const [userRole, setUserRole] = useState<'ADMIN' | 'STAFF'>('ADMIN');
 
   // Modals
@@ -213,113 +217,182 @@ function ProductsContent() {
     }
   };
 
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(25);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory, selectedBrand, selectedRack, stockFilter]);
+
   const filteredProducts = products.filter((p) => {
     const q = searchQuery.toLowerCase().trim();
     const matchesSearch =
       !q ||
       p.name.toLowerCase().includes(q) ||
       p.barcode.toLowerCase().includes(q) ||
-      (p.sku && p.sku.toLowerCase().includes(q)) ||
-      (p.brand && p.brand.name.toLowerCase().includes(q));
+      (p.sku && p.sku.toLowerCase().includes(q));
 
     const matchesCategory = !selectedCategory || p.categoryId === selectedCategory;
-    const matchesLowStock = !filterLowStock || p.stockQuantity <= p.minStockAlert;
+    const matchesBrand = !selectedBrand || p.brandId === selectedBrand || p.brand?.id === selectedBrand;
+    const matchesRack = !selectedRack || p.rackId === selectedRack || p.rack?.id === selectedRack;
 
-    return matchesSearch && matchesCategory && matchesLowStock;
+    let matchesStock = true;
+    if (stockFilter === 'LOW_STOCK') {
+      matchesStock = p.stockQuantity <= p.minStockAlert;
+    } else if (stockFilter === 'OUT_OF_STOCK') {
+      matchesStock = p.stockQuantity <= 0;
+    } else if (stockFilter === 'IN_STOCK') {
+      matchesStock = p.stockQuantity > 0;
+    }
+
+    return matchesSearch && matchesCategory && matchesBrand && matchesRack && matchesStock;
   });
+
+  const hasActiveFilters = searchQuery || selectedCategory || selectedBrand || selectedRack || stockFilter !== 'ALL';
+
+  // Pagination calculation
+  const totalItems = filteredProducts.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (validCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Consolidated Material Inventory Catalog Card */}
       <div className="bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm flex flex-col h-full overflow-hidden">
-        {/* Unified Table Top Header */}
-        <div className="p-3.5 border-b border-[#cbcbcb] bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <Package className="w-5 h-5 text-[#6d8196]" />
-            <div>
-              <h1 className="text-base font-bold text-[#4a4a4a]">Material Inventory Catalog</h1>
-              <p className="text-[11px] text-slate-500 font-medium">
-                Manage stock quantities, GST rates, wholesale pricing, barcodes, and rack locations.
-              </p>
-            </div>
-          </div>
+        {/* Compact Table Header Banner */}
+        <div className="px-3.5 py-2.5 border-b border-[#cbcbcb] bg-slate-50 flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                setFormData({
-                  ...formData,
-                  categoryId: categories[0]?.id || '',
-                  brandId: brands[0]?.id || '',
-                  rackId: racks[0]?.id || '',
-                });
-                setShowAddModal(true);
-              }}
-              className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold px-3 py-1.5 rounded-[5px] flex items-center gap-1.5 text-xs transition-all shadow-sm border border-[#cbcbcb]/40"
-            >
-              <Plus className="w-3.5 h-3.5" /> Add Product
-            </button>
+            <Package className="w-4 h-4 text-[#6d8196]" />
+            <h1 className="text-xs font-black uppercase tracking-wider text-[#4a4a4a] whitespace-nowrap">
+              Material Catalog
+            </h1>
+            <span className="text-[10px] font-bold text-[#6d8196] bg-[#6d8196]/10 px-2 py-0.5 rounded-full border border-[#6d8196]/20">
+              {filteredProducts.length} items
+            </span>
           </div>
+
+          <Link
+            href="/products/new"
+            className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold px-3 py-1 rounded-[5px] flex items-center gap-1 text-xs transition-all shadow-sm border border-[#cbcbcb]/40 shrink-0 whitespace-nowrap"
+          >
+            <Plus className="w-3.5 h-3.5" /> Add Product
+          </Link>
         </div>
 
-        {/* Unified Compact Filter Toolbar */}
-        <div className="px-3.5 py-2 border-b border-[#cbcbcb] bg-white flex flex-col md:flex-row gap-2.5 items-center justify-between shrink-0">
-          <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter by product name, barcode, brand..."
-              className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-9 pr-3 py-1 text-xs text-[#4a4a4a] focus:outline-none focus:border-[#6d8196] focus:bg-white"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <MaterialSelect
-              value={selectedCategory}
-              onChange={setSelectedCategory}
-              options={[
-                { value: '', label: `All Categories (${categories.length})` },
-                ...categories.map((c) => ({ value: c.id, label: c.name })),
-              ]}
-              className="w-48"
-            />
-
-            <button
-              onClick={() => setFilterLowStock(!filterLowStock)}
-              className={`px-3 py-1 rounded-[5px] text-xs font-semibold flex items-center gap-1 border transition-all ${
-                filterLowStock
-                  ? 'bg-rose-100 text-rose-700 border-rose-300 font-bold'
-                  : 'bg-slate-50 text-[#4a4a4a] border-[#cbcbcb] hover:bg-slate-100'
-              }`}
-            >
-              <AlertTriangle className="w-3.5 h-3.5" /> Low Stock
-            </button>
-          </div>
-        </div>
-
-        {/* Integrated ERP Table */}
-        <div className="flex-1 overflow-y-auto min-h-0">
+        {/* Integrated ERP Table with Sticky Header & Inline Column Filters */}
+        <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar">
           <table className="erp-table">
-            <thead>
-              <tr>
-                <th>Product Details</th>
-                <th>Category / Brand</th>
-                <th>Rack Location</th>
-                <th>Stock Qty</th>
-                {userRole === 'ADMIN' && <th>Purchase Cost</th>}
-                <th>Selling Price</th>
-                <th>Wholesale Rate</th>
+            <thead className="sticky top-0 z-20 bg-slate-100 shadow-xs">
+              {/* Column Title Row */}
+              <tr className="bg-slate-200/90 text-slate-800 text-xs font-bold border-b border-[#cbcbcb]">
+                <th className="text-left w-1/3">Product Details</th>
+                <th className="text-left">Category / Brand</th>
+                <th className="text-center">Rack Location</th>
+                <th className="text-center">Stock Qty</th>
+                {userRole === 'ADMIN' && <th className="text-right">Purchase Cost</th>}
+                <th className="text-right">Selling Price</th>
+                <th className="text-right">Wholesale Rate</th>
                 <th className="text-right">Actions</th>
+              </tr>
+
+              {/* Dedicated Inline Column Filter Sub-Header Row */}
+              <tr className="bg-slate-100 border-b border-[#cbcbcb]">
+                {/* Product Details Inline Filter */}
+                <th className="p-1.5 text-left font-normal">
+                  <div className="relative">
+                    <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Filter name, SKU, barcode..."
+                      className="w-full bg-white border border-[#cbcbcb] rounded-[4px] pl-7 pr-2 py-1 text-[11px] font-normal text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
+                    />
+                  </div>
+                </th>
+
+                {/* Category & Brand Inline Filters */}
+                <th className="p-1.5 text-left font-normal">
+                  <div className="grid grid-cols-2 gap-1">
+                    <MaterialSelect
+                      value={selectedCategory}
+                      onChange={setSelectedCategory}
+                      options={[
+                        { value: '', label: 'All Categories' },
+                        ...categories.map((c) => ({ value: c.id, label: c.name })),
+                      ]}
+                    />
+                    <MaterialSelect
+                      value={selectedBrand}
+                      onChange={setSelectedBrand}
+                      options={[
+                        { value: '', label: 'All Brands' },
+                        ...brands.map((b) => ({ value: b.id, label: b.name })),
+                      ]}
+                    />
+                  </div>
+                </th>
+
+                {/* Rack Location Inline Filter */}
+                <th className="p-1.5 text-center font-normal">
+                  <MaterialSelect
+                    value={selectedRack}
+                    onChange={setSelectedRack}
+                    options={[
+                      { value: '', label: 'All Racks' },
+                      ...racks.map((r) => ({ value: r.id, label: `${r.rackName} (${r.shelfCode})` })),
+                    ]}
+                  />
+                </th>
+
+                {/* Stock Qty Inline Filter */}
+                <th className="p-1.5 text-center font-normal">
+                  <MaterialSelect
+                    value={stockFilter}
+                    onChange={setStockFilter}
+                    options={[
+                      { value: 'ALL', label: 'All Stock' },
+                      { value: 'LOW_STOCK', label: '⚠️ Low Stock' },
+                      { value: 'IN_STOCK', label: '✅ In Stock' },
+                      { value: 'OUT_OF_STOCK', label: '❌ Out of Stock' },
+                    ]}
+                  />
+                </th>
+
+                {userRole === 'ADMIN' && <th className="p-1.5 text-right font-normal"></th>}
+                <th className="p-1.5 text-right font-normal"></th>
+                <th className="p-1.5 text-right font-normal"></th>
+
+                {/* Reset / Actions Inline */}
+                <th className="p-1.5 text-right font-normal">
+                  {hasActiveFilters && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSelectedCategory('');
+                        setSelectedBrand('');
+                        setSelectedRack('');
+                        setStockFilter('ALL');
+                      }}
+                      className="px-2 py-0.5 text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 rounded-[4px] hover:bg-rose-100 transition-colors whitespace-nowrap"
+                      title="Clear All Filters"
+                    >
+                      Clear Filters
+                    </button>
+                  )}
+                </th>
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((p) => {
+              {paginatedProducts.length > 0 ? (
+                paginatedProducts.map((p) => {
                   const isLow = p.stockQuantity <= p.minStockAlert;
                   return (
                     <tr key={p.id}>
-                      <td>
+                      <td className="text-left">
                         <div>
                           <div className="font-bold text-[#4a4a4a] text-xs flex items-center gap-1.5">
                             <span>{p.name}</span>
@@ -329,34 +402,35 @@ function ProductsContent() {
                           </div>
                           <div className="text-[10px] font-mono text-slate-500 flex items-center gap-2 mt-0.5">
                             {p.sku && <span className="text-slate-400">SKU: {p.sku}</span>}
+                            {p.barcode && <span className="text-slate-400">EAN: {p.barcode}</span>}
                           </div>
                         </div>
                       </td>
-                      <td>
+                      <td className="text-left">
                         <div className="font-semibold text-[#4a4a4a] text-xs">{p.category?.name || 'Unassigned'}</div>
                         <div className="text-[10px] text-slate-500">{p.brand?.name || 'Generic'}</div>
                       </td>
-                      <td>
+                      <td className="text-center">
                         <span className="px-1.5 py-0.5 rounded-[3px] text-[10px] font-medium bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20 inline-flex items-center gap-1">
                           <Layers className="w-2.5 h-2.5" />
                           {p.rack ? `${p.rack.rackName} (${p.rack.shelfCode})` : 'Unassigned'}
                         </span>
                       </td>
-                      <td>
+                      <td className="text-center">
                         <span
-                          className={`font-semibold text-xs ${
-                            isLow ? 'text-rose-600 font-bold animate-pulse' : 'text-emerald-700'
+                          className={`font-bold text-xs ${
+                            isLow ? 'text-rose-600 animate-pulse' : 'text-emerald-700'
                           }`}
                         >
                           {p.stockQuantity} {p.unit}
                         </span>
                       </td>
                       {userRole === 'ADMIN' && (
-                        <td className="font-mono text-slate-600 font-medium">₹{p.purchasePrice}</td>
+                        <td className="text-right font-mono text-slate-600 font-medium">₹{p.purchasePrice.toLocaleString('en-IN')}</td>
                       )}
-                      <td className="font-mono font-semibold text-[#4a4a4a]">₹{p.sellingPrice}</td>
-                      <td className="font-mono font-semibold text-amber-700">
-                        {p.wholesalePrice ? `₹${p.wholesalePrice}` : 'N/A'}
+                      <td className="text-right font-mono font-bold text-[#4a4a4a]">₹{p.sellingPrice.toLocaleString('en-IN')}</td>
+                      <td className="text-right font-mono font-bold text-amber-700">
+                        {p.wholesalePrice ? `₹${p.wholesalePrice.toLocaleString('en-IN')}` : 'N/A'}
                       </td>
                       <td className="text-right">
                         <div className="flex items-center justify-end gap-1">
@@ -383,13 +457,79 @@ function ProductsContent() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className="py-6 text-center text-slate-500">
-                    No products found.
+                  <td colSpan={8} className="py-8 text-center text-slate-500 font-medium text-xs">
+                    No matching products found.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Footer */}
+        <div className="px-4 py-2 border-t border-[#cbcbcb] bg-slate-50 flex items-center justify-between text-xs shrink-0 font-medium text-[#4a4a4a]">
+          <div className="flex items-center gap-3">
+            <span>
+              Showing <span className="font-bold text-[#6d8196]">{totalItems > 0 ? startIndex + 1 : 0}</span> to{' '}
+              <span className="font-bold text-[#6d8196]">{endIndex}</span> of{' '}
+              <span className="font-bold text-[#4a4a4a]">{totalItems.toLocaleString('en-IN')}</span> products
+            </span>
+            <div className="flex items-center gap-1.5 ml-2">
+              <span className="text-[11px] text-slate-500 font-medium">Rows:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-0.5 text-xs text-[#4a4a4a] focus:outline-none focus:border-[#6d8196] font-bold"
+              >
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Page Number Buttons */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={validCurrentPage === 1}
+              className="px-2 py-1 rounded-[4px] border border-[#cbcbcb] bg-white hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white text-[11px] font-bold"
+              title="First Page"
+            >
+              «
+            </button>
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={validCurrentPage === 1}
+              className="px-2.5 py-1 rounded-[4px] border border-[#cbcbcb] bg-white hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white text-[11px] font-bold"
+            >
+              Prev
+            </button>
+
+            <span className="px-3 py-1 font-bold text-xs text-[#6d8196] bg-[#6d8196]/10 rounded-[4px] border border-[#6d8196]/20">
+              Page {validCurrentPage} of {totalPages}
+            </span>
+
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={validCurrentPage >= totalPages}
+              className="px-2.5 py-1 rounded-[4px] border border-[#cbcbcb] bg-white hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white text-[11px] font-bold"
+            >
+              Next
+            </button>
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={validCurrentPage >= totalPages}
+              className="px-2 py-1 rounded-[4px] border border-[#cbcbcb] bg-white hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white text-[11px] font-bold"
+              title="Last Page"
+            >
+              »
+            </button>
+          </div>
         </div>
       </div>
 

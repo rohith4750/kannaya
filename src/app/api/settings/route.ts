@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendTestSmtpEmail } from '@/lib/mailer';
 
 export async function GET() {
   try {
@@ -22,6 +23,9 @@ export async function GET() {
         termsConditions: 'Goods once sold will not be taken back or exchanged. Subject to local jurisdiction.',
         bankDetails: 'State Bank of India A/C: 1234567890 | IFSC: SBIN0001234',
         upiId: '9876543210@paytm',
+        smtpHost: 'smtp.gmail.com',
+        smtpPort: 587,
+        enableCreditLimitAlerts: true,
       };
 
       settings = await prisma.shopSettings.create({
@@ -36,6 +40,34 @@ export async function GET() {
       { error: error.message || 'Failed to fetch settings' },
       { status: 500 }
     );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { action, recipientEmail } = body;
+
+    if (action === 'test-smtp') {
+      const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
+      const target = recipientEmail || settings?.alertRecipientEmail || settings?.email || settings?.smtpUser;
+
+      if (!target) {
+        return NextResponse.json({ error: 'Recipient email is required for SMTP test' }, { status: 400 });
+      }
+
+      const res = await sendTestSmtpEmail(target);
+      if (res.success) {
+        return NextResponse.json({ success: true, message: `Test email sent successfully to ${target}` });
+      } else {
+        return NextResponse.json({ error: res.error || 'Failed to send test email' }, { status: 400 });
+      }
+    }
+
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+  } catch (error: any) {
+    console.error('Settings POST error:', error);
+    return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 });
   }
 }
 
@@ -55,6 +87,13 @@ export async function PUT(request: Request) {
       termsConditions,
       bankDetails,
       upiId,
+      smtpHost,
+      smtpPort,
+      smtpUser,
+      smtpPass,
+      smtpSenderEmail,
+      alertRecipientEmail,
+      enableCreditLimitAlerts,
     } = body;
 
     const updatePayload: any = {
@@ -70,6 +109,13 @@ export async function PUT(request: Request) {
       ...(termsConditions !== undefined && { termsConditions: termsConditions.trim() }),
       ...(bankDetails !== undefined && { bankDetails: bankDetails.trim() }),
       ...(upiId !== undefined && { upiId: upiId.trim() }),
+      ...(smtpHost !== undefined && { smtpHost: smtpHost.trim() }),
+      ...(smtpPort !== undefined && { smtpPort: parseInt(smtpPort) || 587 }),
+      ...(smtpUser !== undefined && { smtpUser: smtpUser.trim() }),
+      ...(smtpPass !== undefined && { smtpPass: smtpPass.trim() }),
+      ...(smtpSenderEmail !== undefined && { smtpSenderEmail: smtpSenderEmail.trim() }),
+      ...(alertRecipientEmail !== undefined && { alertRecipientEmail: alertRecipientEmail.trim() }),
+      ...(enableCreditLimitAlerts !== undefined && { enableCreditLimitAlerts: !!enableCreditLimitAlerts }),
     };
 
     const createPayload: any = {
@@ -86,6 +132,13 @@ export async function PUT(request: Request) {
       termsConditions: termsConditions?.trim() || 'Goods once sold will not be taken back or exchanged.',
       bankDetails: bankDetails?.trim() || '',
       upiId: upiId?.trim() || '',
+      smtpHost: smtpHost?.trim() || 'smtp.gmail.com',
+      smtpPort: smtpPort ? parseInt(smtpPort) : 587,
+      smtpUser: smtpUser?.trim() || '',
+      smtpPass: smtpPass?.trim() || '',
+      smtpSenderEmail: smtpSenderEmail?.trim() || '',
+      alertRecipientEmail: alertRecipientEmail?.trim() || '',
+      enableCreditLimitAlerts: enableCreditLimitAlerts !== undefined ? !!enableCreditLimitAlerts : true,
     };
 
     const settings = await prisma.shopSettings.upsert({

@@ -17,6 +17,7 @@ import {
   Package,
   FileText,
   ExternalLink,
+  Mail,
 } from 'lucide-react';
 import MaterialSelect from '@/components/MaterialSelect';
 
@@ -147,6 +148,32 @@ export default function CustomersPage() {
     }
   };
 
+  const [sendingAlertId, setSendingAlertId] = useState<string | null>(null);
+
+  const handleSendSmtpAlert = async (customer: any) => {
+    setSendingAlertId(customer.id);
+    try {
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send-alert',
+          customerId: customer.id,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ ${data.message || 'SMTP Email alert sent successfully!'}`);
+      } else {
+        alert(`⚠️ Could not send alert: ${data.error}`);
+      }
+    } catch (e: any) {
+      alert(`❌ Error sending SMTP email: ${e.message}`);
+    } finally {
+      setSendingAlertId(null);
+    }
+  };
+
   const filteredCustomers = customers.filter(
     (c) =>
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -201,13 +228,17 @@ export default function CustomersPage() {
       {/* Customers Cards / Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {filteredCustomers.map((c) => {
-          const isOverLimit = c.outstanding >= c.creditLimit;
+          const isOverLimit = c.outstanding > c.creditLimit;
           return (
-            <div key={c.id} className="bg-white p-4 rounded-[5px] border border-slate-300 hover:border-blue-500 shadow-sm flex flex-col justify-between transition-all">
+            <div key={c.id} className={`bg-white p-4 rounded-[5px] border shadow-sm flex flex-col justify-between transition-all ${isOverLimit ? 'border-red-400 bg-red-50/20' : 'border-slate-300 hover:border-blue-500'}`}>
               <div>
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-slate-900 truncate">{c.name}</h3>
-                  {c.outstanding > 0 ? (
+                  {isOverLimit ? (
+                    <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-extrabold bg-red-100 text-red-700 border border-red-300 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 text-red-600 animate-pulse" /> Limit Exceeded
+                    </span>
+                  ) : c.outstanding > 0 ? (
                     <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
                       Credit Due
                     </span>
@@ -223,15 +254,34 @@ export default function CustomersPage() {
                 </div>
                 {c.address && <p className="text-[11px] text-slate-500 mt-0.5 truncate">{c.address}</p>}
 
+                {/* Exceeded Warning Alert Banner */}
+                {isOverLimit && (
+                  <div className="mt-2.5 bg-red-50 border border-red-200 rounded-[5px] p-2 flex items-center justify-between gap-2 text-xs">
+                    <div className="text-[11px] text-red-800 leading-tight">
+                      <span className="font-bold">🚨 Alert:</span> Limit ₹{c.creditLimit.toLocaleString('en-IN')} exceeded by <span className="font-extrabold text-red-700">₹{(c.outstanding - c.creditLimit).toLocaleString('en-IN')}</span>!
+                    </div>
+                    <button
+                      onClick={() => handleSendSmtpAlert(c)}
+                      disabled={sendingAlertId === c.id}
+                      className="bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold px-2 py-1 rounded-[4px] flex items-center gap-1 shadow-sm transition-colors disabled:opacity-50 shrink-0"
+                      title="Send SMTP Email Alert to Admin/Customer"
+                    >
+                      <Mail className="w-3 h-3" />
+                      {sendingAlertId === c.id ? 'Sending...' : 'Mail Alert'}
+                    </button>
+                  </div>
+                )}
+
                 {/* Financial Summary */}
                 <div className="mt-3 pt-2.5 border-t border-slate-200 grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <span className="text-[10px] text-slate-500 uppercase font-semibold">Total Purchases</span>
                     <div className="font-bold text-slate-900">₹{c.totalPurchases.toLocaleString('en-IN')}</div>
+                    <span className="text-[10px] text-slate-400">Limit: ₹{c.creditLimit.toLocaleString('en-IN')}</span>
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-500 uppercase font-semibold">Outstanding Due</span>
-                    <div className={`font-black text-sm ${c.outstanding > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
+                    <div className={`font-black text-sm ${isOverLimit ? 'text-red-700' : c.outstanding > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
                       ₹{c.outstanding.toLocaleString('en-IN')}
                     </div>
                   </div>
@@ -257,13 +307,23 @@ export default function CustomersPage() {
                 </button>
 
                 {c.outstanding > 0 && (
-                  <button
-                    onClick={() => handleSendWhatsAppReminder(c)}
-                    className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 p-1.5 rounded-[5px] text-xs"
-                    title="Send WhatsApp Payment Reminder"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                  </button>
+                  <>
+                    <button
+                      onClick={() => handleSendWhatsAppReminder(c)}
+                      className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 p-1.5 rounded-[5px] text-xs"
+                      title="Send WhatsApp Payment Reminder"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleSendSmtpAlert(c)}
+                      disabled={sendingAlertId === c.id}
+                      className="bg-blue-50 hover:bg-blue-100 border border-blue-300 text-blue-700 p-1.5 rounded-[5px] text-xs disabled:opacity-50"
+                      title="Send SMTP Credit Email Alert"
+                    >
+                      <Mail className="w-4 h-4" />
+                    </button>
+                  </>
                 )}
               </div>
             </div>

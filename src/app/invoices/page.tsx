@@ -160,14 +160,14 @@ export default function InvoicesPage() {
           <table className="erp-table">
             <thead>
               <tr>
-                <th>Invoice No</th>
-                <th>Customer Details</th>
-                <th>Date & Time</th>
-                <th>Items</th>
-                <th>Mode</th>
-                <th>Total Amount</th>
-                <th>Paid</th>
-                <th>Credit Due</th>
+                <th className="text-left">Invoice No</th>
+                <th className="text-left">Customer Details</th>
+                <th className="text-left">Date & Time</th>
+                <th className="text-center">Items</th>
+                <th className="text-center">Mode</th>
+                <th className="text-right">Total Amount</th>
+                <th className="text-right">Paid</th>
+                <th className="text-right">Credit Due</th>
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
@@ -175,14 +175,14 @@ export default function InvoicesPage() {
               {invoices.length > 0 ? (
                 invoices.map((inv) => (
                   <tr key={inv.id}>
-                    <td className="font-mono font-semibold text-[#6d8196]">{inv.invoiceNo}</td>
-                    <td>
+                    <td className="text-left font-mono font-semibold text-[#6d8196]">{inv.invoiceNo}</td>
+                    <td className="text-left">
                       <div className="font-semibold text-[#4a4a4a] text-xs">{inv.customerName}</div>
                       {inv.customerPhone !== 'N/A' && (
                         <div className="text-[10px] text-slate-500">{inv.customerPhone}</div>
                       )}
                     </td>
-                    <td className="text-slate-600">
+                    <td className="text-left text-slate-600">
                       {new Date(inv.createdAt).toLocaleDateString('en-IN', {
                         day: '2-digit',
                         month: 'short',
@@ -191,21 +191,21 @@ export default function InvoicesPage() {
                         minute: '2-digit',
                       })}
                     </td>
-                    <td className="text-slate-700 font-medium">{inv.items?.length || 1} items</td>
-                    <td>
+                    <td className="text-center text-slate-700 font-medium">{inv.items?.length || 1} items</td>
+                    <td className="text-center">
                       <span className="px-1.5 py-0.5 rounded-[3px] text-[10px] font-medium bg-slate-100 text-slate-700 border border-[#cbcbcb]">
                         {inv.paymentMethod}
                       </span>
                     </td>
-                    <td className="font-mono font-semibold text-[#4a4a4a] text-xs">
+                    <td className="text-right font-mono font-bold text-[#4a4a4a] text-xs">
                       ₹{inv.totalAmount.toLocaleString('en-IN')}
                     </td>
-                    <td className="font-mono text-slate-700 font-medium">
+                    <td className="text-right font-mono text-slate-700 font-medium">
                       ₹{inv.paidAmount.toLocaleString('en-IN')}
                     </td>
-                    <td>
+                    <td className="text-right font-mono">
                       {inv.dueAmount > 0 ? (
-                        <span className="text-amber-700 font-semibold">₹{inv.dueAmount.toLocaleString('en-IN')}</span>
+                        <span className="text-amber-700 font-bold">₹{inv.dueAmount.toLocaleString('en-IN')}</span>
                       ) : (
                         <span className="text-slate-400 font-medium">PAID</span>
                       )}

@@ -20,6 +20,8 @@ import {
   QrCode,
   ShieldAlert,
 } from 'lucide-react';
+import MaterialSelect from '@/components/MaterialSelect';
+import AdminSecurityGuard from '@/components/AdminSecurityGuard';
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -27,6 +29,9 @@ export default function SettingsPage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [userRole, setUserRole] = useState<'ADMIN' | 'STAFF'>('ADMIN');
+
+  const [testingSmtp, setTestingSmtp] = useState(false);
+  const [smtpTestResult, setSmtpTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const [formData, setFormData] = useState({
     shopName: '',
@@ -41,6 +46,13 @@ export default function SettingsPage() {
     termsConditions: '',
     bankDetails: '',
     upiId: '',
+    smtpHost: 'smtp.gmail.com',
+    smtpPort: 587,
+    smtpUser: '',
+    smtpPass: '',
+    smtpSenderEmail: '',
+    alertRecipientEmail: '',
+    enableCreditLimitAlerts: true,
   });
 
   useEffect(() => {
@@ -69,6 +81,13 @@ export default function SettingsPage() {
           termsConditions: data.termsConditions || '',
           bankDetails: data.bankDetails || '',
           upiId: data.upiId || '',
+          smtpHost: data.smtpHost || 'smtp.gmail.com',
+          smtpPort: data.smtpPort || 587,
+          smtpUser: data.smtpUser || '',
+          smtpPass: data.smtpPass || '',
+          smtpSenderEmail: data.smtpSenderEmail || '',
+          alertRecipientEmail: data.alertRecipientEmail || '',
+          enableCreditLimitAlerts: data.enableCreditLimitAlerts !== undefined ? data.enableCreditLimitAlerts : true,
         });
       } else {
         setErrorMessage(data.error || 'Failed to load settings');
@@ -77,6 +96,35 @@ export default function SettingsPage() {
       setErrorMessage(e.message || 'Error fetching store settings');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTestSmtp = async () => {
+    setTestingSmtp(true);
+    setSmtpTestResult(null);
+    try {
+      // First save current settings
+      await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'test-smtp', recipientEmail: formData.alertRecipientEmail || formData.email }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSmtpTestResult({ success: true, message: data.message });
+      } else {
+        setSmtpTestResult({ success: false, message: data.error || 'SMTP Test Failed' });
+      }
+    } catch (e: any) {
+      setSmtpTestResult({ success: false, message: e.message || 'SMTP Connection Error' });
+    } finally {
+      setTestingSmtp(false);
     }
   };
 
@@ -119,7 +167,11 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="w-full select-none pb-16 md:pb-4">
+    <AdminSecurityGuard
+      moduleName="System & Store Settings"
+      moduleDescription="Configures shop profile, GST rates, thermal printer width, bank UPI details, and SMTP email credentials."
+    >
+      <div className="w-full select-none pb-16 md:pb-4">
       {/* Single Consolidated Settings Card Box */}
       <div className="bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm flex flex-col overflow-hidden">
         {/* Unified Card Top Header Bar */}
@@ -392,6 +444,126 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Section 4: SMTP Email Alerts & Customer Credit Limit Configuration */}
+              <div className="space-y-3 pt-5 border-t border-[#cbcbcb]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-emerald-700" />
+                    <h2 className="text-xs font-bold text-[#4a4a4a] uppercase tracking-wider">
+                      SMTP Email & Credit Limit Alerts
+                    </h2>
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#4a4a4a]">
+                    <input
+                      type="checkbox"
+                      disabled={userRole !== 'ADMIN'}
+                      checked={formData.enableCreditLimitAlerts}
+                      onChange={(e) => setFormData({ ...formData, enableCreditLimitAlerts: e.target.checked })}
+                      className="w-4 h-4 accent-emerald-700"
+                    />
+                    <span>Enable SMTP Credit Alerts</span>
+                  </label>
+                </div>
+
+                <p className="text-[11px] text-slate-500 font-medium">
+                  When a customer balance crosses their credit limit, an automated HTML email alert will be sent via SMTP to all configured admins and recipients.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-50 p-3.5 rounded-[5px] border border-[#cbcbcb]">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-[#4a4a4a]">SMTP Host Server</label>
+                    <input
+                      type="text"
+                      disabled={userRole !== 'ADMIN'}
+                      value={formData.smtpHost}
+                      onChange={(e) => setFormData({ ...formData, smtpHost: e.target.value })}
+                      placeholder="e.g. smtp.gmail.com"
+                      className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs text-[#4a4a4a] font-mono focus:outline-none focus:border-[#6d8196]"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-[#4a4a4a]">SMTP Port</label>
+                    <input
+                      type="number"
+                      disabled={userRole !== 'ADMIN'}
+                      value={formData.smtpPort}
+                      onChange={(e) => setFormData({ ...formData, smtpPort: parseInt(e.target.value) || 587 })}
+                      placeholder="587 or 465"
+                      className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs text-[#4a4a4a] font-mono focus:outline-none focus:border-[#6d8196]"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-[#4a4a4a]">SMTP Username / Email</label>
+                    <input
+                      type="text"
+                      disabled={userRole !== 'ADMIN'}
+                      value={formData.smtpUser}
+                      onChange={(e) => setFormData({ ...formData, smtpUser: e.target.value })}
+                      placeholder="e.g. alerts@venkatalakshmi.com"
+                      className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs text-[#4a4a4a] font-mono focus:outline-none focus:border-[#6d8196]"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-[#4a4a4a]">SMTP Password / App Password</label>
+                    <input
+                      type="password"
+                      disabled={userRole !== 'ADMIN'}
+                      value={formData.smtpPass}
+                      onChange={(e) => setFormData({ ...formData, smtpPass: e.target.value })}
+                      placeholder="••••••••••••••••"
+                      className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs text-[#4a4a4a] font-mono focus:outline-none focus:border-[#6d8196]"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-[#4a4a4a]">Sender Email Address</label>
+                    <input
+                      type="email"
+                      disabled={userRole !== 'ADMIN'}
+                      value={formData.smtpSenderEmail}
+                      onChange={(e) => setFormData({ ...formData, smtpSenderEmail: e.target.value })}
+                      placeholder="e.g. noreply@venkatalakshmi.com"
+                      className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs text-[#4a4a4a] font-mono focus:outline-none focus:border-[#6d8196]"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-[#4a4a4a]">Admin Alert Recipient Email</label>
+                    <input
+                      type="email"
+                      disabled={userRole !== 'ADMIN'}
+                      value={formData.alertRecipientEmail}
+                      onChange={(e) => setFormData({ ...formData, alertRecipientEmail: e.target.value })}
+                      placeholder="e.g. owner@venkatalakshmi.com"
+                      className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs text-[#4a4a4a] font-mono focus:outline-none focus:border-[#6d8196]"
+                    />
+                  </div>
+                </div>
+
+                {userRole === 'ADMIN' && (
+                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={handleTestSmtp}
+                      disabled={testingSmtp}
+                      className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-2xs transition-all"
+                    >
+                      {testingSmtp ? 'Testing SMTP Connection...' : '✉️ Send Test SMTP Alert Email'}
+                    </button>
+
+                    {smtpTestResult && (
+                      <span className={`text-xs font-bold ${smtpTestResult.success ? 'text-emerald-700' : 'text-rose-600'}`}>
+                        {smtpTestResult.message}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right Column - Live Receipt Preview */}
@@ -466,6 +638,7 @@ export default function SettingsPage() {
         </form>
       </div>
     </div>
+    </AdminSecurityGuard>
   );
 }
 

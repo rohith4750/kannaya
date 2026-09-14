@@ -117,6 +117,33 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
     }
   };
 
+  const [sendingAlert, setSendingAlert] = useState(false);
+
+  const handleSendSmtpAlert = async () => {
+    if (!customer) return;
+    setSendingAlert(true);
+    try {
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send-alert',
+          customerId: customer.id,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ ${data.message || 'SMTP Alert email sent successfully!'}`);
+      } else {
+        alert(`⚠️ Alert failed: ${data.error}`);
+      }
+    } catch (e: any) {
+      alert(`❌ Error sending SMTP email: ${e.message}`);
+    } finally {
+      setSendingAlert(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-8 text-center text-slate-500 text-xs flex items-center justify-center gap-2">
@@ -204,10 +231,46 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
               >
                 <MessageSquare className="w-4 h-4" /> WhatsApp Reminder
               </button>
+              <button
+                onClick={handleSendSmtpAlert}
+                disabled={sendingAlert}
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors disabled:opacity-50"
+                title="Send Credit Limit Alert Email via SMTP"
+              >
+                <Mail className="w-4 h-4" />
+                {sendingAlert ? 'Sending SMTP Alert...' : 'Send SMTP Email Alert'}
+              </button>
             </>
           )}
         </div>
       </div>
+
+      {/* Credit Limit Warning Alert Banner */}
+      {customer.outstanding > customer.creditLimit && (
+        <div className="bg-red-50 border-2 border-red-300 rounded-[5px] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm text-red-950">
+          <div className="flex items-center gap-3">
+            <div className="bg-red-100 p-2 rounded-[5px] border border-red-300">
+              <AlertCircle className="w-6 h-6 text-red-600 animate-pulse" />
+            </div>
+            <div>
+              <h3 className="text-sm font-extrabold text-red-800">
+                🚨 Credit Limit Exceeded Warning!
+              </h3>
+              <p className="text-xs text-red-700 mt-0.5">
+                Current dues (₹{customer.outstanding.toLocaleString('en-IN')}) exceed maximum allowed credit limit (₹{customer.creditLimit.toLocaleString('en-IN')}) by <span className="font-black text-red-900 underline">₹{(customer.outstanding - customer.creditLimit).toLocaleString('en-IN')}</span>.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleSendSmtpAlert}
+            disabled={sendingAlert}
+            className="bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-md shrink-0 border border-red-400 disabled:opacity-50 transition-colors"
+          >
+            <Mail className="w-4 h-4" />
+            {sendingAlert ? 'Sending Email...' : 'Dispatch Alert Email Now'}
+          </button>
+        </div>
+      )}
 
       {/* Customer Overview Card */}
       <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm space-y-5">
@@ -215,7 +278,11 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-extrabold text-[#4a4a4a]">{customer.name}</h1>
-              {customer.outstanding > 0 ? (
+              {customer.outstanding > customer.creditLimit ? (
+                <span className="px-2.5 py-0.5 rounded-[5px] text-[10px] font-extrabold bg-red-100 text-red-700 border border-red-300 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3 text-red-600 animate-pulse" /> Credit Limit Exceeded
+                </span>
+              ) : customer.outstanding > 0 ? (
                 <span className="px-2.5 py-0.5 rounded-[5px] text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
                   Credit Due
                 </span>
@@ -242,12 +309,12 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             </div>
           </div>
 
-          <div className="bg-[#ffffe3] p-4 rounded-[5px] border border-[#cbcbcb] min-w-[220px] text-right shadow-sm">
+          <div className={`${customer.outstanding > customer.creditLimit ? 'bg-red-50 border-red-300' : 'bg-[#ffffe3] border-[#cbcbcb]'} p-4 rounded-[5px] border min-w-[220px] text-right shadow-sm`}>
             <span className="text-[10px] text-slate-500 uppercase font-bold">Current Outstanding Balance</span>
-            <div className={`text-3xl font-black ${customer.outstanding > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
+            <div className={`text-3xl font-black ${customer.outstanding > customer.creditLimit ? 'text-red-700' : customer.outstanding > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
               ₹{customer.outstanding.toLocaleString('en-IN')}
             </div>
-            <span className="text-[11px] text-slate-500 mt-0.5 block">
+            <span className="text-[11px] text-slate-600 font-semibold mt-0.5 block">
               Credit Limit: ₹{customer.creditLimit.toLocaleString('en-IN')}
             </span>
           </div>
@@ -392,8 +459,8 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                             <table className="w-full text-left text-[11px] border-collapse">
                               <thead>
                                 <tr className="border-b border-[#cbcbcb] text-slate-500 font-bold uppercase text-[9px]">
-                                  <th className="pb-1 px-2">Item / Product Name</th>
-                                  <th className="pb-1 px-2 text-center">Unit Price</th>
+                                  <th className="pb-1 px-2 text-left">Item / Product Name</th>
+                                  <th className="pb-1 px-2 text-right">Unit Price</th>
                                   <th className="pb-1 px-2 text-center">Qty</th>
                                   <th className="pb-1 px-2 text-right">Total Price</th>
                                 </tr>
@@ -401,13 +468,13 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                               <tbody className="divide-y divide-slate-200">
                                 {inv.items?.map((item: any) => (
                                   <tr key={item.id}>
-                                    <td className="py-1.5 px-2 font-bold text-[#4a4a4a]">
+                                    <td className="py-1.5 px-2 text-left font-bold text-[#4a4a4a]">
                                       <div className="flex items-center gap-1.5">
                                         <Package className="w-3.5 h-3.5 text-[#6d8196] shrink-0" />
                                         <span>{item.productName}</span>
                                       </div>
                                     </td>
-                                    <td className="py-1.5 px-2 text-center text-slate-600 font-mono">
+                                    <td className="py-1.5 px-2 text-right text-slate-600 font-mono">
                                       ₹{item.price.toLocaleString('en-IN')}
                                     </td>
                                     <td className="py-1.5 px-2 text-center font-bold text-slate-800">
@@ -486,26 +553,30 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-[#4a4a4a] text-white font-semibold text-[11px]">
-                      <th className="py-2.5 px-3">Invoice No</th>
-                      <th className="py-2.5 px-3">Date</th>
-                      <th className="py-2.5 px-3">Total Amount</th>
-                      <th className="py-2.5 px-3">Paid Amount</th>
-                      <th className="py-2.5 px-3">Due Amount</th>
-                      <th className="py-2.5 px-3">Payment Mode</th>
+                      <th className="py-2.5 px-3 text-left">Invoice No</th>
+                      <th className="py-2.5 px-3 text-left">Date</th>
+                      <th className="py-2.5 px-3 text-right">Total Amount</th>
+                      <th className="py-2.5 px-3 text-right">Paid Amount</th>
+                      <th className="py-2.5 px-3 text-right">Due Amount</th>
+                      <th className="py-2.5 px-3 text-center">Payment Mode</th>
                       <th className="py-2.5 px-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
                     {customer.invoices.map((inv: any) => (
                       <tr key={inv.id} className="hover:bg-slate-50">
-                        <td className="py-2.5 px-3 font-bold text-[#6d8196] font-mono">{inv.invoiceNo}</td>
-                        <td className="py-2.5 px-3 text-slate-600">
+                        <td className="py-2.5 px-3 text-left font-bold text-[#6d8196] font-mono">{inv.invoiceNo}</td>
+                        <td className="py-2.5 px-3 text-left text-slate-600">
                           {new Date(inv.createdAt).toLocaleDateString('en-IN')}
                         </td>
-                        <td className="py-2.5 px-3 font-bold text-[#4a4a4a]">₹{inv.totalAmount.toLocaleString('en-IN')}</td>
-                        <td className="py-2.5 px-3 font-bold text-emerald-700">₹{inv.paidAmount.toLocaleString('en-IN')}</td>
-                        <td className="py-2.5 px-3 font-bold text-amber-700">₹{inv.dueAmount.toLocaleString('en-IN')}</td>
-                        <td className="py-2.5 px-3">{inv.paymentMethod}</td>
+                        <td className="py-2.5 px-3 text-right font-bold font-mono text-[#4a4a4a]">₹{inv.totalAmount.toLocaleString('en-IN')}</td>
+                        <td className="py-2.5 px-3 text-right font-bold font-mono text-emerald-700">₹{inv.paidAmount.toLocaleString('en-IN')}</td>
+                        <td className="py-2.5 px-3 text-right font-bold font-mono text-amber-700">₹{inv.dueAmount.toLocaleString('en-IN')}</td>
+                        <td className="py-2.5 px-3 text-center">
+                          <span className="px-2 py-0.5 rounded-[3px] text-[10px] font-bold bg-slate-100 text-slate-700 border border-[#cbcbcb]">
+                            {inv.paymentMethod}
+                          </span>
+                        </td>
                         <td className="py-2.5 px-3 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             <button

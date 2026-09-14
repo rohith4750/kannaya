@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendCreditLimitExceededAlert } from '@/lib/mailer';
 
 export async function GET(request: Request) {
   try {
@@ -35,6 +36,36 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { action } = body;
+
+    // 0. Manual SMTP Email Alert Trigger for Customer Credit Limit
+    if (action === 'send-alert') {
+      const { customerId } = body;
+      if (!customerId) {
+        return NextResponse.json({ error: 'Customer ID is required' }, { status: 400 });
+      }
+
+      const cust = await prisma.customer.findUnique({ where: { id: customerId } });
+      if (!cust) {
+        return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+      }
+
+      const alertRes = await sendCreditLimitExceededAlert({
+        customerName: cust.name,
+        customerPhone: cust.phone,
+        customerEmail: cust.email || undefined,
+        creditLimit: cust.creditLimit,
+        currentOutstanding: cust.outstanding,
+      });
+
+      if (alertRes.success) {
+        return NextResponse.json({
+          success: true,
+          message: `Credit Limit Exceeded SMTP email alert sent successfully for ${cust.name}!`,
+        });
+      } else {
+        return NextResponse.json({ error: alertRes.error || 'Failed to send SMTP email alert' }, { status: 400 });
+      }
+    }
 
     // 1. Record Credit Payment (Clear Balance)
     if (action === 'payment') {
@@ -124,6 +155,17 @@ export async function PUT(request: Request) {
       },
     });
 
+    // Check if new/updated credit limit is crossed and trigger SMTP alert
+    if (updated.outstanding > updated.creditLimit) {
+      sendCreditLimitExceededAlert({
+        customerName: updated.name,
+        customerPhone: updated.phone,
+        customerEmail: updated.email || undefined,
+        creditLimit: updated.creditLimit,
+        currentOutstanding: updated.outstanding,
+      }).catch((e) => console.error('SMTP alert trigger error:', e));
+    }
+
     return NextResponse.json(updated);
   } catch (error: any) {
     console.error('Customers PUT error:', error);
@@ -147,4 +189,3 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: error.message || 'Failed to delete customer' }, { status: 500 });
   }
 }
-

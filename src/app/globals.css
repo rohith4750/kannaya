@@ -183,10 +183,13 @@ button, input, select, textarea, div.rounded-xl, div.rounded-2xl, div.rounded-lg
     visibility: hidden;
   }
   #a4-invoice-printable, #a4-invoice-printable *,
-  #thermal-receipt-printable, #thermal-receipt-printable * {
+  #thermal-receipt-printable, #thermal-receipt-printable *,
+  #supplier-po-printable, #supplier-po-printable *,
+  #supplier-ledger-printable, #supplier-ledger-printable * {
     visibility: visible;
   }
-  #a4-invoice-printable, #thermal-receipt-printable {
+  #a4-invoice-printable, #thermal-receipt-printable,
+  #supplier-po-printable, #supplier-ledger-printable {
     position: absolute;
     left: 0;
     top: 0;
