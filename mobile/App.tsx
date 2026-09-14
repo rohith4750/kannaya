@@ -558,10 +558,11 @@ export default function App() {
           </head>
           <body>
             <div class="header">
-              <div class="shop-name">${settings?.shopName || 'VENKATA LAKSHMI ERP'}</div>
-              <div class="subtitle">Tax Invoice / Bill of Supply • GSTIN: ${settings?.gstin || '36ABCDE1234F1Z5'}</div>
+              <div class="shop-name">${settings?.shopName || 'VENKATA LAKSHMI ELECTRONICS'}</div>
+              <div class="subtitle">Proprietor: Konala Kannaya Reddy • GSTIN: ${settings?.gstin || '36ABCDE1234F1Z5'}</div>
               <div class="subtitle">Phone: ${settings?.phone || '+91 98765 43210'} | ${settings?.address || 'Main Market Road'}</div>
             </div>
+
 
             <div class="inv-meta">
               <div>
@@ -691,10 +692,10 @@ export default function App() {
               <View style={styles.logoBadge}>
                 <Image source={shopLogo} style={styles.logoImg} resizeMode="cover" />
               </View>
-              <Text style={[styles.pinBrandTitle, isSmallScreen && { fontSize: 17 }]}>
-                VENKATA LAKSHMI ERP
+              <Text style={[styles.pinBrandTitle, isSmallScreen && { fontSize: 16 }]}>
+                VENKATA LAKSHMI ELECTRONICS
               </Text>
-              <Text style={styles.pinBrandSubtitle}>Mobile POS & Quick Terminal</Text>
+              <Text style={styles.pinBrandSubtitle}>Proprietor: Konala Kannaya Reddy</Text>
             </View>
 
             <View style={[styles.pinCard, isSmallScreen && { padding: 16 }]}>
@@ -721,9 +722,7 @@ export default function App() {
                 <ActivityIndicator size="small" color="#10b981" style={{ marginVertical: 8 }} />
               ) : pinError ? (
                 <Text style={styles.errorText}>{pinError}</Text>
-              ) : (
-                <Text style={styles.hintText}>Default Access: Admin (1234) | Staff (0000)</Text>
-              )}
+              ) : null}
 
               <View style={styles.keypadGrid}>
                 {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
@@ -767,7 +766,7 @@ export default function App() {
               </View>
             </View>
 
-            <Text style={styles.pinFooterNote}>Powered by Kannaya Digital ERP</Text>
+            <Text style={styles.pinFooterNote}>Venkata Lakshmi Electronics • Proprietor: Konala Kannaya Reddy</Text>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -786,15 +785,16 @@ export default function App() {
               <Image source={shopLogo} style={styles.headerLogoImg} resizeMode="cover" />
             </View>
             <View>
-              <Text style={[styles.brandTitle, isSmallScreen && { fontSize: 13 }]} numberOfLines={1}>
-                Venkata Lakshmi ERP
+              <Text style={[styles.brandTitle, isSmallScreen && { fontSize: 12 }]} numberOfLines={1}>
+                Venkata Lakshmi Electronics
               </Text>
               <Text style={styles.brandSubtitle} numberOfLines={1}>
-                User: {currentUser?.name || role}
+                Proprietor: Konala Kannaya Reddy | {currentUser?.name || role}
               </Text>
             </View>
           </View>
         </View>
+
 
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
