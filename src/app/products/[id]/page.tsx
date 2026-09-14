@@ -61,14 +61,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           <ArrowLeft className="w-4 h-4" /> Back to Products Catalog
         </Link>
 
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <Link
             href="/barcode"
             className="bg-[#6d8196] hover:bg-[#5b6f84] text-white border border-[#cbcbcb]/40 px-3 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-sm"
           >
             <Barcode className="w-4 h-4 text-[#ffffe3]" /> Print Barcode Label
           </Link>
-        </div>
+        </div> */}
       </div>
 
       {/* Main Product Specs Card */}
@@ -85,7 +85,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </div>
             <h1 className="text-2xl font-extrabold text-[#4a4a4a]">{product.name}</h1>
             <div className="flex items-center gap-4 text-xs text-slate-500 font-mono mt-2">
-              <span>Barcode: <strong className="text-[#6d8196]">{product.barcode}</strong></span>
               {product.sku && <span>SKU: <strong className="text-[#4a4a4a]">{product.sku}</strong></span>}
               <span>HSN: <strong className="text-[#4a4a4a]">{product.hsnCode || '8544'}</strong></span>
               <span>GST: <strong className="text-[#4a4a4a]">{product.gstPercent || 18}%</strong></span>

@@ -303,7 +303,7 @@ function ProductsContent() {
           <table className="erp-table">
             <thead>
               <tr>
-                <th>Product Details & Barcode</th>
+                <th>Product Details</th>
                 <th>Category / Brand</th>
                 <th>Rack Location</th>
                 <th>Stock Qty</th>
@@ -328,7 +328,6 @@ function ProductsContent() {
                             </span>
                           </div>
                           <div className="text-[10px] font-mono text-slate-500 flex items-center gap-2 mt-0.5">
-                            <span className="text-[#6d8196] font-semibold">{p.barcode}</span>
                             {p.sku && <span className="text-slate-400">SKU: {p.sku}</span>}
                           </div>
                         </div>

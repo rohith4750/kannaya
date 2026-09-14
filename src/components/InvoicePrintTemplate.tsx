@@ -140,10 +140,10 @@ export default function InvoicePrintTemplate({
           )}
         </div>
 
-        {/* Barcode SVG */}
-        <div className="text-center mt-3 pt-2 border-t border-dashed border-[#cbcbcb]">
+        {/* Barcode SVG disabled */}
+        {/* <div className="text-center mt-3 pt-2 border-t border-dashed border-[#cbcbcb]">
           <svg ref={barcodeRef} className="mx-auto max-w-full" />
-        </div>
+        </div> */}
 
         <div className="text-center mt-2 text-[8px] text-slate-500 font-sans">
           *** THANK YOU FOR SHOPPING AT VENKATA LAKSHMI! ***
@@ -276,12 +276,12 @@ export default function InvoicePrintTemplate({
 
       {/* Financial Calculation Summary Box */}
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-        {/* Left Side: Barcode & Terms */}
+        {/* Left Side: Terms */}
         <div className="w-full sm:w-1/2 space-y-3">
-          {/* Barcode Display */}
-          <div className="bg-slate-50 border border-[#cbcbcb] p-3 rounded-[5px] text-center">
+          {/* Barcode Display disabled */}
+          {/* <div className="bg-slate-50 border border-[#cbcbcb] p-3 rounded-[5px] text-center">
             <svg ref={barcodeRef} className="mx-auto max-w-full" />
-          </div>
+          </div> */}
 
           <div className="text-[10px] text-slate-500 space-y-1 bg-white p-3 rounded-[5px] border border-[#cbcbcb]">
             <span className="font-bold text-[#4a4a4a] uppercase block">Terms & Conditions:</span>

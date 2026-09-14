@@ -35,7 +35,7 @@ const secondaryLinks = [
   { name: 'Categories & Brands', href: '/categories', icon: FolderPlus, roles: ['ADMIN'] },
   { name: 'Rack Locations', href: '/racks', icon: Layers, roles: ['ADMIN', 'STAFF'] },
   { name: 'Supplier Dues', href: '/suppliers', icon: Truck, roles: ['ADMIN'] },
-  { name: 'Barcode Studio', href: '/barcode', icon: Barcode, roles: ['ADMIN', 'STAFF'] },
+  // { name: 'Barcode Studio', href: '/barcode', icon: Barcode, roles: ['ADMIN', 'STAFF'] },
   { name: 'User Management', href: '/users', icon: ShieldCheck, roles: ['ADMIN'] },
   { name: 'WhatsApp Center', href: '/whatsapp', icon: MessageSquare, roles: ['ADMIN', 'STAFF'] },
   { name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI', roles: ['ADMIN'] },

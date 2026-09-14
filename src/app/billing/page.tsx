@@ -245,13 +245,13 @@ export default function BillingPOSPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDownSearch}
-              placeholder="Scan Barcode or Search product..."
+              placeholder="Search product name or SKU..."
               className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-10 pr-4 py-2 text-xs text-[#4a4a4a] placeholder-slate-400 focus:outline-none focus:border-[#6d8196] focus:bg-white"
             />
           </div>
-          <div className="bg-[#6d8196]/10 border border-[#6d8196]/30 px-3 py-2 rounded-[5px] flex items-center gap-2 text-xs font-bold text-[#6d8196] shrink-0">
+          {/* <div className="bg-[#6d8196]/10 border border-[#6d8196]/30 px-3 py-2 rounded-[5px] flex items-center gap-2 text-xs font-bold text-[#6d8196] shrink-0">
             <Barcode className="w-4 h-4" /> Barcode Active
-          </div>
+          </div> */}
         </div>
 
         <div className="flex-1 overflow-y-auto min-h-0 pr-1 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 content-start">
