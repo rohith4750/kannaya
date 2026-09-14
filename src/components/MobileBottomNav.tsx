@@ -20,6 +20,7 @@ import {
   Bot,
   BarChart3,
   Store,
+  Settings,
 } from 'lucide-react';
 
 const mainTabs = [
@@ -39,6 +40,7 @@ const secondaryLinks = [
   { name: 'WhatsApp Center', href: '/whatsapp', icon: MessageSquare, roles: ['ADMIN', 'STAFF'] },
   { name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI', roles: ['ADMIN'] },
   { name: 'Reports & Analytics', href: '/reports', icon: BarChart3, roles: ['ADMIN'] },
+  { name: 'System Settings', href: '/settings', icon: Settings, roles: ['ADMIN'] },
 ];
 
 export default function MobileBottomNav() {

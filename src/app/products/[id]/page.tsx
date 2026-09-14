@@ -51,7 +51,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const isLowStock = product.stockQuantity <= product.minStockAlert;
 
   return (
-    <div className="space-y-5 max-w-5xl mx-auto">
+    <div className="space-y-5 w-full">
       {/* Top Navigation Header */}
       <div className="flex items-center justify-between">
         <Link

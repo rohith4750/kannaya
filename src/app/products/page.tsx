@@ -68,22 +68,32 @@ function ProductsContent() {
 
   const loadData = async () => {
     try {
-      const [pRes, cRes, bRes, rRes] = await Promise.all([
+      const [pRes, cRes, bRes, rRes, sRes] = await Promise.all([
         fetch('/api/products'),
         fetch('/api/categories'),
         fetch('/api/brands'),
         fetch('/api/racks'),
+        fetch('/api/settings'),
       ]);
 
       const pData = await pRes.json();
       const cData = await cRes.json();
       const bData = await bRes.json();
       const rData = await rRes.json();
+      const sData = await sRes.json();
 
       if (Array.isArray(pData)) setProducts(pData);
       if (Array.isArray(cData)) setCategories(cData);
       if (Array.isArray(bData)) setBrands(bData);
       if (Array.isArray(rData)) setRacks(rData);
+
+      if (sData) {
+        setFormData((prev) => ({
+          ...prev,
+          hsnCode: sData.defaultHsnCode || prev.hsnCode,
+          gstPercent: sData.defaultGstPercent !== undefined ? String(sData.defaultGstPercent) : prev.gstPercent,
+        }));
+      }
     } catch (e) {
       console.error(e);
     }

@@ -38,8 +38,11 @@ export default function InvoicePrintTemplate({
   const shopName = settings?.shopName || 'VENKATA LAKSHMI ELECTRONICS';
   const tagline = settings?.tagline || 'Complete Electrical & Hardware Solutions';
   const phone = settings?.phone || '+91 98765 43210';
-  const address = settings?.address || 'Main Road, Electrical Market, City - 500001';
+  const address = settings?.address || 'Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001';
   const gstin = settings?.gstin || '36ABCDE1234F1Z5';
+  const defaultGstPercent = settings?.defaultGstPercent || 18;
+  const defaultHsnCode = settings?.defaultHsnCode || '8544';
+  const termsConditions = settings?.termsConditions || 'Goods once sold will not be taken back or exchanged. Subject to local jurisdiction.';
 
   const subtotal = invoice.subtotal || 0;
   const discount = invoice.discount || 0;
@@ -47,8 +50,8 @@ export default function InvoicePrintTemplate({
   const paidAmount = invoice.paidAmount || 0;
   const dueAmount = invoice.dueAmount || 0;
 
-  // Estimated Tax (GST 18%)
-  const taxAmount = (totalAmount * 18) / 118;
+  // Estimated Tax calculation based on default or product GST rate
+  const taxAmount = (totalAmount * defaultGstPercent) / (100 + defaultGstPercent);
   const cgst = taxAmount / 2;
   const sgst = taxAmount / 2;
   const taxableAmount = totalAmount - taxAmount;
@@ -282,9 +285,17 @@ export default function InvoicePrintTemplate({
 
           <div className="text-[10px] text-slate-500 space-y-1 bg-white p-3 rounded-[5px] border border-[#cbcbcb]">
             <span className="font-bold text-[#4a4a4a] uppercase block">Terms & Conditions:</span>
-            <p>1. Goods once sold can be exchanged within 7 days with original bill.</p>
-            <p>2. Warranty claims are subject to manufacturer terms and inspection.</p>
-            <p>3. Subject to local city jurisdiction.</p>
+            <p className="whitespace-pre-line">{termsConditions}</p>
+            {settings?.bankDetails && (
+              <p className="pt-1 border-t border-slate-200 text-slate-700 font-medium">
+                <strong>Bank Account:</strong> {settings.bankDetails}
+              </p>
+            )}
+            {settings?.upiId && (
+              <p className="text-slate-700 font-medium">
+                <strong>UPI Payment ID:</strong> {settings.upiId}
+              </p>
+            )}
           </div>
         </div>
 
@@ -295,11 +306,11 @@ export default function InvoicePrintTemplate({
             <span className="font-mono font-semibold">₹{taxableAmount.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-slate-600 text-[11px]">
-            <span>CGST (9%):</span>
+            <span>CGST ({(defaultGstPercent / 2).toFixed(1)}%):</span>
             <span className="font-mono">₹{cgst.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-slate-600 text-[11px]">
-            <span>SGST (9%):</span>
+            <span>SGST ({(defaultGstPercent / 2).toFixed(1)}%):</span>
             <span className="font-mono">₹{sgst.toFixed(2)}</span>
           </div>
           {discount > 0 && (
@@ -337,7 +348,7 @@ export default function InvoicePrintTemplate({
         </div>
 
         <div className="text-right">
-          <div className="font-bold text-[#4a4a4a]">For VENKATA LAKSHMI ELECTRONICS</div>
+          <div className="font-bold text-[#4a4a4a]">For {shopName}</div>
           <div className="h-10"></div>
           <div className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider">Authorized Signatory</div>
         </div>

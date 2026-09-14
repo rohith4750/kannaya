@@ -41,16 +41,19 @@ export default function InvoicesPage() {
       if (paymentFilter) params.append('paymentMethod', paymentFilter);
       if (params.toString()) url += `?${params.toString()}`;
 
-      const res = await fetch(url);
+      const [res, settingsRes] = await Promise.all([
+        fetch(url),
+        fetch('/api/settings'),
+      ]);
       const data = await res.json();
+      const settingsData = await settingsRes.json();
       if (Array.isArray(data)) setInvoices(data);
-
-      setShopSettings({
-        shopName: 'VENKATA LAKSHMI ELECTRONICS',
-        address: 'Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001',
-        phone: '+91 98765 43210',
-        gstin: '36ABCDE1234F1Z5',
-      });
+      if (settingsData) {
+        setShopSettings(settingsData);
+        if (settingsData.printerType) {
+          setPrinterWidth(settingsData.printerType);
+        }
+      }
     } catch (e) {
       console.error(e);
     } finally {

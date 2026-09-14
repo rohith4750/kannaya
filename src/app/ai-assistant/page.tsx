@@ -82,7 +82,7 @@ export default function AIAssistantPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-5rem)] flex flex-col max-w-4xl mx-auto space-y-4">
+    <div className="h-[calc(100vh-5rem)] flex flex-col w-full space-y-4">
       {/* Header Banner */}
       <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
@@ -124,7 +124,7 @@ export default function AIAssistantPage() {
             className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'}`}
           >
             <div
-              className={`max-w-2xl rounded-[5px] p-4 text-xs space-y-2 border ${
+              className={`max-w-4xl rounded-[5px] p-4 text-xs space-y-2 border ${
                 m.sender === 'user'
                   ? 'bg-[#6d8196] text-white border-[#6d8196] font-medium'
                   : 'bg-slate-50 border-[#cbcbcb] text-[#4a4a4a]'

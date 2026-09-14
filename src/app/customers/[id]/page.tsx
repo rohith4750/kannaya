@@ -43,6 +43,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [printerWidth, setPrinterWidth] = useState<'A4' | '80mm' | '58mm'>('A4');
+  const [shopSettings, setShopSettings] = useState<any>(null);
 
   const handleOpenReceipt = (inv: any) => {
     setSelectedInvoice(inv);
@@ -51,9 +52,14 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
 
   const loadCustomerData = async () => {
     try {
-      const res = await fetch(`/api/customers/${id}/ledger`);
+      const [res, settingsRes] = await Promise.all([
+        fetch(`/api/customers/${id}/ledger`),
+        fetch('/api/settings'),
+      ]);
       const data = await res.json();
+      const settingsData = await settingsRes.json();
       setCustomer(data);
+      if (settingsData) setShopSettings(settingsData);
     } catch (e) {
       console.error(e);
     } finally {
@@ -631,12 +637,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                   customerPhone: selectedInvoice.customerPhone || customer.phone,
                   customerAddress: selectedInvoice.customerAddress || customer.address,
                 }}
-                settings={{
-                  shopName: 'VENKATA LAKSHMI ELECTRONICS',
-                  address: 'Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001',
-                  phone: '+91 98765 43210',
-                  gstin: '36ABCDE1234F1Z5',
-                }}
+                settings={shopSettings}
                 format={printerWidth as any}
               />
             </div>

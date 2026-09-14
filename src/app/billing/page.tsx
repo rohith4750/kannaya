@@ -44,14 +44,20 @@ export default function BillingPOSPage() {
 
   const loadData = async () => {
     try {
-      const [prodRes, custRes] = await Promise.all([
+      const [prodRes, custRes, settingsRes] = await Promise.all([
         fetch('/api/products'),
         fetch('/api/customers'),
+        fetch('/api/settings'),
       ]);
       const prods = await prodRes.json();
       const custs = await custRes.json();
+      const settings = await settingsRes.json();
       if (Array.isArray(prods)) setProducts(prods);
       if (Array.isArray(custs)) setCustomers(custs);
+      if (settings) {
+        if (settings.printerType) setPrinterWidth(settings.printerType as any);
+        if (settings.defaultGstPercent !== undefined) setTaxPercent(settings.defaultGstPercent);
+      }
     } catch (e) {
       console.error(e);
     }

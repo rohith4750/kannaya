@@ -173,10 +173,17 @@ CREATE TABLE IF NOT EXISTS "SupplierLedger" (
 
 CREATE TABLE IF NOT EXISTS "ShopSettings" (
   "id" TEXT PRIMARY KEY DEFAULT 'default',
-  "shopName" TEXT NOT NULL DEFAULT 'SRI LAKSHMI ELECTRICALS & HARDWARE',
+  "shopName" TEXT NOT NULL DEFAULT 'VENKATA LAKSHMI ELECTRONICS',
   "tagline" TEXT NOT NULL DEFAULT 'Complete Electrical & Hardware Solutions',
   "phone" TEXT NOT NULL DEFAULT '+91 98765 43210',
-  "address" TEXT NOT NULL DEFAULT 'Main Road, Electrical Market, City - 500001',
+  "email" TEXT DEFAULT 'info@venkatalakshmi.com',
+  "address" TEXT NOT NULL DEFAULT 'Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001',
   "gstin" TEXT NOT NULL DEFAULT '36ABCDE1234F1Z5',
-  "printerType" TEXT NOT NULL DEFAULT '80mm'
+  "printerType" TEXT NOT NULL DEFAULT '80mm',
+  "defaultGstPercent" DOUBLE PRECISION NOT NULL DEFAULT 18,
+  "defaultHsnCode" TEXT NOT NULL DEFAULT '8544',
+  "termsConditions" TEXT NOT NULL DEFAULT 'Goods once sold will not be taken back or exchanged. Subject to local jurisdiction.',
+  "bankDetails" TEXT DEFAULT 'State Bank of India A/C: 1234567890 | IFSC: SBIN0001234',
+  "upiId" TEXT DEFAULT '9876543210@paytm',
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

@@ -77,7 +77,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   };
 
   return (
-    <div className="space-y-5 max-w-5xl mx-auto w-full">
+    <div className="space-y-5 w-full">
       {/* Top Controls Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 border border-[#cbcbcb] rounded-[5px] shadow-sm">
         <Link

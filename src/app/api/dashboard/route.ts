@@ -42,7 +42,11 @@ export async function GET(request: Request) {
       toDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
     }
 
-    // 1. Invoices for Period
+    // Today's Active Date Range
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+    // 1. Fetch Invoices for Selected Period with Items & Products
     const invoices = await prisma.invoice.findMany({
       where: {
         createdAt: {
@@ -51,32 +55,125 @@ export async function GET(request: Request) {
         },
       },
       include: {
-        items: true,
+        items: {
+          include: {
+            product: {
+              include: {
+                category: true,
+              },
+            },
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
 
+    // 2. Fetch Today's Invoices for Dual Active Profit Comparison
+    const todayInvoices = await prisma.invoice.findMany({
+      where: {
+        createdAt: {
+          gte: todayStart,
+          lte: todayEnd,
+        },
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    // --- TODAY'S PROFIT & POS CALCULATIONS ---
+    const todaySales = todayInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
+    const todayCollection = todayInvoices.reduce((sum, inv) => sum + inv.paidAmount, 0);
+    let todayCost = 0;
+    todayInvoices.forEach((inv) => {
+      inv.items.forEach((item) => {
+        const itemUnitCost = item.product?.purchasePrice ?? (item.price * 0.7);
+        todayCost += item.quantity * itemUnitCost;
+      });
+    });
+    const todayGrossProfit = todaySales - todayCost;
+    const todayProfitMargin = todaySales > 0 ? (todayGrossProfit / todaySales) * 100 : 0;
+
+    // --- FILTERED PERIOD PROFIT & POS CALCULATIONS ---
     const periodSales = invoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
     const periodCollection = invoices.reduce((sum, inv) => sum + inv.paidAmount, 0);
     const periodDuesAdded = invoices.reduce((sum, inv) => sum + inv.dueAmount, 0);
+    let periodCost = 0;
+    
+    // POS Payment Method Breakdown
+    let cashSales = 0;
+    let upiSales = 0;
+    let cardSales = 0;
+    let creditSales = 0;
+    let splitSales = 0;
 
-    // 2. Customer Total Outstanding (All-time snapshot)
+    // Category Profit Breakdown Map
+    const categoryProfitMap: { [key: string]: { name: string; sales: number; profit: number; count: number } } = {};
+
+    invoices.forEach((inv) => {
+      // Payment Method Breakdown
+      if (inv.paymentMethod === 'CASH') cashSales += inv.totalAmount;
+      else if (inv.paymentMethod === 'UPI') upiSales += inv.totalAmount;
+      else if (inv.paymentMethod === 'CARD') cardSales += inv.totalAmount;
+      else if (inv.paymentMethod === 'CREDIT') creditSales += inv.totalAmount;
+      else if (inv.paymentMethod === 'SPLIT') splitSales += inv.totalAmount;
+
+      // Item level Cost & Category Profit
+      inv.items.forEach((item) => {
+        const itemUnitCost = item.product?.purchasePrice ?? (item.price * 0.7);
+        const itemTotalCost = item.quantity * itemUnitCost;
+        periodCost += itemTotalCost;
+
+        const itemProfit = item.total - itemTotalCost;
+        const catName = item.product?.category?.name || 'General Goods';
+
+        if (!categoryProfitMap[catName]) {
+          categoryProfitMap[catName] = { name: catName, sales: 0, profit: 0, count: 0 };
+        }
+        categoryProfitMap[catName].sales += item.total;
+        categoryProfitMap[catName].profit += itemProfit;
+        categoryProfitMap[catName].count += item.quantity;
+      });
+    });
+
+    const periodGrossProfit = periodSales - periodCost;
+    const periodProfitMargin = periodSales > 0 ? (periodGrossProfit / periodSales) * 100 : 0;
+    const avgOrderValue = invoices.length > 0 ? periodSales / invoices.length : 0;
+
+    // Category Performance List
+    const categoryPerformance = Object.values(categoryProfitMap).sort((a, b) => b.sales - a.sales);
+
+    // 3. Customer Total Outstanding (All-time snapshot)
     const customers = await prisma.customer.findMany({ select: { outstanding: true } });
     const customerDueTotal = customers.reduce((sum, c) => sum + c.outstanding, 0);
 
-    // 3. Supplier Total Outstanding (All-time snapshot)
+    // 4. Supplier Total Outstanding (All-time snapshot)
     const suppliers = await prisma.supplier.findMany({ select: { outstanding: true } });
     const supplierDueTotal = suppliers.reduce((sum, s) => sum + s.outstanding, 0);
 
-    // 4. Low Stock Products Count
-    const products = await prisma.product.findMany({ select: { stockQuantity: true, minStockAlert: true } });
+    // 5. Inventory Valuation & Low Stock Products Count
+    const products = await prisma.product.findMany({
+      select: {
+        stockQuantity: true,
+        purchasePrice: true,
+        sellingPrice: true,
+        minStockAlert: true,
+      },
+    });
     const lowStockCount = products.filter((p) => p.stockQuantity <= p.minStockAlert).length;
     const totalProductCount = products.length;
+    const totalInventoryCostValue = products.reduce((sum, p) => sum + (p.stockQuantity * p.purchasePrice), 0);
+    const totalInventoryRetailValue = products.reduce((sum, p) => sum + (p.stockQuantity * p.sellingPrice), 0);
+    const potentialInventoryProfit = totalInventoryRetailValue - totalInventoryCostValue;
 
-    // 5. Recent Invoices in Filtered Period
+    // 6. Recent Invoices in Filtered Period
     const recentInvoices = invoices.slice(0, 8);
 
-    // 6. Top Selling Products in Period
+    // 7. Top Selling Products in Period
     const topSellingProducts = await prisma.invoiceItem.groupBy({
       by: ['productName', 'rackLocation'],
       where: {
@@ -99,17 +196,22 @@ export async function GET(request: Request) {
       take: 5,
     });
 
-    // 7. Dynamic Sales & Collection Trend Data
-    const trendMap: { [key: string]: { sales: number; collection: number } } = {};
+    // 8. Dynamic Sales, Profit & Collection Trend Data
+    const trendMap: { [key: string]: { sales: number; collection: number; profit: number } } = {};
 
     if (period === 'this_year') {
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      monthNames.forEach((m) => (trendMap[m] = { sales: 0, collection: 0 }));
+      monthNames.forEach((m) => (trendMap[m] = { sales: 0, collection: 0, profit: 0 }));
       invoices.forEach((inv) => {
         const mName = monthNames[new Date(inv.createdAt).getMonth()];
         if (trendMap[mName]) {
           trendMap[mName].sales += inv.totalAmount;
           trendMap[mName].collection += inv.paidAmount;
+          let invCost = 0;
+          inv.items.forEach((item) => {
+            invCost += item.quantity * (item.product?.purchasePrice ?? (item.price * 0.7));
+          });
+          trendMap[mName].profit += (inv.totalAmount - invCost);
         }
       });
     } else {
@@ -119,9 +221,15 @@ export async function GET(request: Request) {
           day: '2-digit',
           month: 'short',
         });
-        if (!trendMap[dKey]) trendMap[dKey] = { sales: 0, collection: 0 };
+        if (!trendMap[dKey]) trendMap[dKey] = { sales: 0, collection: 0, profit: 0 };
         trendMap[dKey].sales += inv.totalAmount;
         trendMap[dKey].collection += inv.paidAmount;
+
+        let invCost = 0;
+        inv.items.forEach((item) => {
+          invCost += item.quantity * (item.product?.purchasePrice ?? (item.price * 0.7));
+        });
+        trendMap[dKey].profit += (inv.totalAmount - invCost);
       });
     }
 
@@ -129,6 +237,7 @@ export async function GET(request: Request) {
       day,
       sales: val.sales,
       collection: val.collection,
+      profit: Math.max(0, val.profit),
     }));
 
     return NextResponse.json({
@@ -136,23 +245,47 @@ export async function GET(request: Request) {
       fromDate: fromDate.toISOString(),
       toDate: toDate.toISOString(),
       metrics: {
-        todaysSales: periodSales,
-        todaysCollection: periodCollection,
+        // Dual Active Sales & Profit Calculations
+        todaySales,
+        todayCollection,
+        todayCost,
+        todayGrossProfit,
+        todayProfitMargin,
+
+        periodSales,
+        periodCollection,
+        periodCost,
+        periodGrossProfit,
+        periodProfitMargin,
         periodDuesAdded,
+        avgOrderValue,
+
+        // POS Payment Breakdown
+        cashSales,
+        upiSales,
+        cardSales,
+        creditSales,
+        splitSales,
+
+        // Financial Balances & Stock
         customerDueTotal,
         supplierDueTotal,
         lowStockCount,
         totalProductCount,
         totalInvoiceCount: invoices.length,
+        totalInventoryCostValue,
+        totalInventoryRetailValue,
+        potentialInventoryProfit,
       },
       recentInvoices,
       topSellingProducts,
+      categoryPerformance,
       salesTrend: salesTrend.length > 0 ? salesTrend : [
-        { day: 'Period Total', sales: periodSales, collection: periodCollection },
+        { day: 'Period Total', sales: periodSales, collection: periodCollection, profit: periodGrossProfit },
       ],
     });
   } catch (error: any) {
     console.error('Dashboard GET error:', error);
-    return NextResponse.json({ error: 'Failed to fetch dashboard metrics' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch dashboard analytics' }, { status: 500 });
   }
 }

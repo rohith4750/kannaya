@@ -48,6 +48,8 @@ export async function POST(request: Request) {
       name,
       sku,
       barcode,
+      hsnCode,
+      gstPercent,
       unit,
       purchasePrice,
       sellingPrice,
@@ -58,11 +60,15 @@ export async function POST(request: Request) {
       rackId,
     } = body;
 
+    const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
+
     const product = await prisma.product.create({
       data: {
         name,
         sku: sku || `SKU-${Date.now()}`,
         barcode: barcode || `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+        hsnCode: hsnCode || settings?.defaultHsnCode || '8544',
+        gstPercent: gstPercent !== undefined ? parseFloat(gstPercent) : (settings?.defaultGstPercent || 18),
         unit: unit || 'pcs',
         purchasePrice: parseFloat(purchasePrice) || 0,
         sellingPrice: parseFloat(sellingPrice) || 0,
