@@ -26,7 +26,7 @@ export async function GET(request: Request) {
         brand: true,
         rack: true,
       },
-      orderBy: { name: 'asc' },
+      orderBy: { updatedAt: 'desc' },
     });
 
     if (filter === 'low-stock') {
@@ -60,11 +60,34 @@ export async function POST(request: Request) {
       rackId,
     } = body;
 
+    if (!name || !name.trim()) {
+      return NextResponse.json({ error: 'Product name is required' }, { status: 400 });
+    }
+
+    let catId = categoryId;
+    let brId = brandId;
+
+    if (!catId) {
+      let defaultCat = await prisma.category.findFirst();
+      if (!defaultCat) {
+        defaultCat = await prisma.category.create({ data: { name: 'General' } });
+      }
+      catId = defaultCat.id;
+    }
+
+    if (!brId) {
+      let defaultBrand = await prisma.brand.findFirst();
+      if (!defaultBrand) {
+        defaultBrand = await prisma.brand.create({ data: { name: 'Generic' } });
+      }
+      brId = defaultBrand.id;
+    }
+
     const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
 
     const product = await prisma.product.create({
       data: {
-        name,
+        name: name.trim(),
         sku: sku || `SKU-${Date.now()}`,
         barcode: barcode || `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
         hsnCode: hsnCode || settings?.defaultHsnCode || '8544',
@@ -74,8 +97,8 @@ export async function POST(request: Request) {
         sellingPrice: parseFloat(sellingPrice) || 0,
         stockQuantity: parseFloat(stockQuantity) || 0,
         minStockAlert: parseFloat(minStockAlert) || 5,
-        categoryId,
-        brandId,
+        categoryId: catId,
+        brandId: brId,
         rackId: rackId || null,
       },
       include: {
@@ -95,7 +118,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { id, stockQuantity, sellingPrice, purchasePrice, rackId, minStockAlert } = body;
+    const { id, name, stockQuantity, sellingPrice, purchasePrice, rackId, minStockAlert } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'Product ID required' }, { status: 400 });
@@ -104,6 +127,7 @@ export async function PUT(request: Request) {
     const updated = await prisma.product.update({
       where: { id },
       data: {
+        ...(name && { name: name.trim() }),
         ...(stockQuantity !== undefined && { stockQuantity: parseFloat(stockQuantity) }),
         ...(sellingPrice !== undefined && { sellingPrice: parseFloat(sellingPrice) }),
         ...(purchasePrice !== undefined && { purchasePrice: parseFloat(purchasePrice) }),

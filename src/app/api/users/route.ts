@@ -10,6 +10,7 @@ export async function GET(request: Request) {
         name: true,
         email: true,
         role: true,
+        pinCode: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, password, role } = body;
+    const { name, email, password, pinCode, role } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -36,6 +37,15 @@ export async function POST(request: Request) {
     }
 
     const cleanEmail = email.toLowerCase().trim();
+    const assignedRole = role === 'ADMIN' ? 'ADMIN' : 'STAFF';
+    const assignedPin = pinCode ? pinCode.trim() : (assignedRole === 'ADMIN' ? '1234' : '0000');
+
+    if (assignedPin && !/^\d{4}$/.test(assignedPin)) {
+      return NextResponse.json(
+        { error: 'Security PIN must be exactly 4 digits (e.g. 1234)' },
+        { status: 400 }
+      );
+    }
 
     // Check if user already exists
     const existing = await prisma.user.findUnique({
@@ -54,13 +64,15 @@ export async function POST(request: Request) {
         name: name.trim(),
         email: cleanEmail,
         password,
-        role: role === 'ADMIN' ? 'ADMIN' : 'STAFF',
+        pinCode: assignedPin,
+        role: assignedRole,
       },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
+        pinCode: true,
         createdAt: true,
       },
     });
@@ -70,6 +82,52 @@ export async function POST(request: Request) {
     console.error('Users POST error:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to create internal user' },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/users - Update internal user details or PIN
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, name, email, password, pinCode, role } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    }
+
+    if (pinCode && !/^\d{4}$/.test(pinCode.trim())) {
+      return NextResponse.json(
+        { error: 'Security PIN must be exactly 4 digits' },
+        { status: 400 }
+      );
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        ...(name && { name: name.trim() }),
+        ...(email && { email: email.toLowerCase().trim() }),
+        ...(password && { password }),
+        ...(pinCode && { pinCode: pinCode.trim() }),
+        ...(role && { role: role === 'ADMIN' ? 'ADMIN' : 'STAFF' }),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        pinCode: true,
+        createdAt: true,
+      },
+    });
+
+    return NextResponse.json(updatedUser);
+  } catch (error: any) {
+    console.error('Users PUT error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to update user' },
       { status: 500 }
     );
   }
@@ -101,3 +159,4 @@ export async function DELETE(request: Request) {
     );
   }
 }
+

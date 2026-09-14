@@ -103,3 +103,48 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message || 'Customer operation failed' }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, name, phone, email, address, creditLimit } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Customer ID required' }, { status: 400 });
+    }
+
+    const updated = await prisma.customer.update({
+      where: { id },
+      data: {
+        ...(name && { name: name.trim() }),
+        ...(phone && { phone: phone.trim() }),
+        ...(email !== undefined && { email: email ? email.trim() : null }),
+        ...(address !== undefined && { address: address ? address.trim() : null }),
+        ...(creditLimit !== undefined && { creditLimit: parseFloat(creditLimit) }),
+      },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error: any) {
+    console.error('Customers PUT error:', error);
+    return NextResponse.json({ error: error.message || 'Failed to update customer' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Customer ID required' }, { status: 400 });
+    }
+
+    await prisma.customer.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Customers DELETE error:', error);
+    return NextResponse.json({ error: error.message || 'Failed to delete customer' }, { status: 500 });
+  }
+}
+

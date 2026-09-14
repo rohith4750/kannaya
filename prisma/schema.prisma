@@ -33,6 +33,7 @@ model User {
   name      String
   email     String   @unique
   password  String
+  pinCode   String?  @default("1234")
   role      Role     @default(STAFF)
   createdAt DateTime @default(now())
 }

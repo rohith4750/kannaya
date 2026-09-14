@@ -36,3 +36,24 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Failed to fetch invoices' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Invoice ID required' }, { status: 400 });
+    }
+
+    // Delete invoice items first, then invoice
+    await prisma.invoiceItem.deleteMany({ where: { invoiceId: id } });
+    await prisma.invoice.delete({ where: { id } });
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Invoice DELETE error:', error);
+    return NextResponse.json({ error: error.message || 'Failed to delete invoice' }, { status: 500 });
+  }
+}
+
