@@ -30,9 +30,9 @@ import {
   AlertTriangle,
   Layers,
   Search,
-  ArrowUpRight,
+  Check,
+  Filter,
 } from 'lucide-react';
-import MaterialSelect from '@/components/MaterialSelect';
 import SupplierPOPrintTemplate from '@/components/SupplierPOPrintTemplate';
 
 export default function SupplierDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -49,17 +49,19 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
   const [payAmount, setPayAmount] = useState('');
   const [payNotes, setPayNotes] = useState('');
 
-  // New Purchase Order Modal State
-  const [showPoModal, setShowPoModal] = useState(false);
+  // Inline Purchase Order Form State (On-Page, Not a Modal!)
+  const [showPoForm, setShowPoForm] = useState(false);
   const [poNumber, setPoNumber] = useState('');
   const [poPaidAmount, setPoPaidAmount] = useState('');
   const [poNotes, setPoNotes] = useState('');
   const [isReceivedImmediately, setIsReceivedImmediately] = useState(true);
-  const [poItems, setPoItems] = useState<{ productId: string; price: string; quantity: string }[]>([
-    { productId: '', price: '', quantity: '1' },
-  ]);
+  const [poItems, setPoItems] = useState<{ productId: string; price: string; quantity: string }[]>([]);
 
-  // Inline product creation modal state inside PO
+  // Product Selection Search & Filter
+  const [prodSearchTerm, setProdSearchTerm] = useState('');
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+
+  // Inline product creation modal state
   const [showInlineProdModal, setShowInlineProdModal] = useState(false);
   const [newProdName, setNewProdName] = useState('');
   const [newProdPrice, setNewProdPrice] = useState('');
@@ -73,9 +75,6 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
   // PDF / Print Modal State
   const [selectedPoForPrint, setSelectedPoForPrint] = useState<any>(null);
-
-  // Search filter for PO items
-  const [productSearchQuery, setProductSearchQuery] = useState('');
 
   const loadSupplierData = async () => {
     try {
@@ -92,7 +91,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
       if (setData && !setData.error) setShopSettings(setData);
     } catch (e) {
       console.error(e);
-    } finally {
+    } fontally {
       setLoading(false);
     }
   };
@@ -126,6 +125,35 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
     }
   };
 
+  // Multi-select product toggle handler
+  const handleToggleProductSelection = (product: any) => {
+    const existsIndex = poItems.findIndex((it) => it.productId === product.id);
+    if (existsIndex >= 0) {
+      // Remove product from order list
+      setPoItems(poItems.filter((it) => it.productId !== product.id));
+      setSelectedProductIds(selectedProductIds.filter((pid) => pid !== product.id));
+    } else {
+      // Add product to order list
+      const initialPrice = (product.purchasePrice || product.sellingPrice || 0).toString();
+      setPoItems([...poItems, { productId: product.id, price: initialPrice, quantity: '1' }]);
+      setSelectedProductIds([...selectedProductIds, product.id]);
+    }
+  };
+
+  const handleRemovePoItem = (index: number) => {
+    const itemToRemove = poItems[index];
+    if (itemToRemove) {
+      setSelectedProductIds(selectedProductIds.filter((pid) => pid !== itemToRemove.productId));
+    }
+    setPoItems(poItems.filter((_, idx) => idx !== index));
+  };
+
+  const handlePoItemChange = (index: number, field: string, value: string) => {
+    const updated = [...poItems];
+    (updated[index] as any)[field] = value;
+    setPoItems(updated);
+  };
+
   const handleCreatePo = async (e: React.FormEvent) => {
     e.preventDefault();
     const validItems = poItems.filter((it) => it.productId && parseFloat(it.quantity) > 0);
@@ -149,11 +177,12 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
       });
 
       if (res.ok) {
-        setShowPoModal(false);
+        setShowPoForm(false);
         setPoNumber('');
         setPoPaidAmount('');
         setPoNotes('');
-        setPoItems([{ productId: '', price: '', quantity: '1' }]);
+        setPoItems([]);
+        setSelectedProductIds([]);
         loadSupplierData();
       } else {
         const err = await res.json();
@@ -162,27 +191,6 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
     } catch (e) {
       console.error(e);
     }
-  };
-
-  const handleAddPoItem = () => {
-    setPoItems([...poItems, { productId: '', price: '', quantity: '1' }]);
-  };
-
-  const handleRemovePoItem = (index: number) => {
-    setPoItems(poItems.filter((_, idx) => idx !== index));
-  };
-
-  const handlePoItemChange = (index: number, field: string, value: string) => {
-    const updated = [...poItems];
-    (updated[index] as any)[field] = value;
-
-    if (field === 'productId') {
-      const selectedProd = products.find((p) => p.id === value);
-      if (selectedProd) {
-        updated[index].price = (selectedProd.purchasePrice || selectedProd.sellingPrice || 0).toString();
-      }
-    }
-    setPoItems(updated);
   };
 
   // Godown GRN Submission
@@ -273,15 +281,10 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         const prodData = await prodRes.json();
         if (Array.isArray(prodData)) {
           setProducts(prodData);
-          if (poItems.length > 0) {
-            const updated = [...poItems];
-            updated[updated.length - 1] = {
-              productId: data.id,
-              price: String(data.purchasePrice || data.sellingPrice || 0),
-              quantity: '1',
-            };
-            setPoItems(updated);
-          }
+          // Auto select newly created product
+          const newPrice = (data.purchasePrice || data.sellingPrice || 0).toString();
+          setPoItems([...poItems, { productId: data.id, price: newPrice, quantity: '1' }]);
+          setSelectedProductIds([...selectedProductIds, data.id]);
         }
       } else {
         alert(data.error || 'Failed to create product');
@@ -359,7 +362,13 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
   const orderGroups = groupOrdersByDate();
 
-  const totalOrderItemsCostInPoModal = poItems.reduce((sum, item) => {
+  // Filtered products list for multi-select search
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(prodSearchTerm.toLowerCase()) ||
+    (p.category?.name && p.category.name.toLowerCase().includes(prodSearchTerm.toLowerCase()))
+  );
+
+  const totalOrderItemsCostInPoForm = poItems.reduce((sum, item) => {
     const p = parseFloat(item.price) || 0;
     const q = parseFloat(item.quantity) || 0;
     return sum + p * q;
@@ -374,34 +383,34 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         </div>
       )}
 
-      {/* Screen View Header */}
-      <div className="print:hidden flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+      {/* Screen View Header Controls */}
+      <div className="print:hidden flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[#cbcbcb] shadow-xs">
         <Link
           href="/suppliers"
-          className="text-xs text-slate-700 hover:text-slate-900 flex items-center gap-2 font-bold bg-slate-100 border border-slate-300 px-3.5 py-2 rounded-lg transition-all shadow-2xs w-fit"
+          className="text-xs text-[#4a4a4a] hover:text-[#6d8196] flex items-center gap-2 font-bold bg-slate-100 border border-[#cbcbcb] px-3.5 py-2 rounded-[5px] transition-all shadow-2xs w-fit"
         >
-          <ArrowLeft className="w-4 h-4 text-slate-600" /> Back to Supplier Accounts
+          <ArrowLeft className="w-4 h-4 text-[#6d8196]" /> Back to Supplier Accounts
         </Link>
 
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => window.print()}
-            className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-2xs transition-all"
+            className="bg-slate-100 hover:bg-slate-200 text-[#4a4a4a] border border-[#cbcbcb] px-3.5 py-2 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-2xs transition-all"
           >
-            <Printer className="w-4 h-4 text-slate-600" /> Print Statement
+            <Printer className="w-4 h-4 text-[#6d8196]" /> Print Statement
           </button>
 
           <button
-            onClick={() => setShowPoModal(true)}
-            className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm border border-[#6d8196]/40 transition-all"
+            onClick={() => setShowPoForm(!showPoForm)}
+            className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-4 py-2 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
           >
-            <Plus className="w-4 h-4" /> Bulk Stock Order
+            <Plus className="w-4 h-4" /> {showPoForm ? 'Hide Order Builder' : 'New Stock Purchase Order'}
           </button>
 
           {outstandingVal > 0 && (
             <button
               onClick={() => setShowPayModal(true)}
-              className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
+              className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
             >
               <DollarSign className="w-4 h-4" /> Pay Supplier Dues
             </button>
@@ -409,26 +418,26 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
           <button
             onClick={() => handleWhatsAppReorder()}
-            className="bg-emerald-800 hover:bg-emerald-900 text-white px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-2xs border border-emerald-900/40 transition-all"
+            className="bg-emerald-800 hover:bg-emerald-900 text-white px-3.5 py-2 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-2xs transition-all"
           >
             <MessageSquare className="w-4 h-4" /> WhatsApp Reorder
           </button>
         </div>
       </div>
 
-      {/* SUPPLIER FINANCIAL HEADER & METRICS CARDS (REDESIGNED) */}
-      <div className="print:hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+      {/* SUPPLIER FINANCIAL HEADER & METRICS CARDS */}
+      <div className="print:hidden bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-xs space-y-5">
         {/* Supplier Profile Row */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-5">
-          <div className="space-y-1.5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#cbcbcb] pb-4">
+          <div className="space-y-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-black tracking-tight text-slate-900">{supplier.name}</h1>
+              <h1 className="text-2xl font-extrabold text-[#4a4a4a]">{supplier.name}</h1>
               {outstandingVal > 0 ? (
-                <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-1.5">
+                <span className="px-3 py-1 rounded-[5px] text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5">
                   <AlertCircle className="w-3.5 h-3.5 text-amber-700" /> ₹{outstandingVal.toLocaleString('en-IN')} Due
                 </span>
               ) : (
-                <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1.5">
+                <span className="px-3 py-1 rounded-[5px] text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5">
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> Account Fully Paid
                 </span>
               )}
@@ -453,76 +462,334 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowPoModal(true)}
-              className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
+              onClick={() => setShowPoForm(true)}
+              className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-4 py-2.5 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
             >
-              <ShoppingBag className="w-4 h-4 text-amber-400" /> Create Wholesale Order
+              <ShoppingBag className="w-4 h-4 text-amber-300" /> Create Wholesale Order
             </button>
           </div>
         </div>
 
         {/* Financial Stat Metric Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           {/* Card 1: Outstanding Payable Dues */}
-          <div className={`p-4 rounded-xl border transition-all ${outstandingVal > 0 ? 'bg-amber-50/70 border-amber-200 text-amber-950' : 'bg-slate-50 border-slate-200 text-slate-800'}`}>
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+          <div className={`p-4 rounded-[5px] border ${outstandingVal > 0 ? 'bg-[#ffffe3] border-[#cbcbcb] text-amber-900' : 'bg-slate-50 border-[#cbcbcb] text-slate-800'}`}>
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
               <span>Pending Dues Payable</span>
               <AlertTriangle className={`w-4 h-4 ${outstandingVal > 0 ? 'text-amber-600' : 'text-slate-400'}`} />
             </div>
-            <div className={`text-2xl font-black tracking-tight ${outstandingVal > 0 ? 'text-amber-700' : 'text-slate-700'}`}>
+            <div className={`text-2xl font-black ${outstandingVal > 0 ? 'text-amber-700' : 'text-slate-700'}`}>
               ₹{outstandingVal.toLocaleString('en-IN')}
             </div>
             <p className="text-[11px] text-slate-500 mt-1 font-medium">Unsettled supplier balance</p>
           </div>
 
           {/* Card 2: Total Stock Purchased */}
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-slate-900">
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+          <div className="bg-slate-50 p-4 rounded-[5px] border border-[#cbcbcb] text-slate-900">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
               <span>Total Stock Purchased</span>
               <ShoppingBag className="w-4 h-4 text-indigo-600" />
             </div>
-            <div className="text-2xl font-black tracking-tight text-slate-900">
+            <div className="text-2xl font-black text-[#4a4a4a]">
               ₹{totalPurchasedVal.toLocaleString('en-IN')}
             </div>
             <p className="text-[11px] text-slate-500 mt-1 font-medium">Lifetime purchase total</p>
           </div>
 
           {/* Card 3: Total Paid to Supplier */}
-          <div className="bg-emerald-50/70 p-4 rounded-xl border border-emerald-200 text-emerald-950">
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-emerald-700 mb-1">
+          <div className="bg-emerald-50/70 p-4 rounded-[5px] border border-emerald-200 text-emerald-950">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-emerald-700 mb-1">
               <span>Total Paid to Supplier</span>
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             </div>
-            <div className="text-2xl font-black tracking-tight text-emerald-800">
+            <div className="text-2xl font-black text-emerald-700">
               ₹{totalPaidVal.toLocaleString('en-IN')}
             </div>
             <p className="text-[11px] text-emerald-700 mt-1 font-medium">Cleared financial payouts</p>
           </div>
 
           {/* Card 4: Orders Count */}
-          <div className="bg-blue-50/70 p-4 rounded-xl border border-blue-200 text-blue-950">
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-blue-700 mb-1">
+          <div className="bg-slate-50 p-4 rounded-[5px] border border-[#cbcbcb] text-slate-900">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
               <span>Purchase Orders</span>
-              <Layers className="w-4 h-4 text-blue-600" />
+              <Layers className="w-4 h-4 text-[#6d8196]" />
             </div>
-            <div className="text-2xl font-black tracking-tight text-blue-900">
-              {totalPoCount} <span className="text-sm font-semibold text-blue-700">Orders</span>
+            <div className="text-2xl font-black text-[#6d8196]">
+              {totalPoCount} <span className="text-xs font-semibold text-slate-500">Orders</span>
             </div>
-            <p className="text-[11px] text-blue-700 mt-1 font-medium">Total stock batches</p>
+            <p className="text-[11px] text-slate-500 mt-1 font-medium">Total stock batches</p>
           </div>
         </div>
       </div>
 
+      {/* INLINE WHOLESALE STOCK PURCHASE ORDER BUILDER (INLINE PAGE FORM) */}
+      {showPoForm && (
+        <div className="print:hidden bg-white border-2 border-[#6d8196] rounded-[5px] shadow-md p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-3">
+            <div>
+              <h3 className="text-base font-extrabold text-[#4a4a4a] flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-[#6d8196]" /> New Wholesale Purchase Order Builder
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Supplier: <span className="font-bold text-[#4a4a4a]">{supplier.name}</span>
+              </p>
+            </div>
+            <button
+              onClick={() => setShowPoForm(false)}
+              className="text-slate-400 hover:text-slate-700 p-1 bg-slate-100 rounded-[5px]"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <form onSubmit={handleCreatePo} className="space-y-4 text-xs">
+            {/* Header Fields Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-[5px] border border-[#cbcbcb]">
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold block mb-1">
+                  PO / Bill Ref Number (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={poNumber}
+                  onChange={(e) => setPoNumber(e.target.value)}
+                  placeholder="Auto-generated if blank"
+                  className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196] font-mono text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold block mb-1">
+                  Advance Paid Amount (₹)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={poPaidAmount}
+                  onChange={(e) => setPoPaidAmount(e.target.value)}
+                  placeholder="Full payment if blank"
+                  className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-emerald-700 font-bold focus:outline-none focus:border-[#6d8196] font-mono text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold block mb-1">
+                  Delivery Receiving Mode
+                </label>
+                <select
+                  value={isReceivedImmediately ? 'immediate' : 'godown'}
+                  onChange={(e) => setIsReceivedImmediately(e.target.value === 'immediate')}
+                  className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] font-bold focus:outline-none focus:border-[#6d8196] text-xs"
+                >
+                  <option value="immediate">Direct In-Hand Stock (Instant)</option>
+                  <option value="godown">Pending Godown Arrival (Track Shipment)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* MULTI-SELECT PRODUCTS SECTION */}
+            <div className="border border-[#cbcbcb] rounded-[5px] p-4 bg-slate-50/50 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#cbcbcb] pb-2">
+                <div className="font-extrabold text-[#4a4a4a] text-xs flex items-center gap-2">
+                  <Package className="w-4 h-4 text-[#6d8196]" /> Multi-Select Products from Store Inventory
+                  <span className="bg-[#6d8196] text-white px-2 py-0.5 rounded-full text-[10px]">
+                    {poItems.length} Selected
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowInlineProdModal(true)}
+                    className="text-emerald-700 hover:underline text-[11px] flex items-center gap-1 font-bold bg-emerald-50 px-2.5 py-1 rounded-[5px] border border-emerald-200"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" /> + Create New Product
+                  </button>
+                </div>
+              </div>
+
+              {/* Product Live Search Bar */}
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  value={prodSearchTerm}
+                  onChange={(e) => setProdSearchTerm(e.target.value)}
+                  placeholder="Search products by name or category to multi-select..."
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-[#cbcbcb] rounded-[5px] text-xs text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
+                />
+              </div>
+
+              {/* Multi-Select Products Grid */}
+              <div className="max-h-56 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-1 border border-[#cbcbcb] rounded-[5px] bg-white">
+                {filteredProducts.length === 0 ? (
+                  <p className="col-span-full text-center text-slate-400 text-xs py-4 italic">
+                    No matching products found. Click "+ Create New Product" to add one.
+                  </p>
+                ) : (
+                  filteredProducts.map((prod) => {
+                    const isSelected = selectedProductIds.includes(prod.id);
+                    return (
+                      <div
+                        key={prod.id}
+                        onClick={() => handleToggleProductSelection(prod)}
+                        className={`p-2.5 rounded-[5px] border cursor-pointer transition-all flex items-center justify-between gap-2 ${
+                          isSelected
+                            ? 'bg-emerald-50/80 border-emerald-400 shadow-2xs'
+                            : 'bg-slate-50/70 border-[#cbcbcb] hover:border-[#6d8196] hover:bg-white'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-[#4a4a4a] text-xs truncate">{prod.name}</div>
+                          <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                            Stock: {prod.stockQuantity} {prod.unit || 'pcs'} • Rate: ₹
+                            {prod.purchasePrice || prod.sellingPrice}
+                          </div>
+                        </div>
+
+                        <div className="shrink-0">
+                          {isSelected ? (
+                            <span className="bg-emerald-700 text-white p-1 rounded-full text-[10px] flex items-center gap-1 font-bold px-2">
+                              <Check className="w-3 h-3" /> Added
+                            </span>
+                          ) : (
+                            <span className="bg-slate-200 hover:bg-[#6d8196] hover:text-white text-slate-700 px-2 py-1 rounded-[5px] text-[10px] font-bold transition-colors">
+                              + Select
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* ORDER ITEMS EDITABLE TABLE */}
+            {poItems.length > 0 && (
+              <div className="border border-[#cbcbcb] rounded-[5px] p-3.5 bg-white space-y-3">
+                <div className="font-extrabold text-[#4a4a4a] text-xs pb-1 border-b border-[#cbcbcb]">
+                  Selected Order Items List ({poItems.length})
+                </div>
+
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {poItems.map((item, idx) => {
+                    const matchedProd = products.find((p) => p.id === item.productId);
+                    const lineSubtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
+
+                    return (
+                      <div
+                        key={idx}
+                        className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-50 p-2.5 rounded-[5px] border border-[#cbcbcb]"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-[#4a4a4a] text-xs">
+                            {matchedProd ? matchedProd.name : `Product #${idx + 1}`}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            Stock: {matchedProd?.stockQuantity || 0} {matchedProd?.unit || 'pcs'}
+                          </div>
+                        </div>
+
+                        <div className="w-full sm:w-28">
+                          <label className="text-[9px] uppercase font-bold text-slate-500 block">Unit Cost (₹)</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            required
+                            value={item.price}
+                            onChange={(e) => handlePoItemChange(idx, 'price', e.target.value)}
+                            className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-2 py-1 text-[#4a4a4a] font-mono font-bold text-xs"
+                          />
+                        </div>
+
+                        <div className="w-full sm:w-24">
+                          <label className="text-[9px] uppercase font-bold text-slate-500 block">Order Qty</label>
+                          <input
+                            type="number"
+                            step="1"
+                            required
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) => handlePoItemChange(idx, 'quantity', e.target.value)}
+                            className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-2 py-1 text-[#4a4a4a] font-bold text-xs"
+                          />
+                        </div>
+
+                        <div className="w-full sm:w-28 text-right sm:self-center">
+                          <span className="text-[9px] uppercase font-bold text-slate-400 block">Subtotal</span>
+                          <span className="font-mono font-extrabold text-[#4a4a4a] text-xs">
+                            ₹{lineSubtotal.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePoItem(idx)}
+                          className="text-slate-400 hover:text-rose-600 p-1 self-center"
+                          title="Remove item"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Form Footer & Submit */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-100 p-4 rounded-[5px] border border-[#cbcbcb]">
+              <div className="w-full sm:w-2/3">
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold block mb-1">
+                  Order Notes / Supplier Invoice Ref
+                </label>
+                <input
+                  type="text"
+                  value={poNotes}
+                  onChange={(e) => setPoNotes(e.target.value)}
+                  placeholder="e.g. Wire rolls batch shipment bill ref #456"
+                  className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] text-xs focus:outline-none focus:border-[#6d8196]"
+                />
+              </div>
+
+              <div className="text-right w-full sm:w-auto">
+                <div className="text-[10px] uppercase font-bold text-slate-500">Total Purchase Amount</div>
+                <div className="text-2xl font-extrabold text-[#4a4a4a] font-mono">
+                  ₹{totalOrderItemsCostInPoForm.toLocaleString('en-IN')}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowPoForm(false)}
+                className="w-1/3 bg-slate-100 border border-[#cbcbcb] text-[#4a4a4a] py-2.5 rounded-[5px] font-bold hover:bg-slate-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="w-2/3 bg-[#6d8196] hover:bg-[#5b6f84] text-white py-2.5 rounded-[5px] font-bold shadow-sm transition-all"
+              >
+                Complete & Save Wholesale Purchase Order
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* MAIN CONTENT TABBED CONTAINER */}
-      <div className="print:hidden bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+      <div className="print:hidden bg-white border border-[#cbcbcb] rounded-[5px] shadow-xs overflow-hidden">
         {/* Navigation Tabs Header */}
-        <div className="flex border-b border-slate-200 bg-slate-50/80 text-xs font-bold">
+        <div className="flex border-b border-[#cbcbcb] bg-slate-50 text-xs font-bold">
           <button
             onClick={() => setActiveTab('itemized')}
-            className={`flex-1 py-3.5 px-4 flex items-center justify-center gap-2 border-r border-slate-200 transition-colors ${
+            className={`flex-1 py-3.5 px-4 flex items-center justify-center gap-2 border-r border-[#cbcbcb] transition-colors ${
               activeTab === 'itemized'
                 ? 'bg-white text-[#6d8196] border-b-2 border-b-[#6d8196] font-extrabold shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
+                : 'text-slate-600 hover:text-[#4a4a4a]'
             }`}
           >
             <ShoppingBag className="w-4 h-4 text-[#6d8196]" /> Daily Itemized Purchase Orders
@@ -530,10 +797,10 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
           <button
             onClick={() => setActiveTab('orders')}
-            className={`flex-1 py-3.5 px-4 flex items-center justify-center gap-2 border-r border-slate-200 transition-colors ${
+            className={`flex-1 py-3.5 px-4 flex items-center justify-center gap-2 border-r border-[#cbcbcb] transition-colors ${
               activeTab === 'orders'
                 ? 'bg-white text-[#6d8196] border-b-2 border-b-[#6d8196] font-extrabold shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
+                : 'text-slate-600 hover:text-[#4a4a4a]'
             }`}
           >
             <FileText className="w-4 h-4 text-[#6d8196]" /> Wholesale POs & PDF Receipts ({totalPoCount})
@@ -544,7 +811,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
             className={`flex-1 py-3.5 px-4 flex items-center justify-center gap-2 transition-colors ${
               activeTab === 'ledger'
                 ? 'bg-white text-[#6d8196] border-b-2 border-b-[#6d8196] font-extrabold shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
+                : 'text-slate-600 hover:text-[#4a4a4a]'
             }`}
           >
             <History className="w-4 h-4 text-[#6d8196]" /> Financial Ledger & Dues
@@ -560,8 +827,8 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                 No stock purchase orders recorded for this supplier yet.
                 <div className="mt-3">
                   <button
-                    onClick={() => setShowPoModal(true)}
-                    className="bg-[#6d8196] text-white px-4 py-2 rounded-lg font-bold text-xs"
+                    onClick={() => setShowPoForm(true)}
+                    className="bg-[#6d8196] text-white px-4 py-2 rounded-[5px] font-bold text-xs"
                   >
                     + Create First Purchase Order
                   </button>
@@ -569,23 +836,22 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
               </div>
             ) : (
               Object.entries(orderGroups).map(([dateLabel, pos]) => (
-                <div key={dateLabel} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                <div key={dateLabel} className="border border-[#cbcbcb] rounded-[5px] overflow-hidden bg-white shadow-2xs">
                   {/* Date Section Header */}
-                  <div className="bg-slate-900 text-white px-4 py-3 flex items-center justify-between font-bold">
+                  <div className="bg-[#4a4a4a] text-white px-4 py-2.5 flex items-center justify-between font-bold">
                     <div className="flex items-center gap-2.5">
-                      <Calendar className="w-4 h-4 text-amber-400" />
+                      <Calendar className="w-4 h-4 text-[#ffffe3]" />
                       <span className="text-xs uppercase tracking-wide">{dateLabel}</span>
                     </div>
-                    <span className="text-xs font-semibold text-slate-300 font-mono">
+                    <span className="text-xs font-semibold text-[#ffffe3] font-mono">
                       {pos.length} Order{pos.length > 1 ? 's' : ''} • Day Total: ₹
                       {pos.reduce((sum, po) => sum + po.totalAmount, 0).toLocaleString('en-IN')}
                     </span>
                   </div>
 
                   {/* Orders under Date */}
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-slate-200">
                     {pos.map((po: any) => {
-                      const isExpanded = expandedPoId === po.id || true; // Expand by default for clarity
                       const isCompleted = po.status === 'FULLY_RECEIVED' || po.status === 'COMPLETED';
                       const isPartial = po.status === 'PARTIAL_RECEIVED' || po.status === 'PARTIAL';
 
@@ -593,7 +859,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                         <div key={po.id} className="p-4 space-y-3">
                           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                             <div className="space-y-1">
-                              <div className="flex items-center gap-2.5 font-bold text-slate-900 text-xs flex-wrap">
+                              <div className="flex items-center gap-2.5 font-bold text-[#4a4a4a] text-xs flex-wrap">
                                 <span className="text-[#6d8196] font-mono text-sm">PO #{po.poNumber}</span>
                                 <span className="text-slate-300">•</span>
                                 <span className="text-slate-500 font-medium">
@@ -602,7 +868,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
                                 {/* Receiving Status Badge */}
                                 <span
-                                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1 ${
+                                  className={`px-2.5 py-0.5 rounded-[5px] text-[10px] font-bold flex items-center gap-1 ${
                                     isCompleted
                                       ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                                       : isPartial
@@ -627,14 +893,14 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                             {/* Action Buttons for this PO */}
                             <div className="flex items-center gap-2 flex-wrap">
                               <div className="text-right pr-2">
-                                <div className="font-black text-base text-slate-900 font-mono">
+                                <div className="font-extrabold text-base text-[#4a4a4a] font-mono">
                                   ₹{po.totalAmount.toLocaleString('en-IN')}
                                 </div>
                               </div>
 
                               <button
                                 onClick={() => openGrnModal(po)}
-                                className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-2xs"
+                                className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-2xs"
                                 title="Log Godown Shipment Arrival"
                               >
                                 <PackageCheck className="w-3.5 h-3.5 text-amber-700" /> Log GRN / Receive Stock
@@ -642,7 +908,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
                               <button
                                 onClick={() => handlePrintPo(po)}
-                                className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-2xs"
+                                className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-[#cbcbcb] px-3 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-2xs"
                                 title="Print Wholesale Purchase Order PDF"
                               >
                                 <Printer className="w-3.5 h-3.5 text-slate-600" /> Printable PDF
@@ -650,7 +916,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
                               <button
                                 onClick={() => handleWhatsAppReorder(po)}
-                                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 p-1.5 rounded-lg text-xs font-bold"
+                                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 p-1.5 rounded-[5px] text-xs font-bold"
                                 title="Send PO on WhatsApp"
                               >
                                 <Share2 className="w-3.5 h-3.5 text-emerald-700" />
@@ -659,10 +925,10 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                           </div>
 
                           {/* Itemized Stock Table for this Purchase Order */}
-                          <div className="bg-slate-50/80 rounded-xl border border-slate-200 p-3 overflow-x-auto">
+                          <div className="bg-slate-50 rounded-[5px] border border-[#cbcbcb] p-3 overflow-x-auto">
                             <table className="w-full text-left text-xs border-collapse">
                               <thead>
-                                <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px]">
+                                <tr className="border-b border-[#cbcbcb] text-slate-500 font-bold uppercase text-[10px]">
                                   <th className="pb-2 px-2">#</th>
                                   <th className="pb-2 px-2">Product Name & Spec</th>
                                   <th className="pb-2 px-2 text-center">Unit Cost</th>
@@ -671,7 +937,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                                   <th className="pb-2 px-2 text-right">Total Cost</th>
                                 </tr>
                               </thead>
-                              <tbody className="divide-y divide-slate-200/80">
+                              <tbody className="divide-y divide-slate-200">
                                 {po.items?.map((item: any, idx: number) => {
                                   const recQty = item.receivedQuantity ?? (isCompleted ? item.quantity : 0);
                                   const pendingQty = Math.max(0, item.quantity - recQty);
@@ -679,7 +945,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                                   return (
                                     <tr key={item.id} className="hover:bg-white transition-colors">
                                       <td className="py-2 px-2 font-mono text-slate-400">{idx + 1}</td>
-                                      <td className="py-2 px-2 font-bold text-slate-900">
+                                      <td className="py-2 px-2 font-bold text-[#4a4a4a]">
                                         <div className="flex items-center gap-2">
                                           <Package className="w-3.5 h-3.5 text-[#6d8196] shrink-0" />
                                           <span>{item.product?.name || item.productName || 'Stock Product'}</span>
@@ -693,7 +959,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                                       </td>
                                       <td className="py-2 px-2 text-center">
                                         <span
-                                          className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-extrabold ${
+                                          className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-bold ${
                                             recQty >= item.quantity
                                               ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                                               : recQty > 0
@@ -709,7 +975,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                                           </span>
                                         )}
                                       </td>
-                                      <td className="py-2 px-2 text-right font-black text-slate-900 font-mono">
+                                      <td className="py-2 px-2 text-right font-extrabold text-[#4a4a4a] font-mono">
                                         ₹{item.total.toLocaleString('en-IN')}
                                       </td>
                                     </tr>
@@ -731,21 +997,21 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         {/* TAB 2: PURCHASE ORDERS & PDF RECEIPTS LIST */}
         {activeTab === 'orders' && (
           <div className="p-5 text-xs space-y-4">
-            <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
-              <span className="font-bold text-slate-700">Wholesale Purchase Orders Summary</span>
+            <div className="flex items-center justify-between bg-slate-50 p-3 rounded-[5px] border border-[#cbcbcb]">
+              <span className="font-bold text-[#4a4a4a]">Wholesale Purchase Orders Summary</span>
               <button
-                onClick={() => setShowPoModal(true)}
-                className="bg-[#6d8196] text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"
+                onClick={() => setShowPoForm(true)}
+                className="bg-[#6d8196] text-white px-3 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5"
               >
                 + New Wholesale Order
               </button>
             </div>
 
             {supplier.purchaseOrders?.length > 0 ? (
-              <div className="overflow-x-auto rounded-xl border border-slate-200">
+              <div className="overflow-x-auto rounded-[5px] border border-[#cbcbcb]">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-900 text-white font-bold text-[11px] uppercase tracking-wider">
+                    <tr className="bg-[#4a4a4a] text-white font-bold text-[11px] uppercase tracking-wider">
                       <th className="py-3 px-3">PO Number</th>
                       <th className="py-3 px-3">Date</th>
                       <th className="py-3 px-3">Total Amount</th>
@@ -766,7 +1032,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                           <td className="py-3 px-3 text-slate-600 font-medium">
                             {new Date(po.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </td>
-                          <td className="py-3 px-3 font-black text-slate-900 font-mono">
+                          <td className="py-3 px-3 font-extrabold text-[#4a4a4a] font-mono">
                             ₹{po.totalAmount.toLocaleString('en-IN')}
                           </td>
                           <td className="py-3 px-3 font-bold text-emerald-700 font-mono">
@@ -777,7 +1043,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                           </td>
                           <td className="py-3 px-3">
                             <span
-                              className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
+                              className={`px-2.5 py-1 rounded-[5px] text-[10px] font-bold ${
                                 isCompleted
                                   ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                                   : isPartial
@@ -798,7 +1064,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                               </button>
                               <button
                                 onClick={() => handlePrintPo(po)}
-                                className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1"
+                                className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-[#cbcbcb] px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1"
                               >
                                 <Printer className="w-3.5 h-3.5 text-slate-600" /> PDF Order
                               </button>
@@ -823,20 +1089,20 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
               supplier.ledger.map((entry: any) => (
                 <div
                   key={entry.id}
-                  className={`p-4 rounded-xl border flex items-center justify-between text-xs transition-all ${
-                    entry.type === 'PURCHASE' ? 'bg-amber-50/60 border-amber-200' : 'bg-emerald-50/60 border-emerald-200'
+                  className={`p-4 rounded-[5px] border flex items-center justify-between text-xs transition-all ${
+                    entry.type === 'PURCHASE' ? 'bg-[#ffffe3] border-[#cbcbcb]' : 'bg-emerald-50/60 border-emerald-200'
                   }`}
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`px-2.5 py-0.5 rounded-md text-[10px] font-extrabold ${
+                        className={`px-2.5 py-0.5 rounded-[5px] text-[10px] font-bold ${
                           entry.type === 'PURCHASE' ? 'bg-amber-700 text-white' : 'bg-emerald-700 text-white'
                         }`}
                       >
                         {entry.type}
                       </span>
-                      <span className="font-bold text-slate-900 text-xs">{entry.notes}</span>
+                      <span className="font-bold text-[#4a4a4a] text-xs">{entry.notes}</span>
                     </div>
                     <div className="text-[11px] text-slate-500">
                       {new Date(entry.createdAt).toLocaleString('en-IN', {
@@ -851,7 +1117,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
                   <div className="text-right">
                     <div
-                      className={`font-black text-base font-mono ${
+                      className={`font-extrabold text-base font-mono ${
                         entry.type === 'PURCHASE' ? 'text-amber-700' : 'text-emerald-700'
                       }`}
                     >
@@ -872,11 +1138,11 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
       {/* GODOWN GOODS RECEIVING NOTE (GRN) MODAL */}
       {showGrnModal && selectedPoForGrn && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-[5px] max-w-2xl w-full p-6 space-y-5 shadow-2xl border border-[#cbcbcb]">
+            <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-3">
               <div>
-                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <h3 className="text-base font-extrabold text-[#4a4a4a] flex items-center gap-2">
                   <PackageCheck className="w-5 h-5 text-amber-600" /> Log Godown Stock Arrival (GRN)
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">PO #{selectedPoForGrn.poNumber} • Verify arrived vs missing items</p>
@@ -887,17 +1153,17 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-amber-900 text-xs">
+              <div className="bg-[#ffffe3] p-3 rounded-[5px] border border-[#cbcbcb] text-amber-900 text-xs">
                 <p className="font-semibold">
                   📦 Enter the total received quantity for each item when stock arrives at your central godown.
                   The store inventory will be automatically incremented by newly arrived items.
                 </p>
               </div>
 
-              <div className="overflow-x-auto border border-slate-200 rounded-xl">
+              <div className="overflow-x-auto border border-[#cbcbcb] rounded-[5px]">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-900 text-white font-bold text-[11px] uppercase">
+                    <tr className="bg-[#4a4a4a] text-white font-bold text-[11px] uppercase">
                       <th className="py-2.5 px-3">Product Name</th>
                       <th className="py-2.5 px-3 text-center">Ordered Qty</th>
                       <th className="py-2.5 px-3 text-center">Received at Godown</th>
@@ -911,7 +1177,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
                       return (
                         <tr key={item.id} className="hover:bg-slate-50">
-                          <td className="py-3 px-3 font-bold text-slate-900">
+                          <td className="py-3 px-3 font-bold text-[#4a4a4a]">
                             {item.product?.name || item.productName || 'Stock Product'}
                           </td>
                           <td className="py-3 px-3 text-center font-extrabold text-slate-800">
@@ -930,14 +1196,14 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                                   [item.id]: Math.min(item.quantity, Math.max(0, parseFloat(e.target.value) || 0)),
                                 })
                               }
-                              className="w-24 text-center bg-white border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-900 focus:outline-none focus:border-amber-500 shadow-2xs"
+                              className="w-24 text-center bg-white border border-[#cbcbcb] rounded-[5px] px-2 py-1 font-bold text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
                             />
                           </td>
                           <td className="py-3 px-3 text-right font-mono">
                             {pending > 0 ? (
                               <span className="text-red-600 font-bold">{pending} {item.product?.unit || 'pcs'} pending</span>
                             ) : (
-                              <span className="text-emerald-700 font-extrabold flex items-center justify-end gap-1">
+                              <span className="text-emerald-700 font-bold flex items-center justify-end gap-1">
                                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Verified All
                               </span>
                             )}
@@ -953,7 +1219,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                 <button
                   type="button"
                   onClick={() => setShowGrnModal(false)}
-                  className="w-1/2 bg-slate-100 border border-slate-300 text-slate-700 py-2.5 rounded-xl font-bold hover:bg-slate-200"
+                  className="w-1/2 bg-slate-100 border border-[#cbcbcb] text-[#4a4a4a] py-2.5 rounded-[5px] font-bold hover:bg-slate-200"
                 >
                   Cancel
                 </button>
@@ -961,7 +1227,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                   type="button"
                   disabled={savingGrn}
                   onClick={handleSaveGrn}
-                  className="w-1/2 bg-amber-600 hover:bg-amber-700 text-white py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2"
+                  className="w-1/2 bg-[#6d8196] hover:bg-[#5b6f84] text-white py-2.5 rounded-[5px] font-bold shadow-sm transition-all flex items-center justify-center gap-2"
                 >
                   {savingGrn ? (
                     'Saving GRN Entry...'
@@ -979,15 +1245,15 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
       {/* RECORD SUPPLIER PAYMENT MODAL */}
       {showPayModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-            <h3 className="text-base font-black text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <DollarSign className="w-5 h-5 text-emerald-600" /> Record Supplier Payment Payout
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-[5px] max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#cbcbcb]">
+            <h3 className="text-base font-extrabold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-3">
+              <DollarSign className="w-5 h-5 text-emerald-700" /> Record Supplier Payment Payout
             </h3>
 
             <form onSubmit={handleRecordPayment} className="space-y-4 text-xs">
               <div>
-                <label className="text-slate-600 uppercase text-[10px] font-extrabold">Payment Amount (₹)</label>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Payment Amount (₹)</label>
                 <input
                   type="number"
                   required
@@ -996,18 +1262,18 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                   value={payAmount}
                   onChange={(e) => setPayAmount(e.target.value)}
                   placeholder={`Max ₹${outstandingVal.toLocaleString('en-IN')}`}
-                  className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-emerald-700 font-black text-xl focus:outline-none focus:border-emerald-600 font-mono"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-4 py-2.5 text-emerald-700 font-black text-xl focus:outline-none focus:border-[#6d8196] font-mono"
                 />
               </div>
 
               <div>
-                <label className="text-slate-600 uppercase text-[10px] font-extrabold">Payment Ref / Notes</label>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Payment Ref / Notes</label>
                 <input
                   type="text"
                   value={payNotes}
                   onChange={(e) => setPayNotes(e.target.value)}
                   placeholder="e.g. Paid via NEFT / UPI Bank Transfer"
-                  className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#6d8196]"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
                 />
               </div>
 
@@ -1015,13 +1281,13 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                 <button
                   type="button"
                   onClick={() => setShowPayModal(false)}
-                  className="w-1/2 bg-slate-100 border border-slate-300 text-slate-700 py-2.5 rounded-xl font-bold hover:bg-slate-200"
+                  className="w-1/2 bg-slate-100 border border-[#cbcbcb] text-[#4a4a4a] py-2.5 rounded-[5px] font-bold hover:bg-slate-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 bg-emerald-700 hover:bg-emerald-800 text-white py-2.5 rounded-xl font-bold shadow-sm"
+                  className="w-1/2 bg-emerald-700 hover:bg-emerald-800 text-white py-2.5 rounded-[5px] font-bold shadow-sm"
                 >
                   Submit Payment
                 </button>
@@ -1031,214 +1297,28 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         </div>
       )}
 
-      {/* BULK STOCK PURCHASE ORDER MODAL */}
-      {showPoModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-3xl w-full p-6 space-y-5 shadow-2xl max-h-[90vh] flex flex-col border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5 text-[#6d8196]" /> Wholesale Bulk Stock Order Builder
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">Supplier: <span className="font-bold text-slate-900">{supplier.name}</span></p>
-              </div>
-              <button onClick={() => setShowPoModal(false)} className="text-slate-400 hover:text-slate-700">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreatePo} className="flex-1 flex flex-col min-h-0 space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 shrink-0">
-                <div>
-                  <label className="text-slate-600 uppercase text-[10px] font-extrabold">PO / Reference #</label>
-                  <input
-                    type="text"
-                    value={poNumber}
-                    onChange={(e) => setPoNumber(e.target.value)}
-                    placeholder="Auto-generated if blank"
-                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#6d8196] font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-slate-600 uppercase text-[10px] font-extrabold">Advance Paid Amount (₹)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={poPaidAmount}
-                    onChange={(e) => setPoPaidAmount(e.target.value)}
-                    placeholder="Full payment if blank"
-                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-emerald-700 font-bold focus:outline-none focus:border-[#6d8196] font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-slate-600 uppercase text-[10px] font-extrabold">Delivery Receiving Mode</label>
-                  <select
-                    value={isReceivedImmediately ? 'immediate' : 'godown'}
-                    onChange={(e) => setIsReceivedImmediately(e.target.value === 'immediate')}
-                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:border-[#6d8196]"
-                  >
-                    <option value="immediate">Direct In-Hand Stock (Instant)</option>
-                    <option value="godown">Pending Godown Arrival (Track Shipment)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Items List Builder */}
-              <div className="flex-1 overflow-y-auto min-h-0 border border-slate-200 rounded-xl p-3.5 space-y-3 bg-slate-50/60">
-                <div className="flex items-center justify-between font-extrabold text-slate-800 pb-2 border-b border-slate-200">
-                  <span className="flex items-center gap-1.5 text-xs">
-                    <Package className="w-4 h-4 text-[#6d8196]" /> Itemized Products Order List ({poItems.length})
-                  </span>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowInlineProdModal(true)}
-                      className="text-emerald-700 hover:underline text-[11px] flex items-center gap-1 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200"
-                    >
-                      <PlusCircle className="w-3.5 h-3.5" /> + New Product
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleAddPoItem}
-                      className="bg-white text-slate-800 hover:bg-slate-100 text-[11px] flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg border border-slate-300 shadow-2xs"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-[#6d8196]" /> Add Product Line
-                    </button>
-                  </div>
-                </div>
-
-                {poItems.map((item, idx) => (
-                  <div key={idx} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
-                    <div className="flex-1 min-w-0">
-                      <MaterialSelect
-                        label={`Select Stock Product #${idx + 1}`}
-                        value={item.productId}
-                        onChange={(val) => handlePoItemChange(idx, 'productId', val)}
-                        options={[
-                          { value: '', label: '-- Select Store Product --' },
-                          ...products.map((p) => ({
-                            value: p.id,
-                            label: `${p.name} (Stock: ${p.stockQuantity} ${p.unit || 'pcs'}) - ₹${p.purchasePrice || p.sellingPrice}`,
-                          })),
-                        ]}
-                      />
-                    </div>
-
-                    <div className="w-full sm:w-28">
-                      <label className="text-[9px] uppercase font-extrabold text-slate-500">Unit Wholesale Cost (₹)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        required
-                        value={item.price}
-                        onChange={(e) => handlePoItemChange(idx, 'price', e.target.value)}
-                        placeholder="Rate"
-                        className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-900 font-mono font-bold text-xs"
-                      />
-                    </div>
-
-                    <div className="w-full sm:w-24">
-                      <label className="text-[9px] uppercase font-extrabold text-slate-500">Qty</label>
-                      <input
-                        type="number"
-                        step="1"
-                        required
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => handlePoItemChange(idx, 'quantity', e.target.value)}
-                        placeholder="Qty"
-                        className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-900 font-bold text-xs"
-                      />
-                    </div>
-
-                    <div className="w-full sm:w-28 text-right sm:self-end sm:pb-1">
-                      <span className="text-[9px] uppercase font-extrabold text-slate-400 block">Subtotal</span>
-                      <span className="font-mono font-black text-slate-900 text-xs">
-                        ₹{((parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0)).toLocaleString('en-IN')}
-                      </span>
-                    </div>
-
-                    {poItems.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemovePoItem(idx)}
-                        className="text-slate-400 hover:text-red-600 p-1.5 self-center"
-                        title="Remove Item"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Order Total Footer & Notes */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900 text-white p-4 rounded-xl">
-                <div className="w-full sm:w-2/3">
-                  <label className="text-slate-300 uppercase text-[9px] font-extrabold">Order Notes / Supplier Invoice Ref</label>
-                  <input
-                    type="text"
-                    value={poNotes}
-                    onChange={(e) => setPoNotes(e.target.value)}
-                    placeholder="e.g. Wire rolls shipment bill ref #456"
-                    className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white placeholder-slate-400 text-xs focus:outline-none focus:border-amber-400"
-                  />
-                </div>
-
-                <div className="text-right w-full sm:w-auto">
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Total Purchase Amount</div>
-                  <div className="text-xl font-black text-amber-400 font-mono">
-                    ₹{totalOrderItemsCostInPoModal.toLocaleString('en-IN')}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setShowPoModal(false)}
-                  className="w-1/2 bg-slate-100 border border-slate-300 text-slate-700 py-2.5 rounded-xl font-bold hover:bg-slate-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="w-1/2 bg-[#6d8196] hover:bg-[#5b6f84] text-white py-2.5 rounded-xl font-bold shadow-sm transition-all"
-                >
-                  Complete & Generate Purchase Order
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
       {/* INLINE CREATE PRODUCT MODAL */}
       {showInlineProdModal && (
-        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-            <h3 className="text-base font-black text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Package className="w-4 h-4 text-emerald-600" /> Create Store Product Line
+        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-[5px] max-w-sm w-full p-6 space-y-4 shadow-2xl border border-[#cbcbcb]">
+            <h3 className="text-base font-extrabold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-3">
+              <Package className="w-4 h-4 text-emerald-700" /> Create Store Product Line
             </h3>
             <form onSubmit={handleCreateInlineProduct} className="space-y-3.5 text-xs">
               <div>
-                <label className="text-slate-600 uppercase text-[10px] font-extrabold">Product Name *</label>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Product Name *</label>
                 <input
                   type="text"
                   required
                   value={newProdName}
                   onChange={(e) => setNewProdName(e.target.value)}
                   placeholder="e.g. Havells 4sqmm Red Wire"
-                  className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#6d8196]"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-600 uppercase text-[10px] font-extrabold">Selling Price (₹) *</label>
+                  <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Selling Price (₹) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -1246,18 +1326,18 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                     value={newProdPrice}
                     onChange={(e) => setNewProdPrice(e.target.value)}
                     placeholder="MRP / Selling"
-                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold focus:outline-none focus:border-[#6d8196]"
+                    className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] font-mono font-bold focus:outline-none focus:border-[#6d8196]"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-600 uppercase text-[10px] font-extrabold">Wholesale Cost (₹)</label>
+                  <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Wholesale Cost (₹)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={newProdCost}
                     onChange={(e) => setNewProdCost(e.target.value)}
                     placeholder="Purchase Rate"
-                    className="w-full mt-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold focus:outline-none focus:border-[#6d8196]"
+                    className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] font-mono font-bold focus:outline-none focus:border-[#6d8196]"
                   />
                 </div>
               </div>
@@ -1266,13 +1346,13 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                 <button
                   type="button"
                   onClick={() => setShowInlineProdModal(false)}
-                  className="w-1/2 bg-slate-100 border border-slate-300 text-slate-700 py-2 rounded-xl font-bold hover:bg-slate-200"
+                  className="w-1/2 bg-slate-100 border border-[#cbcbcb] text-[#4a4a4a] py-2 rounded-[5px] font-bold hover:bg-slate-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 bg-emerald-700 hover:bg-emerald-800 text-white py-2 rounded-xl font-bold shadow-sm"
+                  className="w-1/2 bg-emerald-700 hover:bg-emerald-800 text-white py-2 rounded-[5px] font-bold shadow-sm"
                 >
                   Save & Select
                 </button>
