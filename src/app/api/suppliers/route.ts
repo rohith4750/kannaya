@@ -78,3 +78,36 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message || 'Supplier operation failed' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Supplier ID is required' }, { status: 400 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete supplier ledger entries
+      await tx.supplierLedger.deleteMany({ where: { supplierId: id } });
+
+      // 2. Delete purchase order items & purchase orders
+      const pos = await tx.purchaseOrder.findMany({ where: { supplierId: id }, select: { id: true } });
+      const poIds = pos.map((p) => p.id);
+
+      if (poIds.length > 0) {
+        await tx.purchaseOrderItem.deleteMany({ where: { purchaseOrderId: { in: poIds } } });
+        await tx.purchaseOrder.deleteMany({ where: { supplierId: id } });
+      }
+
+      // 3. Delete supplier profile
+      await tx.supplier.delete({ where: { id } });
+    });
+
+    return NextResponse.json({ success: true, message: 'Supplier account deleted successfully' });
+  } catch (error: any) {
+    console.error('Suppliers DELETE error:', error);
+    return NextResponse.json({ error: error.message || 'Failed to delete supplier' }, { status: 500 });
+  }
+}

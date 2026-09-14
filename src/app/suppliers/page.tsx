@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Truck, Plus, DollarSign, MessageSquare, Phone, Mail, Building, X, FileText } from 'lucide-react';
+import { Truck, Plus, DollarSign, MessageSquare, Phone, Mail, Building, X, FileText, Trash2 } from 'lucide-react';
 
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -74,6 +74,23 @@ export default function SuppliersPage() {
         setPaymentAmount('');
         setPaymentNotes('');
         loadSuppliers();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteSupplier = async (supplierId: string, supplierName: string) => {
+    if (!window.confirm(`Are you sure you want to delete supplier "${supplierName}"? This will also remove their purchase orders and ledger history.`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/suppliers?id=${supplierId}`, { method: 'DELETE' });
+      if (res.ok) {
+        loadSuppliers();
+      } else {
+        const err = await res.json();
+        alert(`Error deleting supplier: ${err.error}`);
       }
     } catch (e) {
       console.error(e);
@@ -192,6 +209,14 @@ export default function SuppliersPage() {
                 title="Send Low Stock WhatsApp Reorder"
               >
                 <MessageSquare className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => handleDeleteSupplier(s.id, s.name)}
+                className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 p-2 rounded-[5px] text-xs transition-colors"
+                title="Delete Supplier Account"
+              >
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>

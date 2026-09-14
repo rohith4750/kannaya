@@ -67,10 +67,11 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
   const [newProdPrice, setNewProdPrice] = useState('');
   const [newProdCost, setNewProdCost] = useState('');
 
-  // GRN Godown Receiving Modal State
+  // GRN Godown Receiving Modal State & Checkboxes
   const [showGrnModal, setShowGrnModal] = useState(false);
   const [selectedPoForGrn, setSelectedPoForGrn] = useState<any>(null);
   const [grnReceivedQtyMap, setGrnReceivedQtyMap] = useState<{ [itemId: string]: number }>({});
+  const [grnCheckedItemsMap, setGrnCheckedItemsMap] = useState<{ [itemId: string]: boolean }>({});
   const [savingGrn, setSavingGrn] = useState(false);
 
   // PDF / Print Modal State
@@ -119,6 +120,43 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         setPayAmount('');
         setPayNotes('');
         loadSupplierData();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Delete Purchase Order
+  const handleDeletePo = async (poId: string, poNum: string) => {
+    if (!window.confirm(`Are you sure you want to delete Purchase Order #${poNum}? This will roll back received stock and supplier dues.`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/purchases?id=${poId}`, { method: 'DELETE' });
+      if (res.ok) {
+        loadSupplierData();
+      } else {
+        const err = await res.json();
+        alert(`Failed to delete PO: ${err.error}`);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Delete Supplier Account
+  const handleDeleteSupplierAccount = async () => {
+    if (!supplier) return;
+    if (!window.confirm(`Are you sure you want to delete supplier account "${supplier.name}"? All purchase orders and ledgers for this supplier will be permanently deleted.`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/suppliers?id=${supplier.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        window.location.href = '/suppliers';
+      } else {
+        const err = await res.json();
+        alert(`Failed to delete supplier: ${err.error}`);
       }
     } catch (e) {
       console.error(e);
@@ -196,14 +234,58 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
   // Godown GRN Submission
   const openGrnModal = (po: any) => {
     setSelectedPoForGrn(po);
-    const initialMap: { [itemId: string]: number } = {};
+    const initialQtyMap: { [itemId: string]: number } = {};
+    const initialCheckMap: { [itemId: string]: boolean } = {};
     if (po.items) {
       po.items.forEach((item: any) => {
-        initialMap[item.id] = item.receivedQuantity ?? (po.status === 'COMPLETED' || po.status === 'FULLY_RECEIVED' ? item.quantity : 0);
+        const alreadyRec = item.receivedQuantity || 0;
+        initialQtyMap[item.id] = alreadyRec;
+        initialCheckMap[item.id] = alreadyRec > 0;
       });
     }
-    setGrnReceivedQtyMap(initialMap);
+    setGrnReceivedQtyMap(initialQtyMap);
+    setGrnCheckedItemsMap(initialCheckMap);
     setShowGrnModal(true);
+  };
+
+  const handleToggleGrnItemCheck = (item: any) => {
+    const isCurrentlyChecked = !!grnCheckedItemsMap[item.id];
+    const newCheckState = !isCurrentlyChecked;
+
+    setGrnCheckedItemsMap({
+      ...grnCheckedItemsMap,
+      [item.id]: newCheckState,
+    });
+
+    if (newCheckState) {
+      if (!grnReceivedQtyMap[item.id] || grnReceivedQtyMap[item.id] === 0) {
+        setGrnReceivedQtyMap({
+          ...grnReceivedQtyMap,
+          [item.id]: item.quantity,
+        });
+      }
+    } else {
+      setGrnReceivedQtyMap({
+        ...grnReceivedQtyMap,
+        [item.id]: 0,
+      });
+    }
+  };
+
+  const handleToggleAllGrnItems = () => {
+    if (!selectedPoForGrn || !selectedPoForGrn.items) return;
+    const allChecked = selectedPoForGrn.items.every((it: any) => grnCheckedItemsMap[it.id]);
+
+    const newCheckMap: { [itemId: string]: boolean } = {};
+    const newQtyMap: { [itemId: string]: number } = {};
+
+    selectedPoForGrn.items.forEach((it: any) => {
+      newCheckMap[it.id] = !allChecked;
+      newQtyMap[it.id] = !allChecked ? it.quantity : 0;
+    });
+
+    setGrnCheckedItemsMap(newCheckMap);
+    setGrnReceivedQtyMap(newQtyMap);
   };
 
   const handleSaveGrn = async () => {
@@ -212,7 +294,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
     try {
       const itemsReceived = Object.entries(grnReceivedQtyMap).map(([itemId, receivedQty]) => ({
         itemId,
-        receivedQty,
+        receivedQty: grnCheckedItemsMap[itemId] ? receivedQty : 0,
       }));
 
       const res = await fetch('/api/purchases', {
@@ -281,7 +363,6 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         const prodData = await prodRes.json();
         if (Array.isArray(prodData)) {
           setProducts(prodData);
-          // Auto select newly created product
           const newPrice = (data.purchasePrice || data.sellingPrice || 0).toString();
           setPoItems([...poItems, { productId: data.id, price: newPrice, quantity: '1' }]);
           setSelectedProductIds([...selectedProductIds, data.id]);
@@ -374,6 +455,11 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
     return sum + p * q;
   }, 0);
 
+  const allGrnItemsChecked =
+    selectedPoForGrn?.items &&
+    selectedPoForGrn.items.length > 0 &&
+    selectedPoForGrn.items.every((it: any) => grnCheckedItemsMap[it.id]);
+
   return (
     <div className="space-y-5 w-full max-w-7xl mx-auto pb-12">
       {/* Printable PO Modal (Hidden when not printing) */}
@@ -421,6 +507,14 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
             className="bg-emerald-800 hover:bg-emerald-900 text-white px-3.5 py-2 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-2xs transition-all"
           >
             <MessageSquare className="w-4 h-4" /> WhatsApp Reorder
+          </button>
+
+          <button
+            onClick={handleDeleteSupplierAccount}
+            className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 px-3.5 py-2 rounded-[5px] text-xs font-bold flex items-center gap-1.5 transition-all"
+            title="Delete Supplier Account"
+          >
+            <Trash2 className="w-4 h-4" /> Delete Supplier
           </button>
         </div>
       </div>
@@ -567,7 +661,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                   step="0.01"
                   value={poPaidAmount}
                   onChange={(e) => setPoPaidAmount(e.target.value)}
-                  placeholder="Full payment if blank"
+                  placeholder="Enter paid amount"
                   className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-emerald-700 font-bold focus:outline-none focus:border-[#6d8196] font-mono text-xs"
                 />
               </div>
@@ -921,6 +1015,14 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                               >
                                 <Share2 className="w-3.5 h-3.5 text-emerald-700" />
                               </button>
+
+                              <button
+                                onClick={() => handleDeletePo(po.id, po.poNumber)}
+                                className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 p-1.5 rounded-[5px] text-xs font-bold transition-colors"
+                                title="Delete Purchase Order"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                           </div>
 
@@ -1068,6 +1170,13 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                               >
                                 <Printer className="w-3.5 h-3.5 text-slate-600" /> PDF Order
                               </button>
+                              <button
+                                onClick={() => handleDeletePo(po.id, po.poNumber)}
+                                className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1 transition-colors"
+                                title="Delete Purchase Order"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" /> Delete
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1136,7 +1245,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         )}
       </div>
 
-      {/* GODOWN GOODS RECEIVING NOTE (GRN) MODAL */}
+      {/* GODOWN GOODS RECEIVING NOTE (GRN) MODAL WITH ITEM CHECKBOXES */}
       {showGrnModal && selectedPoForGrn && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-[5px] max-w-2xl w-full p-6 space-y-5 shadow-2xl border border-[#cbcbcb]">
@@ -1145,7 +1254,9 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                 <h3 className="text-base font-extrabold text-[#4a4a4a] flex items-center gap-2">
                   <PackageCheck className="w-5 h-5 text-amber-600" /> Log Godown Stock Arrival (GRN)
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">PO #{selectedPoForGrn.poNumber} • Verify arrived vs missing items</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  PO #{selectedPoForGrn.poNumber} • Check off only the items that arrived at your godown
+                </p>
               </div>
               <button onClick={() => setShowGrnModal(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
@@ -1155,8 +1266,8 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
             <div className="space-y-4 text-xs">
               <div className="bg-[#ffffe3] p-3 rounded-[5px] border border-[#cbcbcb] text-amber-900 text-xs">
                 <p className="font-semibold">
-                  📦 Enter the total received quantity for each item when stock arrives at your central godown.
-                  The store inventory will be automatically incremented by newly arrived items.
+                  📦 Check the box next to each item that has arrived in your godown.
+                  Only checked items will be added to store stock inventory!
                 </p>
               </div>
 
@@ -1164,21 +1275,40 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-[#4a4a4a] text-white font-bold text-[11px] uppercase">
+                      <th className="py-2.5 px-3 text-center w-12">
+                        <input
+                          type="checkbox"
+                          checked={!!allGrnItemsChecked}
+                          onChange={handleToggleAllGrnItems}
+                          className="w-4 h-4 cursor-pointer accent-[#6d8196]"
+                          title="Select All Items Arrived"
+                        />
+                      </th>
                       <th className="py-2.5 px-3">Product Name</th>
                       <th className="py-2.5 px-3 text-center">Ordered Qty</th>
-                      <th className="py-2.5 px-3 text-center">Received at Godown</th>
-                      <th className="py-2.5 px-3 text-right">Pending / Missing</th>
+                      <th className="py-2.5 px-3 text-center">Arrived Qty</th>
+                      <th className="py-2.5 px-3 text-right">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
                     {selectedPoForGrn.items?.map((item: any) => {
+                      const isChecked = !!grnCheckedItemsMap[item.id];
                       const curVal = grnReceivedQtyMap[item.id] ?? 0;
-                      const pending = Math.max(0, item.quantity - curVal);
 
                       return (
-                        <tr key={item.id} className="hover:bg-slate-50">
+                        <tr key={item.id} className={isChecked ? 'bg-emerald-50/60' : 'hover:bg-slate-50'}>
+                          <td className="py-3 px-3 text-center">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => handleToggleGrnItemCheck(item)}
+                              className="w-4 h-4 cursor-pointer accent-emerald-700"
+                            />
+                          </td>
                           <td className="py-3 px-3 font-bold text-[#4a4a4a]">
-                            {item.product?.name || item.productName || 'Stock Product'}
+                            <div className="flex items-center gap-1.5">
+                              <span>{item.product?.name || item.productName || 'Stock Product'}</span>
+                            </div>
                           </td>
                           <td className="py-3 px-3 text-center font-extrabold text-slate-800">
                             {item.quantity} {item.product?.unit || 'pcs'}
@@ -1189,23 +1319,29 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                               min="0"
                               max={item.quantity}
                               step="1"
+                              disabled={!isChecked}
                               value={curVal}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                const val = Math.min(item.quantity, Math.max(0, parseFloat(e.target.value) || 0));
                                 setGrnReceivedQtyMap({
                                   ...grnReceivedQtyMap,
-                                  [item.id]: Math.min(item.quantity, Math.max(0, parseFloat(e.target.value) || 0)),
-                                })
-                              }
-                              className="w-24 text-center bg-white border border-[#cbcbcb] rounded-[5px] px-2 py-1 font-bold text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
+                                  [item.id]: val,
+                                });
+                              }}
+                              className={`w-24 text-center border rounded-[5px] px-2 py-1 font-bold ${
+                                isChecked
+                                  ? 'bg-white border-emerald-400 text-emerald-900 focus:outline-none focus:border-emerald-600'
+                                  : 'bg-slate-100 border-[#cbcbcb] text-slate-400 cursor-not-allowed'
+                              }`}
                             />
                           </td>
                           <td className="py-3 px-3 text-right font-mono">
-                            {pending > 0 ? (
-                              <span className="text-red-600 font-bold">{pending} {item.product?.unit || 'pcs'} pending</span>
-                            ) : (
-                              <span className="text-emerald-700 font-bold flex items-center justify-end gap-1">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Verified All
+                            {isChecked ? (
+                              <span className="text-emerald-700 font-extrabold flex items-center justify-end gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Arrived ({curVal}/{item.quantity})
                               </span>
+                            ) : (
+                              <span className="text-slate-400 font-medium">Not Arrived (0)</span>
                             )}
                           </td>
                         </tr>
@@ -1261,7 +1397,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                   max={outstandingVal}
                   value={payAmount}
                   onChange={(e) => setPayAmount(e.target.value)}
-                  placeholder={`Max ₹${outstandingVal.toLocaleString('en-IN')}`}
+                  placeholder="Enter payment amount"
                   className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-4 py-2.5 text-emerald-700 font-black text-xl focus:outline-none focus:border-[#6d8196] font-mono"
                 />
               </div>

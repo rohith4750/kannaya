@@ -109,10 +109,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Supplier not found' }, { status: 404 });
     }
 
-    const generatedPoNumber =
+    let finalPoNumber =
       poNumber && poNumber.trim() !== ''
         ? poNumber.trim()
-        : `PO-${Date.now().toString().slice(-6)}`;
+        : `PO-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const existingPo = await prisma.purchaseOrder.findUnique({ where: { poNumber: finalPoNumber } });
+    if (existingPo) {
+      finalPoNumber = `PO-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    }
 
     let calculatedTotal = 0;
     const formattedItems = items.map((item: any) => {
@@ -141,7 +146,7 @@ export async function POST(request: Request) {
       // 1. Create Purchase Order
       const po = await tx.purchaseOrder.create({
         data: {
-          poNumber: generatedPoNumber,
+          poNumber: finalPoNumber,
           supplierId,
           totalAmount: calculatedTotal,
           paidAmount,
@@ -179,7 +184,7 @@ export async function POST(request: Request) {
           amount: calculatedTotal,
           balance: newOutstanding,
           purchaseOrderId: po.id,
-          notes: notes || `Stock Purchase Order #${generatedPoNumber}`,
+          notes: notes || `Stock Purchase Order #${finalPoNumber}`,
         },
       });
 
@@ -203,5 +208,76 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('Purchase order POST error:', error);
     return NextResponse.json({ error: error.message || 'Failed to record purchase order' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Purchase Order ID is required' }, { status: 400 });
+    }
+
+    const existingPo = await prisma.purchaseOrder.findUnique({
+      where: { id },
+      include: { items: true, supplier: true },
+    });
+
+    if (!existingPo) {
+      return NextResponse.json({ error: 'Purchase Order not found' }, { status: 404 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Rollback Product Stock quantities for received items
+      for (const item of existingPo.items) {
+        const qtyToDecrement = item.receivedQuantity || 0;
+        if (qtyToDecrement > 0) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: {
+              stockQuantity: { decrement: qtyToDecrement },
+            },
+          });
+        }
+      }
+
+      // 2. Rollback Supplier Financial Totals
+      const supplier = existingPo.supplier;
+      if (supplier) {
+        const updatedTotalPurchased = Math.max(0, supplier.totalPurchased - existingPo.totalAmount);
+        const updatedTotalPaid = Math.max(0, supplier.totalPaid - existingPo.paidAmount);
+        const updatedOutstanding = Math.max(0, supplier.outstanding - existingPo.dueAmount);
+
+        await tx.supplier.update({
+          where: { id: supplier.id },
+          data: {
+            totalPurchased: updatedTotalPurchased,
+            totalPaid: updatedTotalPaid,
+            outstanding: updatedOutstanding,
+          },
+        });
+      }
+
+      // 3. Delete linked ledger entries
+      await tx.supplierLedger.deleteMany({
+        where: { purchaseOrderId: id },
+      });
+
+      // 4. Delete Purchase Order Items & Purchase Order
+      await tx.purchaseOrderItem.deleteMany({
+        where: { purchaseOrderId: id },
+      });
+
+      await tx.purchaseOrder.delete({
+        where: { id },
+      });
+    });
+
+    return NextResponse.json({ success: true, message: 'Purchase order deleted successfully' });
+  } catch (error: any) {
+    console.error('Purchase order DELETE error:', error);
+    return NextResponse.json({ error: error.message || 'Failed to delete purchase order' }, { status: 500 });
   }
 }
