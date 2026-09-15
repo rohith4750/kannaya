@@ -18,15 +18,19 @@ export async function POST(request: Request) {
       paidAmount,
       dueAmount,
       paymentMethod = 'CASH',
+      invoiceDate,
     } = body;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'Cart items cannot be empty' }, { status: 400 });
     }
 
-    // Generate Invoice Number
+    // Determine invoice date (supports previous date entry)
+    const customDate = invoiceDate ? new Date(invoiceDate) : new Date();
+
+    // Generate Invoice Number (for new invoice creation)
     const count = await prisma.invoice.count();
-    const invoiceNo = `INV-${new Date().getFullYear()}-${(count + 1).toString().padStart(4, '0')}`;
+    const invoiceNo = `INV-${customDate.getFullYear()}-${(count + 1).toString().padStart(4, '0')}`;
 
     // Perform database transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -38,25 +42,22 @@ export async function POST(request: Request) {
       });
       const validProductIdSet = new Set(dbProducts.map((p) => p.id));
 
-      // 1. Create Invoice
-      const invoice = await tx.invoice.create({
-        data: {
-          invoiceNo,
-          customerId: customerId || null,
-          customerName: customerName || 'Walk-in Customer',
-          customerPhone: customerPhone || 'N/A',
-          subtotal: parseFloat(subtotal),
-          discount: parseFloat(discount),
-          tax: parseFloat(tax),
-          totalAmount: parseFloat(totalAmount),
-          paidAmount: parseFloat(paidAmount),
-          dueAmount: parseFloat(dueAmount),
-          paymentMethod: paymentMethod as PaymentMethod,
-          status: 'COMPLETED',
-          items: {
-            create: items.map((item: any) => {
-              const isValidDbProduct = validProductIdSet.has(item.id);
-              return {
+      let invoice: any = null;
+
+      // 1. Check if customer already has a running Master Invoice
+      if (customerId) {
+        const existingInvoice = await tx.invoice.findFirst({
+          where: { customerId },
+          orderBy: { createdAt: 'asc' },
+        });
+
+        if (existingInvoice) {
+          // Append new items to existing customer invoice
+          for (const item of items) {
+            const isValidDbProduct = validProductIdSet.has(item.id);
+            await tx.invoiceItem.create({
+              data: {
+                invoiceId: existingInvoice.id,
                 productId: isValidDbProduct ? item.id : null,
                 productName: item.name,
                 unit: item.unit || 'pcs',
@@ -64,14 +65,65 @@ export async function POST(request: Request) {
                 quantity: parseFloat(item.quantity),
                 total: parseFloat(item.sellingPrice) * parseFloat(item.quantity),
                 rackLocation: item.rack ? `${item.rack.rackName} ${item.rack.shelfCode}` : (item.rackLocation || 'Default'),
-              };
-            }),
+                createdAt: customDate,
+              },
+            });
+          }
+
+          // Update existing invoice totals
+          invoice = await tx.invoice.update({
+            where: { id: existingInvoice.id },
+            data: {
+              subtotal: { increment: parseFloat(subtotal) },
+              discount: { increment: parseFloat(discount) },
+              tax: { increment: parseFloat(tax) },
+              totalAmount: { increment: parseFloat(totalAmount) },
+              paidAmount: { increment: parseFloat(paidAmount) },
+              dueAmount: { increment: parseFloat(dueAmount) },
+            },
+            include: { items: true },
+          });
+        }
+      }
+
+      // If no existing invoice for customer or walk-in, create a new master invoice
+      if (!invoice) {
+        invoice = await tx.invoice.create({
+          data: {
+            invoiceNo,
+            customerId: customerId || null,
+            customerName: customerName || 'Walk-in Customer',
+            customerPhone: customerPhone || 'N/A',
+            subtotal: parseFloat(subtotal),
+            discount: parseFloat(discount),
+            tax: parseFloat(tax),
+            totalAmount: parseFloat(totalAmount),
+            paidAmount: parseFloat(paidAmount),
+            dueAmount: parseFloat(dueAmount),
+            paymentMethod: paymentMethod as PaymentMethod,
+            status: 'COMPLETED',
+            createdAt: customDate,
+            items: {
+              create: items.map((item: any) => {
+                const isValidDbProduct = validProductIdSet.has(item.id);
+                return {
+                  productId: isValidDbProduct ? item.id : null,
+                  productName: item.name,
+                  unit: item.unit || 'pcs',
+                  price: parseFloat(item.sellingPrice),
+                  quantity: parseFloat(item.quantity),
+                  total: parseFloat(item.sellingPrice) * parseFloat(item.quantity),
+                  rackLocation: item.rack ? `${item.rack.rackName} ${item.rack.shelfCode}` : (item.rackLocation || 'Default'),
+                  createdAt: customDate,
+                };
+              }),
+            },
           },
-        },
-        include: {
-          items: true,
-        },
-      });
+          include: {
+            items: true,
+          },
+        });
+      }
 
       // 2. Deduct product stock (only for valid catalog products in DB)
       for (const item of items) {
@@ -116,8 +168,9 @@ export async function POST(request: Request) {
               type: LedgerType.SALE,
               amount: parseFloat(totalAmount),
               balance: newOutstanding,
-              notes: `Bill ${invoiceNo} (${paymentMethod} Sale: Paid ₹${paidAmount}, Due ₹${dueAmount})`,
+              notes: `Items added to Running Invoice #${invoice.invoiceNo} (${paymentMethod} Sale: Paid ₹${paidAmount}, Due ₹${dueAmount})`,
               invoiceId: invoice.id,
+              createdAt: customDate,
             },
           });
 
@@ -129,8 +182,9 @@ export async function POST(request: Request) {
                 type: LedgerType.PAYMENT,
                 amount: parseFloat(paidAmount),
                 balance: newOutstanding,
-                notes: `Payment for bill ${invoiceNo} via ${paymentMethod}`,
+                notes: `Payment for Running Invoice #${invoice.invoiceNo} via ${paymentMethod}`,
                 invoiceId: invoice.id,
+                createdAt: customDate,
               },
             });
           }

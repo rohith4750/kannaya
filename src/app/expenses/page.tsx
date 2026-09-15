@@ -23,6 +23,7 @@ import {
   TrendingDown,
 } from 'lucide-react';
 import MaterialSelect from '@/components/MaterialSelect';
+import ConfirmModal from '@/components/ConfirmModal';
 
 const EXPENSE_CATEGORIES = [
   { value: 'ALL', label: 'All Categories' },
@@ -118,19 +119,50 @@ export default function ExpensesPage() {
     }
   };
 
-  const handleDeleteExpense = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this expense record?')) return;
-    try {
-      const res = await fetch(`/api/expenses?id=${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        loadExpenses();
-      } else {
-        const err = await res.json();
-        alert(`Failed to delete: ${err.error}`);
-      }
-    } catch (e: any) {
-      alert(`Error deleting expense: ${e.message}`);
-    }
+  // Confirmation modal state
+  const [confirmModalState, setConfirmModalState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    confirmVariant?: 'danger' | 'warning' | 'primary';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
+  const handleDeleteExpense = (id: string) => {
+    setConfirmModalState({
+      isOpen: true,
+      title: 'Delete Expense Record',
+      message: 'Are you sure you want to delete this expense record? Total expense balances will be updated automatically.',
+      confirmText: 'Yes, Delete Expense',
+      confirmVariant: 'danger',
+      onConfirm: async () => {
+        setConfirmModalState((prev) => ({ ...prev, isOpen: false }));
+        try {
+          const res = await fetch(`/api/expenses?id=${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            loadExpenses();
+          } else {
+            const err = await res.json();
+            setConfirmModalState({
+              isOpen: true,
+              title: 'Delete Failed',
+              message: err.error || 'Failed to delete expense',
+              confirmText: 'Close',
+              confirmVariant: 'primary',
+              onConfirm: () => setConfirmModalState((prev) => ({ ...prev, isOpen: false })),
+            });
+          }
+        } catch (e: any) {
+          console.error('Error deleting expense:', e);
+        }
+      },
+    });
   };
 
   const getCategoryBadge = (cat: string) => {
@@ -429,6 +461,17 @@ export default function ExpensesPage() {
           </div>
         </div>
       )}
+
+      {/* Global Styled Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModalState.isOpen}
+        title={confirmModalState.title}
+        message={confirmModalState.message}
+        confirmText={confirmModalState.confirmText}
+        confirmVariant={confirmModalState.confirmVariant}
+        onConfirm={confirmModalState.onConfirm}
+        onClose={() => setConfirmModalState((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

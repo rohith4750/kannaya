@@ -182,6 +182,7 @@ model InvoiceItem {
   quantity     Float
   total        Float
   rackLocation String?
+  createdAt    DateTime @default(now())
 }
 
 model PurchaseOrder {

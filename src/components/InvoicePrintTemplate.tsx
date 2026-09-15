@@ -236,6 +236,7 @@ export default function InvoicePrintTemplate({
           <thead>
             <tr className="bg-[#4a4a4a] text-white font-semibold text-[11px]">
               <th className="py-2.5 px-3 w-10 text-center">#</th>
+              <th className="py-2.5 px-3 text-center">Date</th>
               <th className="py-2.5 px-3">Item Description</th>
               <th className="py-2.5 px-3 text-center">Loc</th>
               <th className="py-2.5 px-3 text-center">HSN</th>
@@ -249,6 +250,9 @@ export default function InvoicePrintTemplate({
             {invoice.items?.map((item: any, idx: number) => (
               <tr key={item.id} className="hover:bg-slate-50">
                 <td className="py-2.5 px-3 text-center font-bold text-slate-500">{idx + 1}</td>
+                <td className="py-2.5 px-3 text-center text-slate-600 font-mono text-[10px] whitespace-nowrap">
+                  {new Date(item.createdAt || invoice.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </td>
                 <td className="py-2.5 px-3 font-bold text-[#4a4a4a]">{item.productName}</td>
                 <td className="py-2.5 px-3 text-center text-slate-500 font-mono text-[11px]">
                   {item.rackLocation || 'A1'}

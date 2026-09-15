@@ -18,6 +18,8 @@ import {
   FileText,
   ExternalLink,
   Mail,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import MaterialSelect from '@/components/MaterialSelect';
 
@@ -30,6 +32,80 @@ export default function CustomersPage() {
   const [payModalCustomer, setPayModalCustomer] = useState<any>(null);
   const [ledgerModalCustomer, setLedgerModalCustomer] = useState<any>(null);
   const [customerLedgerData, setCustomerLedgerData] = useState<any>(null);
+
+  // Edit Customer Form & Modal
+  const [editModalCustomer, setEditModalCustomer] = useState<any>(null);
+  const [editCustName, setEditCustName] = useState('');
+  const [editCustPhone, setEditCustPhone] = useState('');
+  const [editCustEmail, setEditCustEmail] = useState('');
+  const [editCustAddress, setEditCustAddress] = useState('');
+  const [editCustCreditLimit, setEditCustCreditLimit] = useState('');
+  const [updatingCust, setUpdatingCust] = useState(false);
+
+  // Delete Customer Modal
+  const [deleteModalCustomer, setDeleteModalCustomer] = useState<any>(null);
+  const [deletingCust, setDeletingCust] = useState(false);
+
+  const handleOpenEditModal = (c: any) => {
+    setEditModalCustomer(c);
+    setEditCustName(c.name || '');
+    setEditCustPhone(c.phone || '');
+    setEditCustEmail(c.email || '');
+    setEditCustAddress(c.address || '');
+    setEditCustCreditLimit(c.creditLimit ? String(c.creditLimit) : '50000');
+  };
+
+  const handleUpdateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editModalCustomer) return;
+    setUpdatingCust(true);
+    try {
+      const res = await fetch('/api/customers', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editModalCustomer.id,
+          name: editCustName,
+          phone: editCustPhone,
+          email: editCustEmail,
+          address: editCustAddress,
+          creditLimit: editCustCreditLimit,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEditModalCustomer(null);
+        loadCustomers();
+      } else {
+        alert(`❌ Error updating customer: ${data.error}`);
+      }
+    } catch (e: any) {
+      alert(`❌ Error: ${e.message}`);
+    } finally {
+      setUpdatingCust(false);
+    }
+  };
+
+  const handleDeleteCustomer = async () => {
+    if (!deleteModalCustomer) return;
+    setDeletingCust(true);
+    try {
+      const res = await fetch(`/api/customers?id=${deleteModalCustomer.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setDeleteModalCustomer(null);
+        loadCustomers();
+      } else {
+        alert(`❌ Error deleting customer: ${data.error}`);
+      }
+    } catch (e: any) {
+      alert(`❌ Error: ${e.message}`);
+    } finally {
+      setDeletingCust(false);
+    }
+  };
 
   // Add Customer Form
   const [newCustName, setNewCustName] = useState('');
@@ -304,6 +380,22 @@ export default function CustomersPage() {
                   className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-2 rounded-[5px] text-xs flex items-center justify-center gap-1 transition-colors disabled:opacity-40 shadow-sm"
                 >
                   <DollarSign className="w-3.5 h-3.5" /> Clear Payment
+                </button>
+
+                <button
+                  onClick={() => handleOpenEditModal(c)}
+                  className="bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-700 p-1.5 rounded-[5px] text-xs transition-colors shrink-0"
+                  title="Edit Customer Details"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={() => setDeleteModalCustomer(c)}
+                  className="bg-red-50 hover:bg-red-100 border border-red-300 text-red-700 p-1.5 rounded-[5px] text-xs transition-colors shrink-0"
+                  title="Delete Customer Account"
+                >
+                  <Trash2 className="w-4 h-4" />
                 </button>
 
                 {c.outstanding > 0 && (

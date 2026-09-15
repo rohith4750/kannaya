@@ -20,6 +20,7 @@ import {
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import MaterialSelect from '@/components/MaterialSelect';
+import ConfirmModal from '@/components/ConfirmModal';
 
 function ProductsContent() {
   const searchParams = useSearchParams();
@@ -203,18 +204,50 @@ function ProductsContent() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  // Confirmation Modal state
+  const [confirmModalState, setConfirmModalState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    confirmVariant?: 'danger' | 'warning' | 'primary';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
+  const handleDelete = (id: string) => {
     if (userRole !== 'ADMIN') {
-      alert('Permission Denied: Only Store Owner / Admin can delete catalog products.');
+      setConfirmModalState({
+        isOpen: true,
+        title: 'Permission Denied',
+        message: 'Only Store Owner / Admin can delete catalog products from the inventory.',
+        confirmText: 'OK',
+        confirmVariant: 'warning',
+        onConfirm: () => setConfirmModalState((prev) => ({ ...prev, isOpen: false })),
+      });
       return;
     }
-    if (!confirm('Are you sure you want to delete this product?')) return;
-    try {
-      await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
-      loadData();
-    } catch (e) {
-      console.error(e);
-    }
+
+    setConfirmModalState({
+      isOpen: true,
+      title: 'Delete Product',
+      message: 'Are you sure you want to delete this product from inventory? This action cannot be undone.',
+      confirmText: 'Yes, Delete Product',
+      confirmVariant: 'danger',
+      onConfirm: async () => {
+        setConfirmModalState((prev) => ({ ...prev, isOpen: false }));
+        try {
+          await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
+          loadData();
+        } catch (e) {
+          console.error('Error deleting product:', e);
+        }
+      },
+    });
   };
 
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -848,6 +881,17 @@ function ProductsContent() {
           </div>
         </div>
       )}
+
+      {/* Global Styled Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModalState.isOpen}
+        title={confirmModalState.title}
+        message={confirmModalState.message}
+        confirmText={confirmModalState.confirmText}
+        confirmVariant={confirmModalState.confirmVariant}
+        onConfirm={confirmModalState.onConfirm}
+        onClose={() => setConfirmModalState((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

@@ -177,9 +177,30 @@ export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const ledgerId = searchParams.get('ledgerId');
+
+    if (ledgerId) {
+      const entry = await prisma.customerLedger.findUnique({ where: { id: ledgerId } });
+      if (entry) {
+        if (entry.type === 'PAYMENT') {
+          const cust = await prisma.customer.findUnique({ where: { id: entry.customerId } });
+          if (cust) {
+            await prisma.customer.update({
+              where: { id: entry.customerId },
+              data: {
+                outstanding: cust.outstanding + entry.amount,
+                totalPaid: Math.max(0, cust.totalPaid - entry.amount),
+              },
+            });
+          }
+        }
+        await prisma.customerLedger.delete({ where: { id: ledgerId } });
+        return NextResponse.json({ success: true });
+      }
+    }
 
     if (!id) {
-      return NextResponse.json({ error: 'Customer ID required' }, { status: 400 });
+      return NextResponse.json({ error: 'Customer ID or Ledger ID required' }, { status: 400 });
     }
 
     await prisma.customer.delete({ where: { id } });

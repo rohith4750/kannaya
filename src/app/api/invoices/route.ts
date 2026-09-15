@@ -37,6 +37,110 @@ export async function GET(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { invoiceId, items, discount = 0, paidAmount } = body;
+
+    if (!invoiceId) {
+      return NextResponse.json({ error: 'Invoice ID required' }, { status: 400 });
+    }
+
+    const oldInvoice = await prisma.invoice.findUnique({
+      where: { id: invoiceId },
+      include: { items: true },
+    });
+
+    if (!oldInvoice) {
+      return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
+    }
+
+    // Calculate new subtotal and total
+    let newSubtotal = 0;
+    for (const item of items) {
+      const p = parseFloat(item.price);
+      const q = parseFloat(item.quantity);
+      newSubtotal += p * q;
+    }
+    const disc = parseFloat(discount);
+    const newTotalAmount = Math.max(0, newSubtotal - disc);
+    const newPaidAmount = paidAmount !== undefined ? parseFloat(paidAmount) : oldInvoice.paidAmount;
+    const newDueAmount = Math.max(0, newTotalAmount - newPaidAmount);
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete old invoice items
+      await tx.invoiceItem.deleteMany({ where: { invoiceId } });
+
+      // 2. Create updated invoice items
+      for (const item of items) {
+        const p = parseFloat(item.price);
+        const q = parseFloat(item.quantity);
+        await tx.invoiceItem.create({
+          data: {
+            invoiceId,
+            productId: item.productId || null,
+            productName: item.productName || item.name,
+            unit: item.unit || 'pcs',
+            price: p,
+            quantity: q,
+            total: p * q,
+            rackLocation: item.rackLocation || 'Default',
+          },
+        });
+      }
+
+      // 3. Update Invoice record
+      await tx.invoice.update({
+        where: { id: invoiceId },
+        data: {
+          subtotal: newSubtotal,
+          discount: disc,
+          totalAmount: newTotalAmount,
+          paidAmount: newPaidAmount,
+          dueAmount: newDueAmount,
+        },
+      });
+
+      // 4. Adjust Customer financial totals if customerId exists
+      if (oldInvoice.customerId) {
+        const cust = await tx.customer.findUnique({ where: { id: oldInvoice.customerId } });
+        if (cust) {
+          const diffTotal = newTotalAmount - oldInvoice.totalAmount;
+          const diffPaid = newPaidAmount - oldInvoice.paidAmount;
+          const diffDue = newDueAmount - oldInvoice.dueAmount;
+
+          const updatedOutstanding = Math.max(0, cust.outstanding + diffDue);
+          const updatedPurchases = Math.max(0, cust.totalPurchases + diffTotal);
+          const updatedPaid = Math.max(0, cust.totalPaid + diffPaid);
+
+          await tx.customer.update({
+            where: { id: oldInvoice.customerId },
+            data: {
+              outstanding: updatedOutstanding,
+              totalPurchases: updatedPurchases,
+              totalPaid: updatedPaid,
+            },
+          });
+
+          // Update Customer Ledger entry amount for SALE
+          await tx.customerLedger.updateMany({
+            where: { invoiceId, type: 'SALE' },
+            data: {
+              amount: newTotalAmount,
+              balance: updatedOutstanding,
+            },
+          });
+        }
+      }
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Invoice PUT error:', error);
+    return NextResponse.json({ error: error.message || 'Failed to update invoice' }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -46,9 +150,56 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Invoice ID required' }, { status: 400 });
     }
 
-    // Delete invoice items first, then invoice
-    await prisma.invoiceItem.deleteMany({ where: { invoiceId: id } });
-    await prisma.invoice.delete({ where: { id } });
+    const invoice = await prisma.invoice.findUnique({
+      where: { id },
+      include: { items: true },
+    });
+
+    if (!invoice) {
+      return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Revert Customer financial figures if customer exists
+      if (invoice.customerId) {
+        const cust = await tx.customer.findUnique({ where: { id: invoice.customerId } });
+        if (cust) {
+          const updatedPurchases = Math.max(0, cust.totalPurchases - invoice.totalAmount);
+          const updatedPaid = Math.max(0, cust.totalPaid - invoice.paidAmount);
+          const updatedOutstanding = Math.max(0, cust.outstanding - invoice.dueAmount);
+
+          await tx.customer.update({
+            where: { id: invoice.customerId },
+            data: {
+              totalPurchases: updatedPurchases,
+              totalPaid: updatedPaid,
+              outstanding: updatedOutstanding,
+            },
+          });
+        }
+      }
+
+      // 2. Restore stock for valid products
+      for (const item of invoice.items) {
+        if (item.productId) {
+          try {
+            await tx.product.update({
+              where: { id: item.productId },
+              data: { stockQuantity: { increment: item.quantity } },
+            });
+          } catch (e) {
+            console.warn(`Stock restore skip for ${item.productId}`);
+          }
+        }
+      }
+
+      // 3. Delete associated customer ledger entries
+      await tx.customerLedger.deleteMany({ where: { invoiceId: id } });
+
+      // 4. Delete invoice items and invoice
+      await tx.invoiceItem.deleteMany({ where: { invoiceId: id } });
+      await tx.invoice.delete({ where: { id } });
+    });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
