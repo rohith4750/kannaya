@@ -55,38 +55,51 @@ model Brand {
 }
 
 model Rack {
-  id          String    @id @default(cuid())
-  rackName    String    // e.g. "Rack A"
-  shelfCode   String    // e.g. "A1"
+  id          String           @id @default(cuid())
+  rackName    String           // e.g. "Rack A"
+  shelfCode   String           // e.g. "A1"
   description String?
-  products    Product[]
-  createdAt   DateTime  @default(now())
+  variants    ProductVariant[]
+  createdAt   DateTime         @default(now())
 
   @@unique([rackName, shelfCode])
 }
 
 model Product {
+  id            String              @id @default(cuid())
+  name          String
+  hsnCode       String?             @default("8544")
+  gstPercent    Float               @default(18)
+  unit          String              // "meter", "pcs", "box", "roll", "pkt"
+  warranty      String?
+  description   String?
+  categoryId    String
+  category      Category            @relation(fields: [categoryId], references: [id])
+  brandId       String
+  brand         Brand               @relation(fields: [brandId], references: [id])
+  variants      ProductVariant[]
+  invoiceItems  InvoiceItem[]
+  purchaseItems PurchaseOrderItem[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+}
+
+model ProductVariant {
   id              String              @id @default(cuid())
-  name            String
+  productId       String
+  product         Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantName     String              // e.g. "1.5 SQMM", "9W", "1200mm Brown"
   sku             String?             @unique
   barcode         String              @unique
-  hsnCode         String?             @default("8544")
-  gstPercent      Float               @default(18)
-  unit            String              // "meter", "pcs", "box", "roll", "pkt"
   purchasePrice   Float
   sellingPrice    Float
   wholesalePrice  Float?
   minWholesaleQty Float?
-  stockQuantity   Float
-  minStockAlert   Float
-  warranty        String?
-  description     String?
-  categoryId      String
-  category        Category            @relation(fields: [categoryId], references: [id])
-  brandId         String
-  brand           Brand               @relation(fields: [brandId], references: [id])
+  stockQuantity   Float               @default(0)
+  minStockAlert   Float               @default(5)
   rackId          String?
-  rack            Rack?               @relation(fields: [rackId], references: [id])
+  rack            Rack?               @relation(fields: [rackId], references: [id], onDelete: SetNull)
+  imageUrl        String?
   invoiceItems    InvoiceItem[]
   purchaseItems   PurchaseOrderItem[]
   createdAt       DateTime            @default(now())
@@ -172,18 +185,20 @@ model Invoice {
 }
 
 model InvoiceItem {
-  id           String   @id @default(cuid())
+  id           String          @id @default(cuid())
   invoiceId    String
-  invoice      Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoice      Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   productId    String?
-  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  product      Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variantId    String?
+  variant      ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
   productName  String
   unit         String
   price        Float
   quantity     Float
   total        Float
   rackLocation String?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime        @default(now())
 }
 
 model PurchaseOrder {
@@ -201,15 +216,17 @@ model PurchaseOrder {
 }
 
 model PurchaseOrderItem {
-  id              String        @id @default(cuid())
-  purchaseOrderId String
-  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
-  productId       String?
-  product         Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
-  price           Float
-  quantity        Float
-  receivedQuantity Float        @default(0)
-  total           Float
+  id               String          @id @default(cuid())
+  purchaseOrderId  String
+  purchaseOrder    PurchaseOrder   @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  productId        String?
+  product          Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variantId        String?
+  variant          ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  price            Float
+  quantity         Float
+  receivedQuantity Float           @default(0)
+  total            Float
 }
 
 model ShopSettings {

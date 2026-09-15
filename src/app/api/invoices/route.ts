@@ -55,7 +55,6 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     }
 
-    // Calculate new subtotal and total
     let newSubtotal = 0;
     for (const item of items) {
       const p = parseFloat(item.price);
@@ -68,10 +67,8 @@ export async function PUT(request: Request) {
     const newDueAmount = Math.max(0, newTotalAmount - newPaidAmount);
 
     await prisma.$transaction(async (tx) => {
-      // 1. Delete old invoice items
       await tx.invoiceItem.deleteMany({ where: { invoiceId } });
 
-      // 2. Create updated invoice items
       for (const item of items) {
         const p = parseFloat(item.price);
         const q = parseFloat(item.quantity);
@@ -79,6 +76,7 @@ export async function PUT(request: Request) {
           data: {
             invoiceId,
             productId: item.productId || null,
+            variantId: item.variantId || null,
             productName: item.productName || item.name,
             unit: item.unit || 'pcs',
             price: p,
@@ -89,7 +87,6 @@ export async function PUT(request: Request) {
         });
       }
 
-      // 3. Update Invoice record
       await tx.invoice.update({
         where: { id: invoiceId },
         data: {
@@ -101,7 +98,6 @@ export async function PUT(request: Request) {
         },
       });
 
-      // 4. Adjust Customer financial totals if customerId exists
       if (oldInvoice.customerId) {
         const cust = await tx.customer.findUnique({ where: { id: oldInvoice.customerId } });
         if (cust) {
@@ -122,7 +118,6 @@ export async function PUT(request: Request) {
             },
           });
 
-          // Update Customer Ledger entry amount for SALE
           await tx.customerLedger.updateMany({
             where: { invoiceId, type: 'SALE' },
             data: {
@@ -160,7 +155,6 @@ export async function DELETE(request: Request) {
     }
 
     await prisma.$transaction(async (tx) => {
-      // 1. Revert Customer financial figures if customer exists
       if (invoice.customerId) {
         const cust = await tx.customer.findUnique({ where: { id: invoice.customerId } });
         if (cust) {
@@ -179,24 +173,21 @@ export async function DELETE(request: Request) {
         }
       }
 
-      // 2. Restore stock for valid products
+      // Restore stock for variants
       for (const item of invoice.items) {
-        if (item.productId) {
+        if (item.variantId) {
           try {
-            await tx.product.update({
-              where: { id: item.productId },
+            await tx.productVariant.update({
+              where: { id: item.variantId },
               data: { stockQuantity: { increment: item.quantity } },
             });
           } catch (e) {
-            console.warn(`Stock restore skip for ${item.productId}`);
+            console.warn(`Variant stock restore skip for ${item.variantId}`);
           }
         }
       }
 
-      // 3. Delete associated customer ledger entries
       await tx.customerLedger.deleteMany({ where: { invoiceId: id } });
-
-      // 4. Delete invoice items and invoice
       await tx.invoiceItem.deleteMany({ where: { invoiceId: id } });
       await tx.invoice.delete({ where: { id } });
     });
@@ -207,4 +198,3 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: error.message || 'Failed to delete invoice' }, { status: 500 });
   }
 }
-

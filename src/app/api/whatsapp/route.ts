@@ -36,23 +36,21 @@ export async function POST(request: Request) {
         `Thank you for your continued business!\n` +
         `📞 *Shop Contact:* ${settings?.phone || '+91 98765 43210'}`;
     } else if (action === 'reorder') {
-      // Fetch low stock items
-      const lowStock = await prisma.product.findMany({
-        where: {
-          stockQuantity: {
-            lte: prisma.product.fields.minStockAlert,
-          },
-        },
+      const allVariants = await prisma.productVariant.findMany({
+        include: { product: true },
       });
+      const lowStock = allVariants.filter((v) => v.stockQuantity <= v.minStockAlert);
 
-      const itemsList = lowStock.map((p) => `• ${p.name} (Current Stock: ${p.stockQuantity} ${p.unit})`).join('\n');
+      const itemsList = lowStock
+        .map((v) => `• ${v.product.name} (${v.variantName}) - Stock: ${v.stockQuantity} ${v.product.unit}`)
+        .join('\n');
 
       messageText =
         `📦 *NEW STOCK REORDER REQUEST* 📦\n\n` +
         `To: *${supplierName || 'Distributor'}*\n` +
         `From: *${shopName}*\n\n` +
         `Please send quote / dispatch for low stock electrical items:\n\n` +
-        `${itemsList || '• Polycab 1.5 Sqmm Wire\n• Anchor Switches'}\n\n` +
+        `${itemsList || '• Finolex Wire (1.5 SQMM)\n• Havells LED Bulb (9W)'}\n\n` +
         `Kindly confirm availability. Thank you!`;
     }
 

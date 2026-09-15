@@ -9,11 +9,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       include: {
         category: true,
         brand: true,
-        rack: true,
+        variants: {
+          include: {
+            rack: true,
+          },
+          orderBy: { createdAt: 'asc' },
+        },
         invoiceItems: {
           take: 10,
           orderBy: { invoice: { createdAt: 'desc' } },
-          include: { invoice: true },
+          include: { invoice: true, variant: true },
         },
       },
     });

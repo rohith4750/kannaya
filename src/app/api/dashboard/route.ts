@@ -37,16 +37,14 @@ export async function GET(request: Request) {
       toDate = new Date(endDateParam);
       toDate.setHours(23, 59, 59, 999);
     } else {
-      // Default: This Month
       fromDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
       toDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
     }
 
-    // Today's Active Date Range
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
     const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-    // 1. Fetch Invoices for Selected Period with Items & Products
+    // 1. Invoices with Items, Product, Variant
     const invoices = await prisma.invoice.findMany({
       where: {
         createdAt: {
@@ -62,13 +60,14 @@ export async function GET(request: Request) {
                 category: true,
               },
             },
+            variant: true,
           },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    // 2. Fetch Today's Invoices for Dual Active Profit Comparison
+    // 2. Today's Invoices
     const todayInvoices = await prisma.invoice.findMany({
       where: {
         createdAt: {
@@ -79,52 +78,48 @@ export async function GET(request: Request) {
       include: {
         items: {
           include: {
-            product: true,
+            variant: true,
           },
         },
       },
     });
 
-    // --- TODAY'S PROFIT & POS CALCULATIONS ---
+    // Today Profit
     const todaySales = todayInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
     const todayCollection = todayInvoices.reduce((sum, inv) => sum + inv.paidAmount, 0);
     let todayCost = 0;
     todayInvoices.forEach((inv) => {
       inv.items.forEach((item) => {
-        const itemUnitCost = item.product?.purchasePrice ?? (item.price * 0.7);
+        const itemUnitCost = item.variant?.purchasePrice ?? (item.price * 0.7);
         todayCost += item.quantity * itemUnitCost;
       });
     });
     const todayGrossProfit = todaySales - todayCost;
     const todayProfitMargin = todaySales > 0 ? (todayGrossProfit / todaySales) * 100 : 0;
 
-    // --- FILTERED PERIOD PROFIT & POS CALCULATIONS ---
+    // Filtered Period Profit
     const periodSales = invoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
     const periodCollection = invoices.reduce((sum, inv) => sum + inv.paidAmount, 0);
     const periodDuesAdded = invoices.reduce((sum, inv) => sum + inv.dueAmount, 0);
     let periodCost = 0;
-    
-    // POS Payment Method Breakdown
+
     let cashSales = 0;
     let upiSales = 0;
     let cardSales = 0;
     let creditSales = 0;
     let splitSales = 0;
 
-    // Category Profit Breakdown Map
     const categoryProfitMap: { [key: string]: { name: string; sales: number; profit: number; count: number } } = {};
 
     invoices.forEach((inv) => {
-      // Payment Method Breakdown
       if (inv.paymentMethod === 'CASH') cashSales += inv.totalAmount;
       else if (inv.paymentMethod === 'UPI') upiSales += inv.totalAmount;
       else if (inv.paymentMethod === 'CARD') cardSales += inv.totalAmount;
       else if (inv.paymentMethod === 'CREDIT') creditSales += inv.totalAmount;
       else if (inv.paymentMethod === 'SPLIT') splitSales += inv.totalAmount;
 
-      // Item level Cost & Category Profit
       inv.items.forEach((item) => {
-        const itemUnitCost = item.product?.purchasePrice ?? (item.price * 0.7);
+        const itemUnitCost = item.variant?.purchasePrice ?? (item.price * 0.7);
         const itemTotalCost = item.quantity * itemUnitCost;
         periodCost += itemTotalCost;
 
@@ -144,19 +139,17 @@ export async function GET(request: Request) {
     const periodProfitMargin = periodSales > 0 ? (periodGrossProfit / periodSales) * 100 : 0;
     const avgOrderValue = invoices.length > 0 ? periodSales / invoices.length : 0;
 
-    // Category Performance List
     const categoryPerformance = Object.values(categoryProfitMap).sort((a, b) => b.sales - a.sales);
 
-    // 3. Customer Total Outstanding (All-time snapshot)
+    // Outstanding totals
     const customers = await prisma.customer.findMany({ select: { outstanding: true } });
     const customerDueTotal = customers.reduce((sum, c) => sum + c.outstanding, 0);
 
-    // 4. Supplier Total Outstanding (All-time snapshot)
     const suppliers = await prisma.supplier.findMany({ select: { outstanding: true } });
     const supplierDueTotal = suppliers.reduce((sum, s) => sum + s.outstanding, 0);
 
-    // 5. Inventory Valuation & Low Stock Products Count
-    const products = await prisma.product.findMany({
+    // Inventory Metrics based on ProductVariants
+    const variants = await prisma.productVariant.findMany({
       select: {
         stockQuantity: true,
         purchasePrice: true,
@@ -164,16 +157,18 @@ export async function GET(request: Request) {
         minStockAlert: true,
       },
     });
-    const lowStockCount = products.filter((p) => p.stockQuantity <= p.minStockAlert).length;
+
+    const products = await prisma.product.findMany({ select: { id: true } });
+
+    const lowStockCount = variants.filter((v) => v.stockQuantity <= v.minStockAlert).length;
     const totalProductCount = products.length;
-    const totalInventoryCostValue = products.reduce((sum, p) => sum + (p.stockQuantity * p.purchasePrice), 0);
-    const totalInventoryRetailValue = products.reduce((sum, p) => sum + (p.stockQuantity * p.sellingPrice), 0);
+    const totalVariantCount = variants.length;
+    const totalInventoryCostValue = variants.reduce((sum, v) => sum + (v.stockQuantity * v.purchasePrice), 0);
+    const totalInventoryRetailValue = variants.reduce((sum, v) => sum + (v.stockQuantity * v.sellingPrice), 0);
     const potentialInventoryProfit = totalInventoryRetailValue - totalInventoryCostValue;
 
-    // 6. Recent Invoices in Filtered Period
     const recentInvoices = invoices.slice(0, 8);
 
-    // 7. Top Selling Products in Period
     const topSellingProducts = await prisma.invoiceItem.groupBy({
       by: ['productName', 'rackLocation'],
       where: {
@@ -196,7 +191,6 @@ export async function GET(request: Request) {
       take: 5,
     });
 
-    // 8. Dynamic Sales, Profit & Collection Trend Data
     const trendMap: { [key: string]: { sales: number; collection: number; profit: number } } = {};
 
     if (period === 'this_year') {
@@ -209,13 +203,12 @@ export async function GET(request: Request) {
           trendMap[mName].collection += inv.paidAmount;
           let invCost = 0;
           inv.items.forEach((item) => {
-            invCost += item.quantity * (item.product?.purchasePrice ?? (item.price * 0.7));
+            invCost += item.quantity * (item.variant?.purchasePrice ?? (item.price * 0.7));
           });
           trendMap[mName].profit += (inv.totalAmount - invCost);
         }
       });
     } else {
-      // Group by Day/Date
       invoices.forEach((inv) => {
         const dKey = new Date(inv.createdAt).toLocaleDateString('en-IN', {
           day: '2-digit',
@@ -227,7 +220,7 @@ export async function GET(request: Request) {
 
         let invCost = 0;
         inv.items.forEach((item) => {
-          invCost += item.quantity * (item.product?.purchasePrice ?? (item.price * 0.7));
+          invCost += item.quantity * (item.variant?.purchasePrice ?? (item.price * 0.7));
         });
         trendMap[dKey].profit += (inv.totalAmount - invCost);
       });
@@ -245,7 +238,6 @@ export async function GET(request: Request) {
       fromDate: fromDate.toISOString(),
       toDate: toDate.toISOString(),
       metrics: {
-        // Dual Active Sales & Profit Calculations
         todaySales,
         todayCollection,
         todayCost,
@@ -260,18 +252,17 @@ export async function GET(request: Request) {
         periodDuesAdded,
         avgOrderValue,
 
-        // POS Payment Breakdown
         cashSales,
         upiSales,
         cardSales,
         creditSales,
         splitSales,
 
-        // Financial Balances & Stock
         customerDueTotal,
         supplierDueTotal,
         lowStockCount,
         totalProductCount,
+        totalVariantCount,
         totalInvoiceCount: invoices.length,
         totalInventoryCostValue,
         totalInventoryRetailValue,

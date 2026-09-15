@@ -9,7 +9,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       include: {
         items: {
           include: {
-            product: {
+            product: true,
+            variant: {
               include: { rack: true },
             },
           },

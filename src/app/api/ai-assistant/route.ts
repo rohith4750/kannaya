@@ -11,7 +11,6 @@ export async function POST(request: Request) {
     let actionButton: any = null;
 
     if (q.includes('customer') && (q.includes('owe') || q.includes('due') || q.includes('most') || q.includes('highest'))) {
-      // 1. Highest debtor
       const topDebtor = await prisma.customer.findFirst({
         orderBy: { outstanding: 'desc' },
       });
@@ -36,7 +35,6 @@ export async function POST(request: Request) {
         answer = 'No customers with pending credit balance found.';
       }
     } else if (q.includes('fast') || q.includes('selling') || q.includes('top product') || q.includes('best')) {
-      // 2. Fastest selling products
       const topItems = await prisma.invoiceItem.groupBy({
         by: ['productName', 'rackLocation'],
         _sum: {
@@ -60,33 +58,28 @@ export async function POST(request: Request) {
         Location: item.rackLocation || 'Rack A1',
       }));
     } else if (q.includes('low stock') || q.includes('reorder') || q.includes('shortage') || q.includes('out of stock')) {
-      // 3. Low stock products
-      const lowStockProducts = await prisma.product.findMany({
-        where: {
-          stockQuantity: {
-            lte: prisma.product.fields.minStockAlert,
-          },
-        },
+      const allVariants = await prisma.productVariant.findMany({
         include: {
+          product: { include: { brand: true } },
           rack: true,
-          brand: true,
         },
       });
 
-      answer = `You currently have *${lowStockProducts.length}* low stock products that require reordering:`;
-      data = lowStockProducts.map((p) => ({
-        Product: p.name,
-        Brand: p.brand.name,
-        'Current Stock': `${p.stockQuantity} ${p.unit}`,
-        'Min Alert Level': `${p.minStockAlert} ${p.unit}`,
-        'Rack Location': p.rack ? `${p.rack.rackName} (${p.rack.shelfCode})` : 'N/A',
+      const lowStockVariants = allVariants.filter((v) => v.stockQuantity <= v.minStockAlert);
+
+      answer = `You currently have *${lowStockVariants.length}* low stock variants that require reordering:`;
+      data = lowStockVariants.map((v) => ({
+        Product: `${v.product.name} (${v.variantName})`,
+        Brand: v.product.brand?.name || 'Generic',
+        'Current Stock': `${v.stockQuantity} ${v.product.unit}`,
+        'Min Alert Level': `${v.minStockAlert} ${v.product.unit}`,
+        'Rack Location': v.rack ? `${v.rack.rackName} (${v.rack.shelfCode})` : 'N/A',
       }));
       actionButton = {
         label: 'Generate Supplier Reorder WhatsApp',
         type: 'whatsapp_reorder',
       };
     } else if (q.includes('supplier') || q.includes('purchase')) {
-      // 4. Supplier pending payments
       const topSuppliers = await prisma.supplier.findMany({
         where: { outstanding: { gt: 0 } },
         orderBy: { outstanding: 'desc' },
@@ -100,24 +93,24 @@ export async function POST(request: Request) {
         'Total Purchased': `₹${s.totalPurchased.toLocaleString('en-IN')}`,
       }));
     } else {
-      // General store analytics summary
-      const [customers, products, suppliers, invoices] = await Promise.all([
+      const [customers, variants, suppliers, products] = await Promise.all([
         prisma.customer.findMany({ select: { outstanding: true } }),
-        prisma.product.findMany({ select: { stockQuantity: true, minStockAlert: true } }),
+        prisma.productVariant.findMany({ select: { stockQuantity: true, minStockAlert: true } }),
         prisma.supplier.findMany({ select: { outstanding: true } }),
-        prisma.invoice.findMany({ take: 10 }),
+        prisma.product.findMany({ select: { id: true } }),
       ]);
 
       const totalCustDue = customers.reduce((sum, c) => sum + c.outstanding, 0);
       const totalSuppDue = suppliers.reduce((sum, s) => sum + s.outstanding, 0);
-      const lowStockCount = products.filter((p) => p.stockQuantity <= p.minStockAlert).length;
+      const lowStockCount = variants.filter((v) => v.stockQuantity <= v.minStockAlert).length;
 
-      answer = `*Kannaya AI Store Summary:*\n• Total Customer Udhar Outstanding: *₹${totalCustDue.toLocaleString('en-IN')}*\n• Total Supplier Pending Due: *₹${totalSuppDue.toLocaleString('en-IN')}*\n• Low Stock Alerts: *${lowStockCount} items* needing restock.`;
+      answer = `*Kannaya AI Store Summary:*\n• Total Customer Udhar Outstanding: *₹${totalCustDue.toLocaleString('en-IN')}*\n• Total Supplier Pending Due: *₹${totalSuppDue.toLocaleString('en-IN')}*\n• Low Stock Variant Alerts: *${lowStockCount} items* needing restock.`;
       data = {
         'Customer Udhar Due': `₹${totalCustDue.toLocaleString('en-IN')}`,
         'Supplier Pending Due': `₹${totalSuppDue.toLocaleString('en-IN')}`,
-        'Low Stock Items': lowStockCount,
-        'Total Product Catalog': products.length,
+        'Low Stock Variants': lowStockCount,
+        'Total Product Categories': products.length,
+        'Total Variant Catalog': variants.length,
       };
     }
 

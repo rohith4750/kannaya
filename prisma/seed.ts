@@ -34,6 +34,7 @@ async function main() {
   await prisma.purchaseOrderItem.deleteMany();
   await prisma.supplierLedger.deleteMany();
   await prisma.purchaseOrder.deleteMany();
+  await prisma.productVariant.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
   await prisma.brand.deleteMany();
@@ -95,186 +96,414 @@ async function main() {
   });
 
   // 5. Brands
-  const brandPolycab = await prisma.brand.create({ data: { name: 'Polycab' } });
   const brandAnchor = await prisma.brand.create({ data: { name: 'Anchor' } });
   const brandFinolex = await prisma.brand.create({ data: { name: 'Finolex' } });
   const brandHavells = await prisma.brand.create({ data: { name: 'Havells' } });
   const brandCrompton = await prisma.brand.create({ data: { name: 'Crompton' } });
-  const brandPhilips = await prisma.brand.create({ data: { name: 'Philips' } });
-  const brandLegrand = await prisma.brand.create({ data: { name: 'Legrand' } });
+  const brandSchneider = await prisma.brand.create({ data: { name: 'Schneider' } });
 
   // 6. Racks
-  const rackA1 = await prisma.rack.create({ data: { rackName: 'Rack A', shelfCode: 'A1', description: 'Front Left - Main Wires (1.5 - 2.5 Sqmm)' } });
-  const rackA2 = await prisma.rack.create({ data: { rackName: 'Rack A', shelfCode: 'A2', description: 'Front Left - Heavy Wires (4.0 - 6.0 Sqmm)' } });
-  const rackA4 = await prisma.rack.create({ data: { rackName: 'Rack A', shelfCode: 'A4', description: 'Front Left Bottom - Protection MCBs' } });
-  const rackB1 = await prisma.rack.create({ data: { rackName: 'Rack B', shelfCode: 'B1', description: 'Center Shelf 1 - Modular 6A Switches' } });
-  const rackB2 = await prisma.rack.create({ data: { rackName: 'Rack B', shelfCode: 'B2', description: 'Center Shelf 2 - Modular 16A Sockets & Regulators' } });
-  const rackB3 = await prisma.rack.create({ data: { rackName: 'Rack B', shelfCode: 'B3', description: 'Center Shelf 3 - Switch Plates & Gang Boxes' } });
-  const rackB4 = await prisma.rack.create({ data: { rackName: 'Rack B', shelfCode: 'B4', description: 'Center Shelf 4 - LED Bulbs & Small Fittings' } });
-  const rackC1 = await prisma.rack.create({ data: { rackName: 'Rack C', shelfCode: 'C1', description: 'Pipe Stand - PVC Conduit Pipes 1"' } });
-  const rackC2 = await prisma.rack.create({ data: { rackName: 'Rack C', shelfCode: 'C2', description: 'Pipe Stand Bins - Junctions & Bends' } });
-  const rackD1 = await prisma.rack.create({ data: { rackName: 'Rack D', shelfCode: 'D1', description: 'Warehouse Top - Ceiling Fans Boxes' } });
-  const rackD2 = await prisma.rack.create({ data: { rackName: 'Rack D', shelfCode: 'D2', description: 'Warehouse Shelf - Distribution Enclosures' } });
+  const rackA1 = await prisma.rack.create({ data: { rackName: 'Rack A', shelfCode: 'A1', description: 'Wires (1.5 - 2.5 Sqmm)' } });
+  const rackA2 = await prisma.rack.create({ data: { rackName: 'Rack A', shelfCode: 'A2', description: 'Heavy Wires (4.0 - 6.0 Sqmm)' } });
+  const rackA4 = await prisma.rack.create({ data: { rackName: 'Rack A', shelfCode: 'A4', description: 'Protection MCBs & Breakers' } });
+  const rackB1 = await prisma.rack.create({ data: { rackName: 'Rack B', shelfCode: 'B1', description: 'Modular Switches' } });
+  const rackB2 = await prisma.rack.create({ data: { rackName: 'Rack B', shelfCode: 'B2', description: 'Heavy Sockets & Regulators' } });
+  const rackB4 = await prisma.rack.create({ data: { rackName: 'Rack B', shelfCode: 'B4', description: 'LED Bulbs & Lighting' } });
+  const rackC1 = await prisma.rack.create({ data: { rackName: 'Rack C', shelfCode: 'C1', description: 'PVC Conduit Pipes Stand' } });
+  const rackD1 = await prisma.rack.create({ data: { rackName: 'Rack D', shelfCode: 'D1', description: 'Ceiling Fans Section' } });
 
-  // 7. Products with extended metadata (GST %, HSN Code, Wholesale Pricing, Warranty)
-  const products = [
-    {
-      name: 'Polycab 1.5 Sqmm FR Wire (Red) - 90m Coil',
-      sku: 'WIR-POL-1.5-RED',
-      barcode: '890100100101',
+  // 7. Products with Variants
+  const wireProduct = await prisma.product.create({
+    data: {
+      name: 'Finolex Wire',
       hsnCode: '8544',
       gstPercent: 18,
-      unit: 'meter',
-      purchasePrice: 18.5,
-      sellingPrice: 25.0,
-      wholesalePrice: 21.0,
-      minWholesaleQty: 90,
-      stockQuantity: 500,
-      minStockAlert: 100,
-      warranty: '15 Years Flame Retardant Guarantee',
-      description: 'Polycab FR PVC insulated copper wire for general domestic wiring',
+      unit: 'ROLL',
+      warranty: '15 Years Guarantee',
+      description: 'Finolex 100% Electrolytic Grade Copper FR Insulated Wire (90m coil)',
       categoryId: catWires.id,
-      brandId: brandPolycab.id,
-      rackId: rackA1.id,
-    },
-    {
-      name: 'Polycab 2.5 Sqmm FR Wire (Blue) - 90m Coil',
-      sku: 'WIR-POL-2.5-BLU',
-      barcode: '890100100102',
-      hsnCode: '8544',
-      gstPercent: 18,
-      unit: 'meter',
-      purchasePrice: 28.0,
-      sellingPrice: 38.0,
-      wholesalePrice: 32.0,
-      minWholesaleQty: 90,
-      stockQuantity: 350,
-      minStockAlert: 80,
-      warranty: '15 Years Flame Retardant Guarantee',
-      description: 'Heavy duty power point copper wire',
-      categoryId: catWires.id,
-      brandId: brandPolycab.id,
-      rackId: rackA1.id,
-    },
-    {
-      name: 'Anchor Roma 6A 1-Way Switch (White)',
-      sku: 'SWI-ANC-6A-1W',
-      barcode: '890200200101',
-      hsnCode: '8536',
-      gstPercent: 18,
-      unit: 'pcs',
-      purchasePrice: 22.0,
-      sellingPrice: 35.0,
-      wholesalePrice: 28.0,
-      minWholesaleQty: 20,
-      stockQuantity: 120,
-      minStockAlert: 30,
-      warranty: '2 Years Manufacturer Warranty',
-      description: 'Modular high durability Polycarbonate switch',
-      categoryId: catSwitches.id,
-      brandId: brandAnchor.id,
-      rackId: rackB1.id,
-    },
-    {
-      name: 'Anchor Roma 16A 3-Pin Heavy Socket',
-      sku: 'SOC-ANC-16A-3P',
-      barcode: '890200200102',
-      hsnCode: '8536',
-      gstPercent: 18,
-      unit: 'pcs',
-      purchasePrice: 65.0,
-      sellingPrice: 95.0,
-      wholesalePrice: 78.0,
-      minWholesaleQty: 10,
-      stockQuantity: 85,
-      minStockAlert: 20,
-      warranty: '2 Years Replacement Guarantee',
-      description: 'Heavy load 16A socket for AC, Geyser and Refrigerator',
-      categoryId: catSwitches.id,
-      brandId: brandAnchor.id,
-      rackId: rackB2.id,
-    },
-    {
-      name: 'Finolex 1 Inch Heavy PVC Conduit Pipe (10ft)',
-      sku: 'PIP-FIN-1IN-10FT',
-      barcode: '890300300101',
-      hsnCode: '3917',
-      gstPercent: 18,
-      unit: 'pcs',
-      purchasePrice: 75.0,
-      sellingPrice: 110.0,
-      wholesalePrice: 92.0,
-      minWholesaleQty: 25,
-      stockQuantity: 80,
-      minStockAlert: 25,
-      warranty: '10 Years Mechanical Strength Guarantee',
-      description: 'Unplasticized rigid PVC conduit pipe for concealed wiring',
-      categoryId: catPipes.id,
       brandId: brandFinolex.id,
-      rackId: rackC1.id,
+      variants: {
+        create: [
+          {
+            variantName: '1.5 SQMM',
+            barcode: '890123',
+            sku: 'FIN-WIR-1.5',
+            purchasePrice: 800,
+            sellingPrice: 950,
+            wholesalePrice: 880,
+            minWholesaleQty: 10,
+            stockQuantity: 100,
+            minStockAlert: 20,
+            rackId: rackA1.id,
+          },
+          {
+            variantName: '2.5 SQMM',
+            barcode: '890124',
+            sku: 'FIN-WIR-2.5',
+            purchasePrice: 1200,
+            sellingPrice: 1450,
+            wholesalePrice: 1320,
+            minWholesaleQty: 10,
+            stockQuantity: 80,
+            minStockAlert: 15,
+            rackId: rackA1.id,
+          },
+          {
+            variantName: '4 SQMM',
+            barcode: '890125',
+            sku: 'FIN-WIR-4.0',
+            purchasePrice: 1800,
+            sellingPrice: 2200,
+            wholesalePrice: 2000,
+            minWholesaleQty: 5,
+            stockQuantity: 50,
+            minStockAlert: 10,
+            rackId: rackA2.id,
+          },
+          {
+            variantName: '6 SQMM',
+            barcode: '890126',
+            sku: 'FIN-WIR-6.0',
+            purchasePrice: 2600,
+            sellingPrice: 3100,
+            wholesalePrice: 2850,
+            minWholesaleQty: 5,
+            stockQuantity: 30,
+            minStockAlert: 5,
+            rackId: rackA2.id,
+          },
+        ],
+      },
     },
-    {
-      name: 'Havells 32A Double Pole C-Curve MCB',
-      sku: 'MCB-HAV-32A-DP',
-      barcode: '890400400101',
-      hsnCode: '8536',
-      gstPercent: 18,
-      unit: 'pcs',
-      purchasePrice: 210.0,
-      sellingPrice: 320.0,
-      wholesalePrice: 260.0,
-      minWholesaleQty: 5,
-      stockQuantity: 45,
-      minStockAlert: 15,
-      warranty: '5 Years Manufacturer Warranty',
-      description: 'Air-break circuit breaker with trip indicator',
-      categoryId: catProtection.id,
-      brandId: brandHavells.id,
-      rackId: rackA4.id,
-    },
-    {
-      name: 'Philips 12W Stellar Cool Day LED Bulb B22',
-      sku: 'LED-PHI-12W-B22',
-      barcode: '890500500101',
+    include: { variants: true },
+  });
+
+  const bulbProduct = await prisma.product.create({
+    data: {
+      name: 'Havells LED Bulb',
       hsnCode: '8539',
       gstPercent: 12,
-      unit: 'pcs',
-      purchasePrice: 70.0,
-      sellingPrice: 110.0,
-      wholesalePrice: 85.0,
-      minWholesaleQty: 10,
-      stockQuantity: 90,
-      minStockAlert: 20,
-      warranty: '2 Years Manufacturer Replacement Warranty',
-      description: '1050 Lumens Energy Efficient B22 Base LED Bulb',
+      unit: 'PCS',
+      warranty: '2 Years Replacement',
+      description: 'Energy efficient B22 cool day white LED bulb',
       categoryId: catLighting.id,
-      brandId: brandPhilips.id,
-      rackId: rackB4.id,
+      brandId: brandHavells.id,
+      variants: {
+        create: [
+          {
+            variantName: '9W',
+            barcode: '890223',
+            sku: 'HAV-LED-9W',
+            purchasePrice: 55,
+            sellingPrice: 85,
+            wholesalePrice: 70,
+            minWholesaleQty: 10,
+            stockQuantity: 150,
+            minStockAlert: 30,
+            rackId: rackB4.id,
+          },
+          {
+            variantName: '12W',
+            barcode: '890224',
+            sku: 'HAV-LED-12W',
+            purchasePrice: 70,
+            sellingPrice: 110,
+            wholesalePrice: 90,
+            minWholesaleQty: 10,
+            stockQuantity: 120,
+            minStockAlert: 25,
+            rackId: rackB4.id,
+          },
+          {
+            variantName: '15W',
+            barcode: '890225',
+            sku: 'HAV-LED-15W',
+            purchasePrice: 95,
+            sellingPrice: 145,
+            wholesalePrice: 120,
+            minWholesaleQty: 10,
+            stockQuantity: 90,
+            minStockAlert: 20,
+            rackId: rackB4.id,
+          },
+          {
+            variantName: '20W',
+            barcode: '890226',
+            sku: 'HAV-LED-20W',
+            purchasePrice: 130,
+            sellingPrice: 190,
+            wholesalePrice: 160,
+            minWholesaleQty: 5,
+            stockQuantity: 60,
+            minStockAlert: 15,
+            rackId: rackB4.id,
+          },
+        ],
+      },
     },
-    {
-      name: 'Crompton Aura 1200mm High Speed Ceiling Fan',
-      sku: 'FAN-CRO-1200MM',
-      barcode: '890600600101',
+    include: { variants: true },
+  });
+
+  await prisma.product.create({
+    data: {
+      name: 'Schneider MCB',
+      hsnCode: '8536',
+      gstPercent: 18,
+      unit: 'PCS',
+      warranty: '5 Years Warranty',
+      description: 'C-Curve single pole mini circuit breaker',
+      categoryId: catProtection.id,
+      brandId: brandSchneider.id,
+      variants: {
+        create: [
+          {
+            variantName: '6A',
+            barcode: '890323',
+            sku: 'SCH-MCB-6A',
+            purchasePrice: 110,
+            sellingPrice: 165,
+            wholesalePrice: 135,
+            minWholesaleQty: 10,
+            stockQuantity: 80,
+            minStockAlert: 15,
+            rackId: rackA4.id,
+          },
+          {
+            variantName: '10A',
+            barcode: '890324',
+            sku: 'SCH-MCB-10A',
+            purchasePrice: 110,
+            sellingPrice: 165,
+            wholesalePrice: 135,
+            minWholesaleQty: 10,
+            stockQuantity: 70,
+            minStockAlert: 15,
+            rackId: rackA4.id,
+          },
+          {
+            variantName: '16A',
+            barcode: '890325',
+            sku: 'SCH-MCB-16A',
+            purchasePrice: 115,
+            sellingPrice: 170,
+            wholesalePrice: 140,
+            minWholesaleQty: 10,
+            stockQuantity: 90,
+            minStockAlert: 20,
+            rackId: rackA4.id,
+          },
+          {
+            variantName: '20A',
+            barcode: '890326',
+            sku: 'SCH-MCB-20A',
+            purchasePrice: 120,
+            sellingPrice: 175,
+            wholesalePrice: 145,
+            minWholesaleQty: 10,
+            stockQuantity: 60,
+            minStockAlert: 10,
+            rackId: rackA4.id,
+          },
+          {
+            variantName: '32A',
+            barcode: '890327',
+            sku: 'SCH-MCB-32A',
+            purchasePrice: 135,
+            sellingPrice: 195,
+            wholesalePrice: 165,
+            minWholesaleQty: 5,
+            stockQuantity: 50,
+            minStockAlert: 10,
+            rackId: rackA4.id,
+          },
+        ],
+      },
+    },
+  });
+
+  await prisma.product.create({
+    data: {
+      name: 'PVC Pipe',
+      hsnCode: '3917',
+      gstPercent: 18,
+      unit: 'PCS',
+      warranty: '10 Years Durability',
+      description: 'Finolex 10ft heavy duty PVC conduit pipe',
+      categoryId: catPipes.id,
+      brandId: brandFinolex.id,
+      variants: {
+        create: [
+          {
+            variantName: '20mm',
+            barcode: '890423',
+            sku: 'FIN-PIP-20MM',
+            purchasePrice: 45,
+            sellingPrice: 65,
+            wholesalePrice: 55,
+            minWholesaleQty: 25,
+            stockQuantity: 200,
+            minStockAlert: 50,
+            rackId: rackC1.id,
+          },
+          {
+            variantName: '25mm',
+            barcode: '890424',
+            sku: 'FIN-PIP-25MM',
+            purchasePrice: 60,
+            sellingPrice: 85,
+            wholesalePrice: 72,
+            minWholesaleQty: 25,
+            stockQuantity: 180,
+            minStockAlert: 40,
+            rackId: rackC1.id,
+          },
+          {
+            variantName: '32mm',
+            barcode: '890425',
+            sku: 'FIN-PIP-32MM',
+            purchasePrice: 90,
+            sellingPrice: 130,
+            wholesalePrice: 110,
+            minWholesaleQty: 15,
+            stockQuantity: 100,
+            minStockAlert: 25,
+            rackId: rackC1.id,
+          },
+          {
+            variantName: '40mm',
+            barcode: '890426',
+            sku: 'FIN-PIP-40MM',
+            purchasePrice: 125,
+            sellingPrice: 175,
+            wholesalePrice: 150,
+            minWholesaleQty: 10,
+            stockQuantity: 70,
+            minStockAlert: 15,
+            rackId: rackC1.id,
+          },
+        ],
+      },
+    },
+  });
+
+  await prisma.product.create({
+    data: {
+      name: 'Switches',
+      hsnCode: '8536',
+      gstPercent: 18,
+      unit: 'PCS',
+      warranty: '2 Years Guarantee',
+      description: 'Anchor Roma modular polycarb switch & regulator range',
+      categoryId: catSwitches.id,
+      brandId: brandAnchor.id,
+      variants: {
+        create: [
+          {
+            variantName: '1 Way',
+            barcode: '890523',
+            sku: 'ANC-SWI-1W',
+            purchasePrice: 22,
+            sellingPrice: 35,
+            wholesalePrice: 27,
+            minWholesaleQty: 20,
+            stockQuantity: 300,
+            minStockAlert: 50,
+            rackId: rackB1.id,
+          },
+          {
+            variantName: '2 Way',
+            barcode: '890524',
+            sku: 'ANC-SWI-2W',
+            purchasePrice: 32,
+            sellingPrice: 48,
+            wholesalePrice: 38,
+            minWholesaleQty: 20,
+            stockQuantity: 150,
+            minStockAlert: 30,
+            rackId: rackB1.id,
+          },
+          {
+            variantName: 'Bell Switch',
+            barcode: '890525',
+            sku: 'ANC-SWI-BELL',
+            purchasePrice: 40,
+            sellingPrice: 60,
+            wholesalePrice: 48,
+            minWholesaleQty: 10,
+            stockQuantity: 80,
+            minStockAlert: 15,
+            rackId: rackB1.id,
+          },
+          {
+            variantName: 'Fan Regulator',
+            barcode: '890526',
+            sku: 'ANC-REG-FAN',
+            purchasePrice: 180,
+            sellingPrice: 250,
+            wholesalePrice: 210,
+            minWholesaleQty: 5,
+            stockQuantity: 100,
+            minStockAlert: 20,
+            rackId: rackB2.id,
+          },
+        ],
+      },
+    },
+  });
+
+  await prisma.product.create({
+    data: {
+      name: 'Fans',
       hsnCode: '8414',
       gstPercent: 18,
-      unit: 'pcs',
-      purchasePrice: 1450.0,
-      sellingPrice: 1950.0,
-      wholesalePrice: 1680.0,
-      minWholesaleQty: 3,
-      stockQuantity: 15,
-      minStockAlert: 5,
-      warranty: '2 Years On-Site Brand Warranty',
-      description: 'High air delivery 380 RPM 100% Copper motor ceiling fan',
+      unit: 'PCS',
+      warranty: '2 Years On-Site Warranty',
+      description: 'Crompton high delivery copper motor ceiling fans',
       categoryId: catFans.id,
       brandId: brandCrompton.id,
-      rackId: rackD1.id,
+      variants: {
+        create: [
+          {
+            variantName: '1200mm Brown',
+            barcode: '890623',
+            sku: 'CRO-FAN-1200-BRN',
+            purchasePrice: 1450,
+            sellingPrice: 1950,
+            wholesalePrice: 1680,
+            minWholesaleQty: 3,
+            stockQuantity: 25,
+            minStockAlert: 5,
+            rackId: rackD1.id,
+          },
+          {
+            variantName: '1200mm White',
+            barcode: '890624',
+            sku: 'CRO-FAN-1200-WHT',
+            purchasePrice: 1450,
+            sellingPrice: 1950,
+            wholesalePrice: 1680,
+            minWholesaleQty: 3,
+            stockQuantity: 30,
+            minStockAlert: 5,
+            rackId: rackD1.id,
+          },
+          {
+            variantName: '1400mm Ivory',
+            barcode: '890625',
+            sku: 'CRO-FAN-1400-IVR',
+            purchasePrice: 1650,
+            sellingPrice: 2200,
+            wholesalePrice: 1900,
+            minWholesaleQty: 3,
+            stockQuantity: 15,
+            minStockAlert: 3,
+            rackId: rackD1.id,
+          },
+        ],
+      },
     },
-  ];
-
-  for (const p of products) {
-    await prisma.product.create({ data: p });
-  }
+  });
 
   // 8. Customers
   const customerRamesh = await prisma.customer.create({
@@ -287,19 +516,6 @@ async function main() {
       totalPurchases: 125000,
       totalPaid: 106500,
       outstanding: 18500,
-    },
-  });
-
-  const customerSuresh = await prisma.customer.create({
-    data: {
-      name: 'Suresh Electrical Works',
-      phone: '9988776655',
-      email: 'suresh.works@yahoo.com',
-      address: 'Phase 2 Industrial Zone, Main Highway',
-      creditLimit: 100000,
-      totalPurchases: 250000,
-      totalPaid: 205000,
-      outstanding: 45000,
     },
   });
 
@@ -317,41 +533,46 @@ async function main() {
     },
   });
 
-  // 10. Initial Invoices & Ledgers
+  // 10. Sample Invoice
+  const sampleWireVariant = wireProduct.variants[0]; // 1.5 SQMM
+  const sampleBulbVariant = bulbProduct.variants[0]; // 9W
+
   const inv1 = await prisma.invoice.create({
     data: {
       invoiceNo: 'INV-2026-001',
       customerId: customerRamesh.id,
       customerName: customerRamesh.name,
       customerPhone: customerRamesh.phone,
-      subtotal: 5000,
+      subtotal: 1800,
       discount: 0,
       tax: 0,
-      totalAmount: 5000,
-      paidAmount: 2000,
-      dueAmount: 3000,
+      totalAmount: 1800,
+      paidAmount: 1000,
+      dueAmount: 800,
       paymentMethod: PaymentMethod.CREDIT as any,
       status: 'COMPLETED',
       createdAt: new Date(Date.now() - 5 * 86400000),
       items: {
         create: [
           {
-            productId: (await prisma.product.findFirstOrThrow({ where: { sku: 'WIR-POL-1.5-RED' } })).id,
-            productName: 'Polycab 1.5 Sqmm FR Wire (Red) - 90m Coil',
-            unit: 'meter',
-            price: 25.0,
-            quantity: 100,
-            total: 2500,
-            rackLocation: 'Rack A1',
+            productId: wireProduct.id,
+            variantId: sampleWireVariant.id,
+            productName: 'Finolex Wire (1.5 SQMM)',
+            unit: 'ROLL',
+            price: 950,
+            quantity: 1,
+            total: 950,
+            rackLocation: 'Rack A - Shelf A1',
           },
           {
-            productId: (await prisma.product.findFirstOrThrow({ where: { sku: 'SWI-ANC-6A-1W' } })).id,
-            productName: 'Anchor Roma 6A 1-Way Switch (White)',
-            unit: 'pcs',
-            price: 35.0,
-            quantity: 50,
-            total: 1750,
-            rackLocation: 'Rack B1',
+            productId: bulbProduct.id,
+            variantId: sampleBulbVariant.id,
+            productName: 'Havells LED Bulb (9W)',
+            unit: 'PCS',
+            price: 85,
+            quantity: 10,
+            total: 850,
+            rackLocation: 'Rack B - Shelf B4',
           },
         ],
       },
@@ -362,15 +583,15 @@ async function main() {
     data: {
       customerId: customerRamesh.id,
       type: LedgerType.SALE as any,
-      amount: 5000,
+      amount: 1800,
       balance: 18500,
-      notes: 'Sale INV-2026-001 (Paid 2000 Cash, Due 3000 Udhar)',
+      notes: 'Sale INV-2026-001 (Paid 1000 Cash, Due 800 Udhar)',
       invoiceId: inv1.id,
       createdAt: new Date(Date.now() - 5 * 86400000),
     },
   });
 
-  console.log('Kannaya ERP database seeded cleanly!');
+  console.log('Kannaya Electrical ERP database seeded successfully with Product Variants!');
 }
 
 main()

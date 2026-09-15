@@ -5,10 +5,14 @@ export async function GET() {
   try {
     const racks = await prisma.rack.findMany({
       include: {
-        products: {
+        variants: {
           include: {
-            category: true,
-            brand: true,
+            product: {
+              include: {
+                category: true,
+                brand: true,
+              },
+            },
           },
         },
       },

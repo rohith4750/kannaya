@@ -9,9 +9,6 @@ import {
   Minus,
   Printer,
   CheckCircle,
-  AlertCircle,
-  User,
-  Barcode,
   Layers,
   MessageSquare,
   X,
@@ -22,6 +19,7 @@ import InvoicePrintTemplate from '@/components/InvoicePrintTemplate';
 
 export default function BillingPOSPage() {
   const [products, setProducts] = useState<any[]>([]);
+  const [variantItems, setVariantItems] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
@@ -32,7 +30,6 @@ export default function BillingPOSPage() {
   const [selectedBrandId, setSelectedBrandId] = useState<string>('ALL');
 
   const [categories, setCategories] = useState<any[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('ALL');
 
   // Loose Hardware Modal State
   const [showLooseHardwareModal, setShowLooseHardwareModal] = useState(false);
@@ -49,6 +46,8 @@ export default function BillingPOSPage() {
     const customId = `misc-${Date.now()}`;
     const itemObj = {
       id: customId,
+      variantId: null,
+      productId: null,
       name: `${name} (₹${amount})`,
       barcode: 'MISC-HARDWARE',
       sellingPrice: amount,
@@ -57,8 +56,8 @@ export default function BillingPOSPage() {
       unit: 'pcs',
       stockQuantity: 999,
       minStockAlert: 0,
-      rack: { rackName: 'Misc Bin', shelfCode: 'General' },
-      brand: { name: 'Miscellaneous' },
+      rackLocation: 'Misc Bin',
+      brandName: 'Miscellaneous',
     };
     setCart((prevCart) => [...prevCart, itemObj]);
     setQuickMiscAmount('');
@@ -114,7 +113,42 @@ export default function BillingPOSPage() {
       const bData = await brandRes.json();
       const cData = await catRes.json();
 
-      if (Array.isArray(prods)) setProducts(prods);
+      if (Array.isArray(prods)) {
+        setProducts(prods);
+
+        // Flatten products into variant items for instant POS billing & barcode scanning
+        const items: any[] = [];
+        prods.forEach((p) => {
+          if (Array.isArray(p.variants) && p.variants.length > 0) {
+            p.variants.forEach((v: any) => {
+              items.push({
+                id: v.id,
+                variantId: v.id,
+                productId: p.id,
+                productName: p.name,
+                variantName: v.variantName,
+                name: v.variantName && v.variantName !== 'Standard' ? `${p.name} (${v.variantName})` : p.name,
+                barcode: v.barcode,
+                sku: v.sku,
+                unit: p.unit || 'pcs',
+                sellingPrice: v.sellingPrice,
+                purchasePrice: v.purchasePrice,
+                wholesalePrice: v.wholesalePrice,
+                minWholesaleQty: v.minWholesaleQty,
+                stockQuantity: v.stockQuantity,
+                minStockAlert: v.minStockAlert,
+                brandId: p.brandId || p.brand?.id,
+                brandName: p.brand?.name || 'Generic',
+                categoryId: p.categoryId,
+                categoryName: p.category?.name,
+                rackLocation: v.rack ? `${v.rack.rackName} (${v.rack.shelfCode})` : 'Unassigned',
+              });
+            });
+          }
+        });
+        setVariantItems(items);
+      }
+
       if (Array.isArray(custs)) setCustomers(custs);
       if (Array.isArray(bData)) setBrands(bData);
       if (Array.isArray(cData)) setCategories(cData);
@@ -141,25 +175,22 @@ export default function BillingPOSPage() {
     }
   }, [selectedCustomerId, customers]);
 
-  const filteredProducts = products.filter((p) => {
+  const filteredVariantItems = variantItems.filter((item) => {
     const q = searchQuery.toLowerCase().trim();
-    const matchesBrand =
-      selectedBrandId === 'ALL' ||
-      p.brandId === selectedBrandId ||
-      (p.brand && p.brand.id === selectedBrandId);
+    const matchesBrand = selectedBrandId === 'ALL' || item.brandId === selectedBrandId;
 
     if (!matchesBrand) return false;
     if (!q) return true;
     return (
-      p.name.toLowerCase().includes(q) ||
-      p.barcode.toLowerCase().includes(q) ||
-      (p.sku && p.sku.toLowerCase().includes(q)) ||
-      (p.brand && p.brand.name.toLowerCase().includes(q)) ||
-      (p.category && p.category.name.toLowerCase().includes(q))
+      item.name.toLowerCase().includes(q) ||
+      item.barcode.toLowerCase().includes(q) ||
+      (item.sku && item.sku.toLowerCase().includes(q)) ||
+      (item.brandName && item.brandName.toLowerCase().includes(q)) ||
+      (item.categoryName && item.categoryName.toLowerCase().includes(q))
     );
   });
 
-  const displayProducts = filteredProducts.slice(0, 150);
+  const displayVariantItems = filteredVariantItems.slice(0, 150);
 
   const handleAddLooseHardwareItem = (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,6 +201,8 @@ export default function BillingPOSPage() {
 
     const looseItemObj = {
       id: customId,
+      variantId: null,
+      productId: null,
       name: looseItemTitle,
       barcode: 'LOOSE-HARDWARE',
       sellingPrice: itemPrice,
@@ -178,8 +211,8 @@ export default function BillingPOSPage() {
       unit: looseItemUnit,
       stockQuantity: 999,
       minStockAlert: 0,
-      rack: { rackName: 'Hardware Bin', shelfCode: 'Loose' },
-      brand: { name: 'Loose Hardware' },
+      rackLocation: 'Loose Bin',
+      brandName: 'Loose Hardware',
     };
 
     setCart([...cart, looseItemObj]);
@@ -191,8 +224,8 @@ export default function BillingPOSPage() {
 
   const handleKeyDownSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
-      const exactMatch = products.find(
-        (p) => p.barcode === searchQuery.trim() || (p.sku && p.sku === searchQuery.trim())
+      const exactMatch = variantItems.find(
+        (it) => it.barcode === searchQuery.trim() || (it.sku && it.sku === searchQuery.trim())
       );
       if (exactMatch) {
         addToCart(exactMatch);
@@ -201,15 +234,15 @@ export default function BillingPOSPage() {
     }
   };
 
-  const addToCart = (product: any) => {
-    const existingIndex = cart.findIndex((item) => item.id === product.id);
+  const addToCart = (item: any) => {
+    const existingIndex = cart.findIndex((c) => c.id === item.id);
     if (existingIndex > -1) {
       const updatedCart = [...cart];
       const newQty = updatedCart[existingIndex].quantity + 1;
       const effectivePrice =
-        product.wholesalePrice && newQty >= (product.minWholesaleQty || 10)
-          ? product.wholesalePrice
-          : product.sellingPrice;
+        item.wholesalePrice && newQty >= (item.minWholesaleQty || 10)
+          ? item.wholesalePrice
+          : item.sellingPrice;
       updatedCart[existingIndex].quantity = newQty;
       updatedCart[existingIndex].effectivePrice = effectivePrice;
       setCart(updatedCart);
@@ -217,9 +250,9 @@ export default function BillingPOSPage() {
       setCart([
         ...cart,
         {
-          ...product,
+          ...item,
           quantity: 1,
-          effectivePrice: product.sellingPrice,
+          effectivePrice: item.sellingPrice,
         },
       ]);
     }
@@ -271,7 +304,16 @@ export default function BillingPOSPage() {
           customerId: selectedCustomerId || null,
           customerName: selectedCustomer ? selectedCustomer.name : 'Walk-in Customer',
           customerPhone: selectedCustomer ? selectedCustomer.phone : 'N/A',
-          items: cart.map((c) => ({ ...c, sellingPrice: c.effectivePrice || c.sellingPrice })),
+          items: cart.map((c) => ({
+            id: c.id,
+            variantId: c.variantId || null,
+            productId: c.productId || null,
+            name: c.name,
+            sellingPrice: c.effectivePrice || c.sellingPrice,
+            quantity: c.quantity,
+            unit: c.unit,
+            rackLocation: c.rackLocation,
+          })),
           subtotal,
           discount,
           tax: taxAmount,
@@ -334,9 +376,9 @@ export default function BillingPOSPage() {
 
   return (
     <div className="h-full flex flex-col lg:flex-row gap-3.5 overflow-hidden">
-      {/* Product Catalog */}
+      {/* Product & Variant Catalog Grid */}
       <div className="flex-1 flex flex-col min-w-0 bg-white rounded-[5px] border border-[#cbcbcb] p-3.5 overflow-hidden shadow-sm h-full">
-        {/* Brand Filter Pills Bar */}
+        {/* Brand Filter Bar */}
         <div className="flex items-center gap-1.5 mb-2.5 overflow-x-auto pb-1 shrink-0 custom-scrollbar text-xs">
           <span className="text-[10px] font-extrabold uppercase text-[#4a4a4a] mr-1 shrink-0">Brand:</span>
           <button
@@ -347,10 +389,10 @@ export default function BillingPOSPage() {
                 : 'bg-slate-100 text-slate-700 border-[#cbcbcb] hover:bg-slate-200'
             }`}
           >
-            All Brands ({products.length})
+            All Brands ({variantItems.length})
           </button>
           {brands.map((b) => {
-            const count = products.filter((p) => p.brandId === b.id || p.brand?.id === b.id).length;
+            const count = variantItems.filter((v) => v.brandId === b.id).length;
             if (count === 0) return null;
             return (
               <button
@@ -378,7 +420,7 @@ export default function BillingPOSPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDownSearch}
-              placeholder="Search product name, barcode, brand, or SKU..."
+              placeholder="Search product variant, barcode (e.g. 890123), brand, SKU..."
               className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-10 pr-4 py-2 text-xs text-[#4a4a4a] placeholder-slate-400 focus:outline-none focus:border-[#6d8196] focus:bg-white"
             />
           </div>
@@ -386,9 +428,9 @@ export default function BillingPOSPage() {
           <button
             onClick={() => setShowLooseHardwareModal(true)}
             className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-2 rounded-[5px] text-xs flex items-center gap-1.5 shadow-sm transition-all border border-[#cbcbcb]/40 shrink-0"
-            title="Add Detailed Loose Hardware (Screws, Nuts, Wires, Tape)"
+            title="Add Loose Hardware Item"
           >
-            <Plus className="w-4 h-4" /> Loose Hardware Item
+            <Plus className="w-4 h-4" /> Loose Hardware
           </button>
         </div>
 
@@ -411,7 +453,7 @@ export default function BillingPOSPage() {
               step="1"
               value={quickMiscAmount}
               onChange={(e) => setQuickMiscAmount(e.target.value)}
-              placeholder="Enter amount (e.g. 20, 50, 100)..."
+              placeholder="Enter amount..."
               className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-2.5 py-1 text-xs font-bold text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
             />
             <button
@@ -423,57 +465,52 @@ export default function BillingPOSPage() {
             </button>
           </form>
 
-          {/* Quick Preset Amount Pills */}
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => addQuickMiscItem(10)}
-              className="bg-white hover:bg-slate-100 border border-[#cbcbcb] text-slate-800 font-bold px-2 py-1 rounded-[4px] text-[11px] transition-colors shadow-sm"
-              title="Add ₹10 Misc Item"
+              className="bg-white hover:bg-slate-100 border border-[#cbcbcb] text-slate-800 font-bold px-2 py-1 rounded-[4px] text-[11px]"
             >
               + ₹10
             </button>
             <button
               type="button"
               onClick={() => addQuickMiscItem(20)}
-              className="bg-white hover:bg-slate-100 border border-[#cbcbcb] text-slate-800 font-bold px-2 py-1 rounded-[4px] text-[11px] transition-colors shadow-sm"
-              title="Add ₹20 Misc Item"
+              className="bg-white hover:bg-slate-100 border border-[#cbcbcb] text-slate-800 font-bold px-2 py-1 rounded-[4px] text-[11px]"
             >
               + ₹20
             </button>
             <button
               type="button"
               onClick={() => addQuickMiscItem(50)}
-              className="bg-white hover:bg-slate-100 border border-[#cbcbcb] text-slate-800 font-bold px-2 py-1 rounded-[4px] text-[11px] transition-colors shadow-sm"
-              title="Add ₹50 Misc Item"
+              className="bg-white hover:bg-slate-100 border border-[#cbcbcb] text-slate-800 font-bold px-2 py-1 rounded-[4px] text-[11px]"
             >
               + ₹50
             </button>
             <button
               type="button"
               onClick={() => addQuickMiscItem(100)}
-              className="bg-white hover:bg-slate-100 border border-[#cbcbcb] text-slate-800 font-bold px-2 py-1 rounded-[4px] text-[11px] transition-colors shadow-sm"
-              title="Add ₹100 Misc Item"
+              className="bg-white hover:bg-slate-100 border border-[#cbcbcb] text-slate-800 font-bold px-2 py-1 rounded-[4px] text-[11px]"
             >
               + ₹100
             </button>
           </div>
         </div>
 
-        {/* Clean Flat Product Grid */}
+        {/* Variant Cards Grid */}
         <div className="flex-1 overflow-y-auto min-h-0 pr-1 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 auto-rows-min content-start custom-scrollbar">
-          {displayProducts.length > 0 ? (
-            displayProducts.map((product) => {
-              const isLowStock = product.stockQuantity <= product.minStockAlert;
-              const inCart = cart.find((item) => item.id === product.id);
+          {displayVariantItems.length > 0 ? (
+            displayVariantItems.map((item) => {
+              const isLowStock = item.stockQuantity <= item.minStockAlert;
+              const inCart = cart.find((c) => c.id === item.id);
 
               return (
                 <button
-                  key={product.id}
-                  onClick={() => addToCart(product)}
-                  disabled={product.stockQuantity <= 0}
+                  key={item.id}
+                  onClick={() => addToCart(item)}
+                  disabled={item.stockQuantity <= 0}
                   className={`text-left p-3 rounded-[5px] border transition-all flex flex-col justify-between relative group min-h-[135px] ${
-                    product.stockQuantity <= 0
+                    item.stockQuantity <= 0
                       ? 'opacity-40 bg-slate-100 border-[#cbcbcb] cursor-not-allowed'
                       : inCart
                       ? 'bg-[#ffffe3] border-[#6d8196] shadow-sm ring-1 ring-[#6d8196]'
@@ -484,29 +521,32 @@ export default function BillingPOSPage() {
                     <div className="flex items-center justify-between mb-1.5 gap-1 pr-5">
                       <span className="px-1.5 py-0.5 rounded-[3px] text-[10px] font-medium bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20 flex items-center gap-1 shrink-0">
                         <Layers className="w-2.5 h-2.5 text-[#6d8196]" />
-                        {product.rack ? `${product.rack.rackName} (${product.rack.shelfCode})` : 'Rack A1'}
+                        {item.rackLocation}
                       </span>
                       <span className="text-[10px] font-bold text-[#6d8196] truncate max-w-[80px] text-right">
-                        {product.brand?.name}
+                        {item.brandName}
                       </span>
                     </div>
 
                     <h4 className="text-xs font-bold text-[#4a4a4a] line-clamp-2 leading-snug group-hover:text-[#6d8196]">
-                      {product.name}
+                      {item.name}
                     </h4>
+                    <span className="text-[10px] font-mono text-slate-400 block mt-0.5">
+                      Barcode: {item.barcode}
+                    </span>
                   </div>
 
                   <div className="mt-2 pt-2 border-t border-[#cbcbcb]/70 flex items-center justify-between">
                     <div className="text-xs font-bold text-[#4a4a4a]">
-                      ₹{product.sellingPrice}
-                      <span className="text-[9px] font-normal text-slate-500">/{product.unit}</span>
+                      ₹{item.sellingPrice}
+                      <span className="text-[9px] font-normal text-slate-500">/{item.unit}</span>
                     </div>
                     <span
                       className={`text-[10px] font-medium px-1.5 py-0.5 rounded-[3px] ${
                         isLowStock ? 'bg-rose-100 text-rose-700 border border-rose-200 font-semibold' : 'bg-slate-100 text-slate-600 border border-[#cbcbcb]/50'
                       }`}
                     >
-                      Stock: {product.stockQuantity}
+                      Stock: {item.stockQuantity}
                     </span>
                   </div>
 
@@ -520,13 +560,13 @@ export default function BillingPOSPage() {
             })
           ) : (
             <div className="col-span-full p-8 text-center text-slate-400 text-xs font-medium">
-              No matching products found.
+              No matching variants found.
             </div>
           )}
         </div>
       </div>
 
-      {/* Cart & Billing Checkout */}
+      {/* Cart & Billing Checkout Pane */}
       <div className="w-full lg:w-[400px] bg-white border border-[#cbcbcb] rounded-[5px] flex flex-col h-full overflow-hidden shadow-sm shrink-0">
         {/* Customer Selector */}
         <div className="p-3 border-b border-[#cbcbcb] bg-slate-50 shrink-0">
@@ -552,7 +592,7 @@ export default function BillingPOSPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="px-1.5 py-0.5 text-[9px] font-medium rounded-[3px] bg-[#6d8196]/10 text-[#6d8196] border border-[#6d8196]/20">
-                      {item.rack ? `${item.rack.rackName} ${item.rack.shelfCode}` : 'Rack A1'}
+                      {item.rackLocation || 'Rack A1'}
                     </span>
                     <h5 className="text-xs font-semibold text-[#4a4a4a] truncate">{item.name}</h5>
                   </div>
@@ -589,7 +629,7 @@ export default function BillingPOSPage() {
           )}
         </div>
 
-        {/* Calculations & Submit */}
+        {/* Totals & Submit */}
         <div className="p-3 border-t border-[#cbcbcb] bg-slate-50 space-y-2 shrink-0">
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
@@ -683,7 +723,6 @@ export default function BillingPOSPage() {
               </div>
             </div>
 
-            {/* Printable Invoice Template Container */}
             <div className="bg-slate-50 p-3 rounded-[5px] border border-[#cbcbcb] max-h-[440px] overflow-y-auto">
               <InvoicePrintTemplate
                 invoice={receiptData.invoice}
@@ -710,7 +749,7 @@ export default function BillingPOSPage() {
         </div>
       )}
 
-      {/* LOOSE HARDWARE QUICK ITEM MODAL */}
+      {/* LOOSE HARDWARE MODAL */}
       {showLooseHardwareModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-sm w-full p-5 space-y-4 shadow-2xl">
@@ -731,7 +770,7 @@ export default function BillingPOSPage() {
                   required
                   value={looseItemTitle}
                   onChange={(e) => setLooseItemTitle(e.target.value)}
-                  placeholder="e.g. Screws & Wall Plugs / Loose Wire 5m / PVC Clips"
+                  placeholder="e.g. Screws & Wall Plugs / Loose Wire 5m"
                   className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
                 />
               </div>
@@ -772,7 +811,6 @@ export default function BillingPOSPage() {
                     { value: 'pkt', label: 'pkt (Packets)' },
                     { value: 'box', label: 'box (Boxes)' },
                     { value: 'roll', label: 'roll (Rolls)' },
-                    { value: 'set', label: 'set (Sets)' },
                   ]}
                 />
               </div>

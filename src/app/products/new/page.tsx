@@ -10,15 +10,27 @@ import {
   Save,
   FolderPlus,
   Tag,
-  MapPin,
   Barcode,
   DollarSign,
-  ShieldAlert,
   X,
-  CheckCircle,
-  FileText,
+  Trash2,
+  Zap,
+  Layers,
 } from 'lucide-react';
 import MaterialSelect from '@/components/MaterialSelect';
+
+interface VariantRow {
+  variantName: string;
+  barcode: string;
+  sku: string;
+  purchasePrice: string;
+  sellingPrice: string;
+  wholesalePrice: string;
+  minWholesaleQty: string;
+  stockQuantity: string;
+  minStockAlert: string;
+  rackId: string;
+}
 
 export default function AddNewProductPage() {
   const router = useRouter();
@@ -35,26 +47,33 @@ export default function AddNewProductPage() {
   const [newCatDesc, setNewCatDesc] = useState('');
   const [newBrandName, setNewBrandName] = useState('');
 
-  // Extended Product Form State
-  const [formData, setFormData] = useState({
+  // Base Product Form State
+  const [productData, setProductData] = useState({
     name: '',
-    sku: '',
-    barcode: '',
     hsnCode: '8544',
     gstPercent: '18',
     unit: 'pcs',
-    purchasePrice: '',
-    sellingPrice: '',
-    wholesalePrice: '',
-    minWholesaleQty: '10',
-    stockQuantity: '',
-    minStockAlert: '10',
     warranty: '',
     description: '',
     categoryId: '',
     brandId: '',
-    rackId: '',
   });
+
+  // Variant Rows
+  const [variants, setVariants] = useState<VariantRow[]>([
+    {
+      variantName: '1.5 SQMM',
+      barcode: '',
+      sku: '',
+      purchasePrice: '',
+      sellingPrice: '',
+      wholesalePrice: '',
+      minWholesaleQty: '10',
+      stockQuantity: '50',
+      minStockAlert: '10',
+      rackId: '',
+    },
+  ]);
 
   const loadDropdowns = async () => {
     try {
@@ -75,7 +94,7 @@ export default function AddNewProductPage() {
       if (Array.isArray(rData)) setRacks(rData);
 
       if (sData) {
-        setFormData((prev) => ({
+        setProductData((prev) => ({
           ...prev,
           hsnCode: sData.defaultHsnCode || prev.hsnCode,
           gstPercent: sData.defaultGstPercent !== undefined ? String(sData.defaultGstPercent) : prev.gstPercent,
@@ -102,7 +121,7 @@ export default function AddNewProductPage() {
       if (res.ok) {
         const createdCat = await res.json();
         setCategories((prev) => [...prev, createdCat]);
-        setFormData((prev) => ({ ...prev, categoryId: createdCat.id }));
+        setProductData((prev) => ({ ...prev, categoryId: createdCat.id }));
         setNewCatName('');
         setNewCatDesc('');
         setShowAddCategoryModal(false);
@@ -124,7 +143,7 @@ export default function AddNewProductPage() {
       if (res.ok) {
         const createdBrand = await res.json();
         setBrands((prev) => [...prev, createdBrand]);
-        setFormData((prev) => ({ ...prev, brandId: createdBrand.id }));
+        setProductData((prev) => ({ ...prev, brandId: createdBrand.id }));
         setNewBrandName('');
         setShowAddBrandModal(false);
       }
@@ -133,14 +152,120 @@ export default function AddNewProductPage() {
     }
   };
 
+  // Electrical Preset Auto-Generators
+  const applyPreset = (presetType: 'wires' | 'bulbs' | 'mcb' | 'pipes' | 'switches' | 'fans') => {
+    let names: string[] = [];
+    let unit = 'pcs';
+    let hsn = '8544';
+
+    if (presetType === 'wires') {
+      names = ['1 SQMM', '1.5 SQMM', '2.5 SQMM', '4 SQMM', '6 SQMM'];
+      unit = 'roll';
+      hsn = '8544';
+      if (!productData.name) setProductData((p) => ({ ...p, name: 'Finolex Wire', unit, hsnCode: hsn }));
+    } else if (presetType === 'bulbs') {
+      names = ['9W', '12W', '15W', '20W'];
+      unit = 'pcs';
+      hsn = '8539';
+      if (!productData.name) setProductData((p) => ({ ...p, name: 'Havells LED Bulb', unit, hsnCode: hsn, gstPercent: '12' }));
+    } else if (presetType === 'mcb') {
+      names = ['6A', '10A', '16A', '20A', '32A'];
+      unit = 'pcs';
+      hsn = '8536';
+      if (!productData.name) setProductData((p) => ({ ...p, name: 'Schneider MCB', unit, hsnCode: hsn }));
+    } else if (presetType === 'pipes') {
+      names = ['20mm', '25mm', '32mm', '40mm'];
+      unit = 'pcs';
+      hsn = '3917';
+      if (!productData.name) setProductData((p) => ({ ...p, name: 'PVC Pipe 10ft', unit, hsnCode: hsn }));
+    } else if (presetType === 'switches') {
+      names = ['1 Way', '2 Way', 'Bell Switch', 'Fan Regulator'];
+      unit = 'pcs';
+      hsn = '8536';
+      if (!productData.name) setProductData((p) => ({ ...p, name: 'Anchor Modular Switch', unit, hsnCode: hsn }));
+    } else if (presetType === 'fans') {
+      names = ['1200mm Brown', '1200mm White', '1400mm Ivory'];
+      unit = 'pcs';
+      hsn = '8414';
+      if (!productData.name) setProductData((p) => ({ ...p, name: 'Crompton Ceiling Fan', unit, hsnCode: hsn }));
+    }
+
+    const newRows: VariantRow[] = names.map((name, i) => ({
+      variantName: name,
+      barcode: `${890000 + Math.floor(Math.random() * 90000)}`,
+      sku: `SKU-${name.replace(/\s+/g, '-').toUpperCase()}`,
+      purchasePrice: '',
+      sellingPrice: '',
+      wholesalePrice: '',
+      minWholesaleQty: '10',
+      stockQuantity: '50',
+      minStockAlert: '10',
+      rackId: racks[0]?.id || '',
+    }));
+
+    setVariants(newRows);
+  };
+
+  const addVariantRow = () => {
+    setVariants((prev) => [
+      ...prev,
+      {
+        variantName: `Variant ${prev.length + 1}`,
+        barcode: `${890000 + Math.floor(Math.random() * 90000)}`,
+        sku: '',
+        purchasePrice: '',
+        sellingPrice: '',
+        wholesalePrice: '',
+        minWholesaleQty: '10',
+        stockQuantity: '0',
+        minStockAlert: '5',
+        rackId: '',
+      },
+    ]);
+  };
+
+  const removeVariantRow = (index: number) => {
+    if (variants.length <= 1) return;
+    setVariants((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateVariant = (index: number, field: keyof VariantRow, value: string) => {
+    setVariants((prev) => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], [field]: value };
+      return copy;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!productData.name.trim()) {
+      alert('Product name is required');
+      return;
+    }
+
     setLoading(true);
     try {
+      const payload = {
+        ...productData,
+        variants: variants.map((v) => ({
+          variantName: v.variantName,
+          barcode: v.barcode,
+          sku: v.sku,
+          purchasePrice: v.purchasePrice,
+          sellingPrice: v.sellingPrice,
+          wholesalePrice: v.wholesalePrice,
+          minWholesaleQty: v.minWholesaleQty,
+          stockQuantity: v.stockQuantity,
+          minStockAlert: v.minStockAlert,
+          rackId: v.rackId,
+        })),
+      };
+
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -159,22 +284,22 @@ export default function AddNewProductPage() {
   return (
     <div className="w-full pb-8">
       <form onSubmit={handleSubmit} className="bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm p-5 space-y-5">
-        {/* Top Header Row inside the single card */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#cbcbcb] pb-4">
           <div className="flex items-center gap-3">
             <Link
               href="/products"
               className="bg-slate-100 hover:bg-slate-200 border border-[#cbcbcb] text-slate-700 p-2 rounded-[5px] transition-colors"
-              title="Back to Products Catalog"
+              title="Back to Catalog"
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div>
               <h1 className="text-base font-bold text-[#4a4a4a] flex items-center gap-2">
-                <Package className="w-5 h-5 text-[#6d8196]" /> Add New Inventory Product
+                <Package className="w-5 h-5 text-[#6d8196]" /> Add Electrical Product & Variants
               </h1>
               <p className="text-[11px] text-slate-500 font-medium">
-                Fill in product details, pricing, rack location, and stock quantities below.
+                Store base category, HSN & GST at Product level, and configure stock & prices per Variant.
               </p>
             </div>
           </div>
@@ -191,96 +316,65 @@ export default function AddNewProductPage() {
               disabled={loading}
               className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold px-4 py-1.5 rounded-[5px] flex items-center gap-1.5 text-xs transition-all shadow-sm border border-[#cbcbcb]/40 disabled:opacity-50"
             >
-              <Save className="w-4 h-4" /> {loading ? 'Saving Product...' : 'Save Product'}
+              <Save className="w-4 h-4" /> {loading ? 'Saving Product...' : 'Save Product & Variants'}
             </button>
           </div>
         </div>
 
-        {/* Section 1: Basic Identifiers */}
-        <div className="space-y-2.5">
+        {/* Section 1: Product Master Fields */}
+        <div className="space-y-3">
           <h2 className="text-xs font-bold uppercase tracking-wider text-[#4a4a4a] flex items-center gap-1.5">
-            <Package className="w-3.5 h-3.5 text-[#6d8196]" /> 1. Basic Details & Identifiers
+            <Package className="w-3.5 h-3.5 text-[#6d8196]" /> 1. Product Master Details (Common to all Variants)
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 text-xs">
             <div className="md:col-span-2">
               <label className="text-[#4a4a4a] font-bold block mb-1">
-                Product Full Name <span className="text-red-600">*</span>
+                Product Name <span className="text-red-600">*</span>
               </label>
               <input
                 type="text"
                 required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g. Polycab 1.5 Sqmm FR Wire (Red) 90m Roll"
+                value={productData.name}
+                onChange={(e) => setProductData({ ...productData, name: e.target.value })}
+                placeholder="e.g. Finolex Wire, Havells LED Bulb"
                 className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] font-medium focus:bg-white focus:border-[#6d8196] focus:outline-none"
               />
             </div>
-            <div className="md:col-span-2">
-              <label className="text-[#4a4a4a] font-bold block mb-1">Barcode / EAN / SKU</label>
-              <div className="relative">
-                <Barcode className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  value={formData.barcode}
-                  onChange={(e) => setFormData({ ...formData, barcode: e.target.value, sku: e.target.value })}
-                  placeholder="Scan or type barcode..."
-                  className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-9 pr-3 py-1.5 text-[#4a4a4a] font-mono focus:bg-white focus:border-[#6d8196] focus:outline-none"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <hr className="border-[#cbcbcb]" />
-
-        {/* Section 2: Categorization, Placement & Tax Rules in single line row */}
-        <div className="space-y-2.5">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#4a4a4a] flex items-center gap-1.5">
-            <FolderPlus className="w-3.5 h-3.5 text-[#6d8196]" /> 2. Categorization, Location & Taxes
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 text-xs">
-            <div className="md:col-span-2">
+            <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-[#4a4a4a] font-bold">Category</label>
                 <button
                   type="button"
                   onClick={() => setShowAddCategoryModal(true)}
-                  className="text-amber-700 hover:underline text-[10px] font-bold flex items-center gap-0.5"
+                  className="text-amber-700 hover:underline text-[10px] font-bold"
                 >
-                  <Plus className="w-3 h-3" /> Add Category
+                  + Add
                 </button>
               </div>
               <MaterialSelect
-                value={formData.categoryId}
-                onChange={(val) => setFormData({ ...formData, categoryId: val })}
+                value={productData.categoryId}
+                onChange={(val) => setProductData({ ...productData, categoryId: val })}
                 options={categories.map((c) => ({ value: c.id, label: c.name }))}
               />
             </div>
 
-            <div className="md:col-span-2">
+            <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-[#4a4a4a] font-bold">Brand / Manufacturer</label>
+                <label className="text-[#4a4a4a] font-bold">Brand</label>
                 <button
                   type="button"
                   onClick={() => setShowAddBrandModal(true)}
-                  className="text-amber-700 hover:underline text-[10px] font-bold flex items-center gap-0.5"
+                  className="text-amber-700 hover:underline text-[10px] font-bold"
                 >
-                  <Plus className="w-3 h-3" /> Add Brand
+                  + Add
                 </button>
               </div>
               <MaterialSelect
-                value={formData.brandId}
-                onChange={(val) => setFormData({ ...formData, brandId: val })}
+                value={productData.brandId}
+                onChange={(val) => setProductData({ ...productData, brandId: val })}
                 options={brands.map((b) => ({ value: b.id, label: b.name }))}
-              />
-            </div>
-
-            <div>
-              <label className="text-[#4a4a4a] font-bold block mb-1">Rack Location</label>
-              <MaterialSelect
-                value={formData.rackId}
-                onChange={(val) => setFormData({ ...formData, rackId: val })}
-                options={racks.map((r) => ({ value: r.id, label: `${r.rackName} (${r.shelfCode})` }))}
               />
             </div>
 
@@ -288,8 +382,8 @@ export default function AddNewProductPage() {
               <label className="text-[#4a4a4a] font-bold block mb-1">HSN Code</label>
               <input
                 type="text"
-                value={formData.hsnCode}
-                onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })}
+                value={productData.hsnCode}
+                onChange={(e) => setProductData({ ...productData, hsnCode: e.target.value })}
                 placeholder="8544"
                 className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] font-mono focus:bg-white focus:border-[#6d8196] focus:outline-none"
               />
@@ -297,32 +391,15 @@ export default function AddNewProductPage() {
 
             <div>
               <MaterialSelect
-                label="GST Tax Rate (%)"
-                value={formData.gstPercent}
-                onChange={(val) => setFormData({ ...formData, gstPercent: val })}
+                label="GST Rate (%)"
+                value={productData.gstPercent}
+                onChange={(val) => setProductData({ ...productData, gstPercent: val })}
                 options={[
                   { value: '18', label: '18% GST' },
                   { value: '12', label: '12% GST' },
                   { value: '5', label: '5% GST' },
                   { value: '28', label: '28% GST' },
-                  { value: '0', label: '0% GST (Exempt)' },
-                ]}
-              />
-            </div>
-
-            <div>
-              <MaterialSelect
-                label="Unit"
-                value={formData.unit}
-                onChange={(val) => setFormData({ ...formData, unit: val })}
-                options={[
-                  { value: 'pcs', label: 'pcs' },
-                  { value: 'meter', label: 'meter' },
-                  { value: 'box', label: 'box' },
-                  { value: 'roll', label: 'roll' },
-                  { value: 'set', label: 'set' },
-                  { value: 'pkt', label: 'pkt' },
-                  { value: 'kg', label: 'kg' },
+                  { value: '0', label: '0% (Exempt)' },
                 ]}
               />
             </div>
@@ -331,119 +408,204 @@ export default function AddNewProductPage() {
 
         <hr className="border-[#cbcbcb]" />
 
-        {/* Section 3: Pricing & Stock Quantities in single line row */}
-        <div className="space-y-2.5">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#4a4a4a] flex items-center gap-1.5">
-            <DollarSign className="w-3.5 h-3.5 text-emerald-700" /> 3. Pricing, Margins & Stock Quantities
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 text-xs">
-            <div>
-              <label className="text-[#4a4a4a] font-bold block mb-1">
-                Purchase Price (₹) <span className="text-red-600">*</span>
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                required
-                value={formData.purchasePrice}
-                onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
-                placeholder="0.00"
-                className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] font-bold focus:bg-white focus:border-[#6d8196] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-[#4a4a4a] font-bold block mb-1">
-                Retail Price (₹) <span className="text-red-600">*</span>
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                required
-                value={formData.sellingPrice}
-                onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
-                placeholder="0.00"
-                className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-emerald-700 font-extrabold focus:bg-white focus:border-[#6d8196] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-[#4a4a4a] font-bold block mb-1">Wholesale Rate (₹)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.wholesalePrice}
-                onChange={(e) => setFormData({ ...formData, wholesalePrice: e.target.value })}
-                placeholder="Contractor rate"
-                className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-amber-700 font-extrabold focus:bg-white focus:border-[#6d8196] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-[#4a4a4a] font-bold block mb-1">Min Wholesale Qty</label>
-              <input
-                type="number"
-                value={formData.minWholesaleQty}
-                onChange={(e) => setFormData({ ...formData, minWholesaleQty: e.target.value })}
-                placeholder="10"
-                className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] font-mono focus:bg-white focus:border-[#6d8196] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-[#4a4a4a] font-bold block mb-1">
-                Initial Stock Qty <span className="text-red-600">*</span>
-              </label>
-              <input
-                type="number"
-                required
-                value={formData.stockQuantity}
-                onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
-                placeholder="0"
-                className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] font-bold focus:bg-white focus:border-[#6d8196] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-[#4a4a4a] font-bold block mb-1">Low Stock Alert Qty</label>
-              <input
-                type="number"
-                value={formData.minStockAlert}
-                onChange={(e) => setFormData({ ...formData, minStockAlert: e.target.value })}
-                placeholder="10"
-                className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] font-mono focus:bg-white focus:border-[#6d8196] focus:outline-none"
-              />
-            </div>
+        {/* Electrical Shop Presets Quick Generator */}
+        <div className="bg-amber-50/60 border border-amber-200 rounded-[5px] p-3 space-y-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
+            <Zap className="w-4 h-4 text-amber-600 fill-amber-500" />
+            <span>Electrical Shop Quick Presets: Click to Auto-Generate Variants</span>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <button
+              type="button"
+              onClick={() => applyPreset('wires')}
+              className="bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-semibold px-2.5 py-1 rounded-[4px] shadow-2xs transition-colors"
+            >
+              ⚡ Wires (1.5, 2.5, 4, 6 SQMM)
+            </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('bulbs')}
+              className="bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-semibold px-2.5 py-1 rounded-[4px] shadow-2xs transition-colors"
+            >
+              💡 LED Bulbs (9W, 12W, 15W, 20W)
+            </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('mcb')}
+              className="bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-semibold px-2.5 py-1 rounded-[4px] shadow-2xs transition-colors"
+            >
+              🔌 MCB (6A, 10A, 16A, 20A, 32A)
+            </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('pipes')}
+              className="bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-semibold px-2.5 py-1 rounded-[4px] shadow-2xs transition-colors"
+            >
+              🛠 PVC Pipes (20mm, 25mm, 32mm, 40mm)
+            </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('switches')}
+              className="bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-semibold px-2.5 py-1 rounded-[4px] shadow-2xs transition-colors"
+            >
+              🎛 Switches (1-Way, 2-Way, Regulator)
+            </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('fans')}
+              className="bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-semibold px-2.5 py-1 rounded-[4px] shadow-2xs transition-colors"
+            >
+              🌀 Fans (1200mm, 1400mm Colors)
+            </button>
           </div>
         </div>
 
-        <hr className="border-[#cbcbcb]" />
-
-        {/* Section 4: Warranty & Notes */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-          <div>
-            <label className="text-[#4a4a4a] font-bold block mb-1">Warranty Period / Guarantee</label>
-            <input
-              type="text"
-              value={formData.warranty}
-              onChange={(e) => setFormData({ ...formData, warranty: e.target.value })}
-              placeholder="e.g. 2 Years Manufacturer Warranty"
-              className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
-            />
+        {/* Section 2: Variant Matrix Manager */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#4a4a4a] flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-[#6d8196]" /> 2. Product Variants Configuration ({variants.length} variants)
+            </h2>
+            <button
+              type="button"
+              onClick={addVariantRow}
+              className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold px-3 py-1 rounded-[4px] text-xs flex items-center gap-1"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Variant Row
+            </button>
           </div>
-          <div className="md:col-span-2">
-            <label className="text-[#4a4a4a] font-bold block mb-1">Detailed Specifications / Notes</label>
-            <input
-              type="text"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Technical specifications, batch details, or item notes..."
-              className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
-            />
+
+          <div className="overflow-x-auto border border-[#cbcbcb] rounded-[5px] bg-slate-50">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-200 text-[#4a4a4a] font-bold border-b border-[#cbcbcb]">
+                  <th className="p-2 w-32">Variant Name</th>
+                  <th className="p-2 w-28">Barcode</th>
+                  <th className="p-2 w-24">SKU</th>
+                  <th className="p-2 w-24 text-right">Purchase (₹)</th>
+                  <th className="p-2 w-24 text-right">Retail (₹)</th>
+                  <th className="p-2 w-24 text-right">Wholesale (₹)</th>
+                  <th className="p-2 w-20 text-center">Stock</th>
+                  <th className="p-2 w-20 text-center">Alert Qty</th>
+                  <th className="p-2 w-32">Rack</th>
+                  <th className="p-2 w-10 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {variants.map((row, idx) => (
+                  <tr key={idx} className="border-b border-[#cbcbcb] hover:bg-white transition-colors">
+                    <td className="p-1.5">
+                      <input
+                        type="text"
+                        required
+                        value={row.variantName}
+                        onChange={(e) => updateVariant(idx, 'variantName', e.target.value)}
+                        placeholder="e.g. 1.5 SQMM"
+                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs font-bold text-[#4a4a4a] focus:border-[#6d8196] focus:outline-none"
+                      />
+                    </td>
+                    <td className="p-1.5">
+                      <input
+                        type="text"
+                        value={row.barcode}
+                        onChange={(e) => updateVariant(idx, 'barcode', e.target.value)}
+                        placeholder="Barcode"
+                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs font-mono text-[#4a4a4a] focus:border-[#6d8196] focus:outline-none"
+                      />
+                    </td>
+                    <td className="p-1.5">
+                      <input
+                        type="text"
+                        value={row.sku}
+                        onChange={(e) => updateVariant(idx, 'sku', e.target.value)}
+                        placeholder="SKU"
+                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs font-mono text-[#4a4a4a] focus:border-[#6d8196] focus:outline-none"
+                      />
+                    </td>
+                    <td className="p-1.5">
+                      <input
+                        type="number"
+                        step="0.01"
+                        required
+                        value={row.purchasePrice}
+                        onChange={(e) => updateVariant(idx, 'purchasePrice', e.target.value)}
+                        placeholder="800"
+                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-right font-semibold text-slate-700 focus:border-[#6d8196] focus:outline-none"
+                      />
+                    </td>
+                    <td className="p-1.5">
+                      <input
+                        type="number"
+                        step="0.01"
+                        required
+                        value={row.sellingPrice}
+                        onChange={(e) => updateVariant(idx, 'sellingPrice', e.target.value)}
+                        placeholder="950"
+                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-right font-black text-emerald-800 focus:border-[#6d8196] focus:outline-none"
+                      />
+                    </td>
+                    <td className="p-1.5">
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={row.wholesalePrice}
+                        onChange={(e) => updateVariant(idx, 'wholesalePrice', e.target.value)}
+                        placeholder="880"
+                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-right font-extrabold text-amber-700 focus:border-[#6d8196] focus:outline-none"
+                      />
+                    </td>
+                    <td className="p-1.5">
+                      <input
+                        type="number"
+                        required
+                        value={row.stockQuantity}
+                        onChange={(e) => updateVariant(idx, 'stockQuantity', e.target.value)}
+                        placeholder="100"
+                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-center font-bold text-slate-900 focus:border-[#6d8196] focus:outline-none"
+                      />
+                    </td>
+                    <td className="p-1.5">
+                      <input
+                        type="number"
+                        value={row.minStockAlert}
+                        onChange={(e) => updateVariant(idx, 'minStockAlert', e.target.value)}
+                        placeholder="10"
+                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-center text-slate-600 focus:border-[#6d8196] focus:outline-none"
+                      />
+                    </td>
+                    <td className="p-1.5">
+                      <select
+                        value={row.rackId}
+                        onChange={(e) => updateVariant(idx, 'rackId', e.target.value)}
+                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-1.5 py-1 text-xs text-slate-700 focus:border-[#6d8196] focus:outline-none font-medium"
+                      >
+                        <option value="">Unassigned</option>
+                        {racks.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.rackName} ({r.shelfCode})
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="p-1.5 text-center">
+                      <button
+                        type="button"
+                        onClick={() => removeVariantRow(idx)}
+                        disabled={variants.length <= 1}
+                        className="p-1 text-rose-600 hover:bg-rose-100 rounded-[3px] disabled:opacity-30"
+                        title="Delete Variant Row"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* Bottom Actions */}
+        {/* Footer actions */}
         <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#cbcbcb]">
           <Link
             href="/products"
@@ -456,7 +618,7 @@ export default function AddNewProductPage() {
             disabled={loading}
             className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold px-6 py-1.5 rounded-[5px] flex items-center gap-2 text-xs transition-all shadow-md border border-[#cbcbcb]/40 disabled:opacity-50"
           >
-            <Save className="w-4 h-4" /> {loading ? 'Registering Product...' : 'Save & Register Product'}
+            <Save className="w-4 h-4" /> {loading ? 'Saving Product...' : 'Save Product & All Variants'}
           </button>
         </div>
       </form>
@@ -481,7 +643,7 @@ export default function AddNewProductPage() {
                   required
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  placeholder="e.g. Solar Panels, Modular Switches"
+                  placeholder="e.g. Wires & Cables"
                   className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
                 />
               </div>
@@ -513,7 +675,7 @@ export default function AddNewProductPage() {
                   required
                   value={newBrandName}
                   onChange={(e) => setNewBrandName(e.target.value)}
-                  placeholder="e.g. Schneider, Anchor, Polycab"
+                  placeholder="e.g. Finolex, Havells"
                   className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
                 />
               </div>

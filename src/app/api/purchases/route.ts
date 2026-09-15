@@ -9,6 +9,7 @@ export async function GET() {
         items: {
           include: {
             product: true,
+            variant: true,
           },
         },
       },
@@ -54,14 +55,21 @@ export async function POST(request: Request) {
           const targetReceived = Math.min(poItem.quantity, Math.max(0, parseFloat(receivedQty) || 0));
           const delta = targetReceived - (poItem.receivedQuantity || 0);
 
-          if (poItem.productId && delta > 0) {
-            // Update product stock with newly arrived quantity
-            await tx.product.update({
-              where: { id: poItem.productId },
-              data: {
-                stockQuantity: { increment: delta },
-              },
-            });
+          if (delta > 0) {
+            if (poItem.variantId) {
+              await tx.productVariant.update({
+                where: { id: poItem.variantId },
+                data: { stockQuantity: { increment: delta } },
+              });
+            } else if (poItem.productId) {
+              const firstVar = await tx.productVariant.findFirst({ where: { productId: poItem.productId } });
+              if (firstVar) {
+                await tx.productVariant.update({
+                  where: { id: firstVar.id },
+                  data: { stockQuantity: { increment: delta } },
+                });
+              }
+            }
           }
 
           // Update item received quantity
@@ -89,7 +97,7 @@ export async function POST(request: Request) {
           data: { status: newStatus },
           include: {
             supplier: true,
-            items: { include: { product: true } },
+            items: { include: { product: true, variant: true } },
           },
         });
       });
@@ -97,7 +105,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, purchaseOrder: updatedPo });
     }
 
-    // ACTION 2: Create Purchase Order (Bulk or Single)
+    // ACTION 2: Create Purchase Order
     const { supplierId, poNumber, items, paidAmount: paidInput, notes, isReceivedImmediately = true } = body;
 
     if (!supplierId || !items || !Array.isArray(items) || items.length === 0) {
@@ -126,7 +134,8 @@ export async function POST(request: Request) {
       const itemTotal = price * quantity;
       calculatedTotal += itemTotal;
       return {
-        productId: item.productId,
+        productId: item.productId || null,
+        variantId: item.variantId || null,
         price,
         quantity,
         receivedQuantity: isReceivedImmediately ? quantity : 0,
@@ -141,7 +150,6 @@ export async function POST(request: Request) {
       ? (dueAmount > 0 ? 'PARTIAL' : 'COMPLETED')
       : 'ORDERED';
 
-    // Transaction for atomic update
     const result = await prisma.$transaction(async (tx) => {
       // 1. Create Purchase Order
       const po = await tx.purchaseOrder.create({
@@ -157,7 +165,7 @@ export async function POST(request: Request) {
           },
         },
         include: {
-          items: { include: { product: true } },
+          items: { include: { product: true, variant: true } },
           supplier: true,
         },
       });
@@ -188,16 +196,29 @@ export async function POST(request: Request) {
         },
       });
 
-      // 4. Update Product Stock Quantity & Purchase Price if received immediately
+      // 4. Update Variant Stock Quantity & Purchase Price if received immediately
       if (isReceivedImmediately) {
         for (const item of formattedItems) {
-          await tx.product.update({
-            where: { id: item.productId },
-            data: {
-              stockQuantity: { increment: item.quantity },
-              purchasePrice: item.price,
-            },
-          });
+          if (item.variantId) {
+            await tx.productVariant.update({
+              where: { id: item.variantId },
+              data: {
+                stockQuantity: { increment: item.quantity },
+                purchasePrice: item.price,
+              },
+            });
+          } else if (item.productId) {
+            const firstVar = await tx.productVariant.findFirst({ where: { productId: item.productId } });
+            if (firstVar) {
+              await tx.productVariant.update({
+                where: { id: firstVar.id },
+                data: {
+                  stockQuantity: { increment: item.quantity },
+                  purchasePrice: item.price,
+                },
+              });
+            }
+          }
         }
       }
 
@@ -230,16 +251,24 @@ export async function DELETE(request: Request) {
     }
 
     await prisma.$transaction(async (tx) => {
-      // 1. Rollback Product Stock quantities for received items
+      // 1. Rollback Stock quantities for received items
       for (const item of existingPo.items) {
         const qtyToDecrement = item.receivedQuantity || 0;
-        if (item.productId && qtyToDecrement > 0) {
-          await tx.product.update({
-            where: { id: item.productId },
-            data: {
-              stockQuantity: { decrement: qtyToDecrement },
-            },
-          });
+        if (qtyToDecrement > 0) {
+          if (item.variantId) {
+            await tx.productVariant.update({
+              where: { id: item.variantId },
+              data: { stockQuantity: { decrement: qtyToDecrement } },
+            });
+          } else if (item.productId) {
+            const firstVar = await tx.productVariant.findFirst({ where: { productId: item.productId } });
+            if (firstVar) {
+              await tx.productVariant.update({
+                where: { id: firstVar.id },
+                data: { stockQuantity: { decrement: qtyToDecrement } },
+              });
+            }
+          }
         }
       }
 

@@ -25,26 +25,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Cart items cannot be empty' }, { status: 400 });
     }
 
-    // Determine invoice date (supports previous date entry)
     const customDate = invoiceDate ? new Date(invoiceDate) : new Date();
 
-    // Generate Invoice Number (for new invoice creation)
+    // Generate Invoice Number
     const count = await prisma.invoice.count();
     const invoiceNo = `INV-${customDate.getFullYear()}-${(count + 1).toString().padStart(4, '0')}`;
 
     // Perform database transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Find valid product IDs existing in database
-      const itemIds = items.map((it: any) => it.id).filter((id: any) => typeof id === 'string' && id.trim().length > 0);
-      const dbProducts = await tx.product.findMany({
-        where: { id: { in: itemIds } },
-        select: { id: true },
+      // Collect item variant / product IDs
+      const itemVariantIds = items
+        .map((it: any) => it.variantId || it.id)
+        .filter((id: any) => typeof id === 'string' && id.trim().length > 0);
+
+      const dbVariants = await tx.productVariant.findMany({
+        where: { id: { in: itemVariantIds } },
+        include: { product: true, rack: true },
       });
-      const validProductIdSet = new Set(dbProducts.map((p) => p.id));
+      const variantMap = new Map(dbVariants.map((v) => [v.id, v]));
 
       let invoice: any = null;
 
-      // 1. Check if customer already has a running Master Invoice
+      // Check running invoice for customer
       if (customerId) {
         const existingInvoice = await tx.invoice.findFirst({
           where: { customerId },
@@ -52,25 +54,29 @@ export async function POST(request: Request) {
         });
 
         if (existingInvoice) {
-          // Append new items to existing customer invoice
           for (const item of items) {
-            const isValidDbProduct = validProductIdSet.has(item.id);
+            const vId = item.variantId || item.id;
+            const dbVariant = variantMap.get(vId);
+            const pId = dbVariant ? dbVariant.productId : (item.productId || null);
+
             await tx.invoiceItem.create({
               data: {
                 invoiceId: existingInvoice.id,
-                productId: isValidDbProduct ? item.id : null,
-                productName: item.name,
-                unit: item.unit || 'pcs',
+                productId: pId,
+                variantId: dbVariant ? dbVariant.id : null,
+                productName: item.name || (dbVariant ? `${dbVariant.product.name} (${dbVariant.variantName})` : 'Item'),
+                unit: item.unit || dbVariant?.product.unit || 'pcs',
                 price: parseFloat(item.sellingPrice),
                 quantity: parseFloat(item.quantity),
                 total: parseFloat(item.sellingPrice) * parseFloat(item.quantity),
-                rackLocation: item.rack ? `${item.rack.rackName} ${item.rack.shelfCode}` : (item.rackLocation || 'Default'),
+                rackLocation: dbVariant?.rack
+                  ? `${dbVariant.rack.rackName} ${dbVariant.rack.shelfCode}`
+                  : (item.rackLocation || 'Default'),
                 createdAt: customDate,
               },
             });
           }
 
-          // Update existing invoice totals
           invoice = await tx.invoice.update({
             where: { id: existingInvoice.id },
             data: {
@@ -86,7 +92,7 @@ export async function POST(request: Request) {
         }
       }
 
-      // If no existing invoice for customer or walk-in, create a new master invoice
+      // New invoice if no running invoice
       if (!invoice) {
         invoice = await tx.invoice.create({
           data: {
@@ -105,15 +111,21 @@ export async function POST(request: Request) {
             createdAt: customDate,
             items: {
               create: items.map((item: any) => {
-                const isValidDbProduct = validProductIdSet.has(item.id);
+                const vId = item.variantId || item.id;
+                const dbVariant = variantMap.get(vId);
+                const pId = dbVariant ? dbVariant.productId : (item.productId || null);
+
                 return {
-                  productId: isValidDbProduct ? item.id : null,
-                  productName: item.name,
-                  unit: item.unit || 'pcs',
+                  productId: pId,
+                  variantId: dbVariant ? dbVariant.id : null,
+                  productName: item.name || (dbVariant ? `${dbVariant.product.name} (${dbVariant.variantName})` : 'Item'),
+                  unit: item.unit || dbVariant?.product.unit || 'pcs',
                   price: parseFloat(item.sellingPrice),
                   quantity: parseFloat(item.quantity),
                   total: parseFloat(item.sellingPrice) * parseFloat(item.quantity),
-                  rackLocation: item.rack ? `${item.rack.rackName} ${item.rack.shelfCode}` : (item.rackLocation || 'Default'),
+                  rackLocation: dbVariant?.rack
+                    ? `${dbVariant.rack.rackName} ${dbVariant.rack.shelfCode}`
+                    : (item.rackLocation || 'Default'),
                   createdAt: customDate,
                 };
               }),
@@ -125,12 +137,15 @@ export async function POST(request: Request) {
         });
       }
 
-      // 2. Deduct product stock (only for valid catalog products in DB)
+      // 2. Deduct variant stock
       for (const item of items) {
-        if (validProductIdSet.has(item.id)) {
+        const vId = item.variantId || item.id;
+        const dbVariant = variantMap.get(vId);
+
+        if (dbVariant) {
           try {
-            await tx.product.update({
-              where: { id: item.id },
+            await tx.productVariant.update({
+              where: { id: dbVariant.id },
               data: {
                 stockQuantity: {
                   decrement: parseFloat(item.quantity),
@@ -138,7 +153,7 @@ export async function POST(request: Request) {
               },
             });
           } catch (err) {
-            console.warn(`Skipping stock deduction for item: ${item.id}`);
+            console.warn(`Skipping variant stock deduction for: ${dbVariant.id}`);
           }
         }
       }
@@ -161,20 +176,18 @@ export async function POST(request: Request) {
             },
           });
 
-          // Ledger Entry for Sale
           await tx.customerLedger.create({
             data: {
               customerId,
               type: LedgerType.SALE,
               amount: parseFloat(totalAmount),
               balance: newOutstanding,
-              notes: `Items added to Running Invoice #${invoice.invoiceNo} (${paymentMethod} Sale: Paid ₹${paidAmount}, Due ₹${dueAmount})`,
+              notes: `Items added to Invoice #${invoice.invoiceNo} (${paymentMethod} Sale: Paid ₹${paidAmount}, Due ₹${dueAmount})`,
               invoiceId: invoice.id,
               createdAt: customDate,
             },
           });
 
-          // Ledger Entry for Payment if paidAmount > 0
           if (parseFloat(paidAmount) > 0) {
             await tx.customerLedger.create({
               data: {
@@ -182,7 +195,7 @@ export async function POST(request: Request) {
                 type: LedgerType.PAYMENT,
                 amount: parseFloat(paidAmount),
                 balance: newOutstanding,
-                notes: `Payment for Running Invoice #${invoice.invoiceNo} via ${paymentMethod}`,
+                notes: `Payment for Invoice #${invoice.invoiceNo} via ${paymentMethod}`,
                 invoiceId: invoice.id,
                 createdAt: customDate,
               },
@@ -194,7 +207,6 @@ export async function POST(request: Request) {
       return { invoice, customer: updatedCustomer };
     });
 
-    // Check if credit limit exceeded & dispatch asynchronous SMTP email alert
     let creditLimitExceededAlertSent = false;
     if (result.customer && result.customer.outstanding > result.customer.creditLimit) {
       creditLimitExceededAlertSent = true;
