@@ -19,6 +19,7 @@ import {
   FileSpreadsheet,
   QrCode,
   ShieldAlert,
+  Smartphone,
 } from 'lucide-react';
 import MaterialSelect from '@/components/MaterialSelect';
 import AdminSecurityGuard from '@/components/AdminSecurityGuard';
@@ -53,6 +54,12 @@ export default function SettingsPage() {
     smtpSenderEmail: '',
     alertRecipientEmail: '',
     enableCreditLimitAlerts: true,
+    phonepeMerchantId: 'PGTESTPAYUAT',
+    phonepeSaltKey: '099eb0cd-02fe-4eeb-a721-4343f443a2ad',
+    phonepeSaltIndex: 1,
+    phonepeEnv: 'UAT',
+    phonepeVpa: '9876543210@ybl',
+    enablePhonePe: true,
   });
 
   useEffect(() => {
@@ -88,6 +95,12 @@ export default function SettingsPage() {
           smtpSenderEmail: data.smtpSenderEmail || '',
           alertRecipientEmail: data.alertRecipientEmail || '',
           enableCreditLimitAlerts: data.enableCreditLimitAlerts !== undefined ? data.enableCreditLimitAlerts : true,
+          phonepeMerchantId: data.phonepeMerchantId || 'PGTESTPAYUAT',
+          phonepeSaltKey: data.phonepeSaltKey || '099eb0cd-02fe-4eeb-a721-4343f443a2ad',
+          phonepeSaltIndex: data.phonepeSaltIndex || 1,
+          phonepeEnv: data.phonepeEnv || 'UAT',
+          phonepeVpa: data.phonepeVpa || '9876543210@ybl',
+          enablePhonePe: data.enablePhonePe !== undefined ? data.enablePhonePe : true,
         });
       } else {
         setErrorMessage(data.error || 'Failed to load settings');
@@ -439,6 +452,99 @@ export default function SettingsPage() {
                         onChange={(e) => setFormData({ ...formData, upiId: e.target.value })}
                         placeholder="e.g. 9876543210@paytm"
                         className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs font-mono font-bold text-[#4a4a4a] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#6d8196] disabled:opacity-60"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 4: PhonePe Business Payment Gateway Configuration */}
+              <div className="space-y-3 pt-5 border-t border-[#cbcbcb]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 text-purple-700" />
+                    <h2 className="text-xs font-bold text-[#4a4a4a] uppercase tracking-wider">
+                      PhonePe Business Payment Gateway Integration
+                    </h2>
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#4a4a4a]">
+                    <input
+                      type="checkbox"
+                      disabled={userRole !== 'ADMIN'}
+                      checked={formData.enablePhonePe}
+                      onChange={(e) => setFormData({ ...formData, enablePhonePe: e.target.checked })}
+                      className="w-4 h-4 accent-purple-700"
+                    />
+                    <span>Enable PhonePe PG & Dynamic QR</span>
+                  </label>
+                </div>
+
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Configure your PhonePe Business Merchant account credentials for dynamic UPI QR billing and automated payment status checking.
+                </p>
+
+                <div className="bg-purple-50/60 border border-purple-200 rounded-[5px] p-3.5 space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-700">PhonePe Merchant ID</label>
+                      <input
+                        type="text"
+                        disabled={userRole !== 'ADMIN'}
+                        value={formData.phonepeMerchantId}
+                        onChange={(e) => setFormData({ ...formData, phonepeMerchantId: e.target.value })}
+                        placeholder="e.g. PGTESTPAYUAT or M1234567"
+                        className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs font-mono text-[#4a4a4a] focus:outline-none focus:border-purple-600 disabled:opacity-60"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-700">Salt Key</label>
+                      <input
+                        type="password"
+                        disabled={userRole !== 'ADMIN'}
+                        value={formData.phonepeSaltKey}
+                        onChange={(e) => setFormData({ ...formData, phonepeSaltKey: e.target.value })}
+                        placeholder="099eb0cd-02fe-4eeb-a721-..."
+                        className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs font-mono text-[#4a4a4a] focus:outline-none focus:border-purple-600 disabled:opacity-60"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-700">Salt Index</label>
+                      <input
+                        type="number"
+                        disabled={userRole !== 'ADMIN'}
+                        value={formData.phonepeSaltIndex}
+                        onChange={(e) => setFormData({ ...formData, phonepeSaltIndex: Number(e.target.value) || 1 })}
+                        className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs font-mono text-[#4a4a4a] focus:outline-none focus:border-purple-600 disabled:opacity-60"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-700">PhonePe Merchant VPA / UPI ID</label>
+                      <input
+                        type="text"
+                        disabled={userRole !== 'ADMIN'}
+                        value={formData.phonepeVpa}
+                        onChange={(e) => setFormData({ ...formData, phonepeVpa: e.target.value })}
+                        placeholder="e.g. 9876543210@ybl or merchant@ybl"
+                        className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs font-mono text-[#4a4a4a] focus:outline-none focus:border-purple-600 disabled:opacity-60"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-700">API Environment Mode</label>
+                      <MaterialSelect
+                        label="Environment"
+                        value={formData.phonepeEnv}
+                        onChange={(val) => setFormData({ ...formData, phonepeEnv: val })}
+                        options={[
+                          { value: 'UAT', label: 'UAT / Sandbox (Testing Mode)' },
+                          { value: 'PRODUCTION', label: 'PRODUCTION (Live PhonePe Merchant)' },
+                        ]}
                       />
                     </div>
                   </div>

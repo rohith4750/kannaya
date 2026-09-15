@@ -16,9 +16,11 @@ import {
   MessageSquare,
   X,
   Zap,
+  Smartphone,
 } from 'lucide-react';
 import MaterialSelect from '@/components/MaterialSelect';
 import InvoicePrintTemplate from '@/components/InvoicePrintTemplate';
+import PhonePePaymentModal from '@/components/PhonePePaymentModal';
 
 export default function BillingPOSPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -69,6 +71,7 @@ export default function BillingPOSPage() {
   const [taxPercent, setTaxPercent] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState<string>('CASH');
   const [paidAmountInput, setPaidAmountInput] = useState<string>('');
+  const [showPhonePeModal, setShowPhonePeModal] = useState<boolean>(false);
 
   // Thermal Receipt & Modal state
   const [showReceiptModal, setShowReceiptModal] = useState(false);
@@ -641,14 +644,26 @@ export default function BillingPOSPage() {
             <span className="text-base font-bold text-[#4a4a4a]">₹{totalAmount.toLocaleString('en-IN')}</span>
           </div>
 
-          <button
-            onClick={handleGenerateBill}
-            disabled={loading || cart.length === 0}
-            className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold py-2.5 rounded-[5px] flex items-center justify-center gap-2 shadow-sm text-xs transition-all disabled:opacity-50 border border-[#cbcbcb]/40"
-          >
-            <Printer className="w-4 h-4" />
-            {loading ? 'Processing...' : 'Generate Bill & Print Thermal Receipt'}
-          </button>
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => setShowPhonePeModal(true)}
+              disabled={cart.length === 0}
+              className="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 rounded-[5px] flex items-center justify-center gap-2 shadow-sm text-xs transition-all disabled:opacity-50"
+            >
+              <Smartphone className="w-4 h-4 text-purple-200" />
+              Pay via PhonePe Business (Dynamic QR)
+            </button>
+
+            <button
+              onClick={handleGenerateBill}
+              disabled={loading || cart.length === 0}
+              className="w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold py-2.5 rounded-[5px] flex items-center justify-center gap-2 shadow-sm text-xs transition-all disabled:opacity-50 border border-[#cbcbcb]/40"
+            >
+              <Printer className="w-4 h-4" />
+              {loading ? 'Processing...' : 'Generate Bill & Print Thermal Receipt'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -796,6 +811,19 @@ export default function BillingPOSPage() {
           </div>
         </div>
       )}
+      {/* PHONEPE BUSINESS PAYMENT MODAL */}
+      <PhonePePaymentModal
+        isOpen={showPhonePeModal}
+        onClose={() => setShowPhonePeModal(false)}
+        amount={totalAmount}
+        customerName={selectedCustomer?.name || 'Cash Customer'}
+        customerPhone={selectedCustomer?.phone}
+        onPaymentSuccess={(details) => {
+          setShowPhonePeModal(false);
+          setPaymentMethod('UPI');
+          setPaidAmountInput(String(totalAmount));
+        }}
+      />
     </div>
   );
 }

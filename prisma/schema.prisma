@@ -236,6 +236,14 @@ model ShopSettings {
   alertRecipientEmail     String?
   enableCreditLimitAlerts Boolean  @default(true)
 
+  // PhonePe Business Payment Gateway Settings
+  phonepeMerchantId       String?  @default("PGTESTPAYUAT")
+  phonepeSaltKey          String?  @default("099eb0cd-02fe-4eeb-a721-4343f443a2ad")
+  phonepeSaltIndex        Int?     @default(1)
+  phonepeEnv              String?  @default("UAT")
+  phonepeVpa              String?  @default("9876543210@ybl")
+  enablePhonePe           Boolean  @default(true)
+
   updatedAt               DateTime @updatedAt @default(now())
 }
 

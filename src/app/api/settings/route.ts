@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const { action, recipientEmail } = body;
 
     if (action === 'test-smtp') {
-      const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
+      const settings: any = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
       const target = recipientEmail || settings?.alertRecipientEmail || settings?.email || settings?.smtpUser;
 
       if (!target) {
@@ -94,6 +94,12 @@ export async function PUT(request: Request) {
       smtpSenderEmail,
       alertRecipientEmail,
       enableCreditLimitAlerts,
+      phonepeMerchantId,
+      phonepeSaltKey,
+      phonepeSaltIndex,
+      phonepeEnv,
+      phonepeVpa,
+      enablePhonePe,
     } = body;
 
     const updatePayload: any = {
@@ -116,6 +122,12 @@ export async function PUT(request: Request) {
       ...(smtpSenderEmail !== undefined && { smtpSenderEmail: smtpSenderEmail.trim() }),
       ...(alertRecipientEmail !== undefined && { alertRecipientEmail: alertRecipientEmail.trim() }),
       ...(enableCreditLimitAlerts !== undefined && { enableCreditLimitAlerts: !!enableCreditLimitAlerts }),
+      ...(phonepeMerchantId !== undefined && { phonepeMerchantId: phonepeMerchantId.trim() }),
+      ...(phonepeSaltKey !== undefined && { phonepeSaltKey: phonepeSaltKey.trim() }),
+      ...(phonepeSaltIndex !== undefined && { phonepeSaltIndex: parseInt(phonepeSaltIndex) || 1 }),
+      ...(phonepeEnv !== undefined && { phonepeEnv: phonepeEnv.trim() }),
+      ...(phonepeVpa !== undefined && { phonepeVpa: phonepeVpa.trim() }),
+      ...(enablePhonePe !== undefined && { enablePhonePe: !!enablePhonePe }),
     };
 
     const createPayload: any = {
@@ -139,6 +151,12 @@ export async function PUT(request: Request) {
       smtpSenderEmail: smtpSenderEmail?.trim() || '',
       alertRecipientEmail: alertRecipientEmail?.trim() || '',
       enableCreditLimitAlerts: enableCreditLimitAlerts !== undefined ? !!enableCreditLimitAlerts : true,
+      phonepeMerchantId: phonepeMerchantId?.trim() || 'PGTESTPAYUAT',
+      phonepeSaltKey: phonepeSaltKey?.trim() || '099eb0cd-02fe-4eeb-a721-4343f443a2ad',
+      phonepeSaltIndex: phonepeSaltIndex ? parseInt(phonepeSaltIndex) : 1,
+      phonepeEnv: phonepeEnv?.trim() || 'UAT',
+      phonepeVpa: phonepeVpa?.trim() || '9876543210@ybl',
+      enablePhonePe: enablePhonePe !== undefined ? !!enablePhonePe : true,
     };
 
     const settings = await prisma.shopSettings.upsert({
