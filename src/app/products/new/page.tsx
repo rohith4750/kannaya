@@ -248,17 +248,16 @@ export default function AddNewProductPage() {
     try {
       const payload = {
         ...productData,
+        name: productData.name.toUpperCase().trim(),
+        hsnCode: productData.hsnCode?.toUpperCase().trim(),
+        unit: productData.unit?.toUpperCase().trim(),
+        warranty: productData.warranty?.toUpperCase().trim(),
+        description: productData.description?.toUpperCase().trim(),
         variants: variants.map((v) => ({
-          variantName: v.variantName,
-          barcode: v.barcode,
-          sku: v.sku,
-          purchasePrice: v.purchasePrice,
-          sellingPrice: v.sellingPrice,
-          wholesalePrice: v.wholesalePrice,
-          minWholesaleQty: v.minWholesaleQty,
-          stockQuantity: v.stockQuantity,
-          minStockAlert: v.minStockAlert,
-          rackId: v.rackId,
+          ...v,
+          variantName: v.variantName?.toUpperCase().trim(),
+          barcode: v.barcode?.toUpperCase().trim(),
+          sku: v.sku?.toUpperCase().trim(),
         })),
       };
 
