@@ -102,7 +102,7 @@ export async function POST(request: Request) {
       {
         variantName: 'Standard',
         barcode: body.barcode || `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
-        sku: body.sku || `SKU-${Date.now()}`,
+        sku: body.sku || `SVE-${Date.now()}`,
         purchasePrice: parseFloat(body.purchasePrice) || 0,
         sellingPrice: parseFloat(body.sellingPrice) || 0,
         wholesalePrice: body.wholesalePrice ? parseFloat(body.wholesalePrice) : null,
@@ -127,7 +127,7 @@ export async function POST(request: Request) {
           create: variantList.map((v: any, index: number) => ({
             variantName: v.variantName || `Variant ${index + 1}`,
             barcode: v.barcode && v.barcode.trim() ? v.barcode.trim() : `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
-            sku: v.sku && v.sku.trim() ? v.sku.trim() : `SKU-${Date.now()}-${index + 1}`,
+            sku: v.sku && v.sku.trim() ? v.sku.trim() : `SVE-${Date.now()}-${index + 1}`,
             purchasePrice: parseFloat(v.purchasePrice) || 0,
             sellingPrice: parseFloat(v.sellingPrice) || 0,
             wholesalePrice: v.wholesalePrice !== undefined && v.wholesalePrice !== null && v.wholesalePrice !== '' ? parseFloat(v.wholesalePrice) : null,
@@ -212,7 +212,7 @@ export async function PUT(request: Request) {
               productId: id,
               variantName: v.variantName || 'Variant',
               barcode: v.barcode && v.barcode.trim() ? v.barcode.trim() : `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
-              sku: v.sku || `SKU-${Date.now()}`,
+              sku: v.sku || `SVE-${Date.now()}`,
               purchasePrice: parseFloat(v.purchasePrice) || 0,
               sellingPrice: parseFloat(v.sellingPrice) || 0,
               wholesalePrice: v.wholesalePrice ? parseFloat(v.wholesalePrice) : null,

@@ -193,7 +193,7 @@ export default function AddNewProductPage() {
     const newRows: VariantRow[] = names.map((name, i) => ({
       variantName: name,
       barcode: `${890000 + Math.floor(Math.random() * 90000)}`,
-      sku: `SKU-${name.replace(/\s+/g, '-').toUpperCase()}`,
+      sku: `SVE-${name.replace(/\s+/g, '-').toUpperCase()}`,
       purchasePrice: '',
       sellingPrice: '',
       wholesalePrice: '',
