@@ -80,7 +80,7 @@ export default function Header() {
         <div className="w-8 h-8 rounded-full bg-white p-0.5 border border-[#cbcbcb] overflow-hidden">
           <img src="/logo.png" alt="Logo" className="w-full h-full object-contain rounded-full" />
         </div>
-        <span className="font-bold text-xs text-white truncate max-w-[110px] sm:max-w-none">Venkata Lakshmi</span>
+        <span className="font-bold text-xs text-white truncate max-w-[110px] sm:max-w-none">Sri Venkata Lakshmi</span>
       </div>
 
       {/* Empty Spacer */}

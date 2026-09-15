@@ -133,10 +133,10 @@ export default function Sidebar() {
           {!isCollapsed && (
             <div className="min-w-0">
               <h1 className="font-bold text-xs text-white leading-tight truncate tracking-tight">
-                Venkata Lakshmi
+                Sri Venkata Lakshmi
               </h1>
               <p className="text-[9px] text-[#ffffe3] font-medium truncate">
-                Electronics & Hardware
+                Electricals Store
               </p>
             </div>
           )}

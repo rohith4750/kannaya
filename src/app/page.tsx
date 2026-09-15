@@ -132,11 +132,11 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-white p-0.5 border border-[#cbcbcb] flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
-            <img src="/logo.jpg" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
+            <img src="/logo.png" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-[#4a4a4a] flex items-center gap-2">
-              Venkata Lakshmi Electronics & Hardware
+              Sri Venkata Lakshmi Electricals
             </h1>
             <p className="text-slate-500 text-xs mt-0.5 font-medium">
               Real-Time Financial Performance & Dual Active Profit Analytics • Powering Your Needs.

@@ -254,7 +254,7 @@ export default function SettingsPage() {
                       disabled={userRole !== 'ADMIN'}
                       value={formData.shopName}
                       onChange={(e) => setFormData({ ...formData, shopName: e.target.value })}
-                      placeholder="e.g. VENKATA LAKSHMI ELECTRONICS"
+                      placeholder="e.g. SRI VENKATA LAKSHMI ELECTRICALS"
                       className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs text-[#4a4a4a] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#6d8196] disabled:opacity-60 font-medium"
                     />
                   </div>

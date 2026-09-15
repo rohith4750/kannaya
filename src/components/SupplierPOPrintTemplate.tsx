@@ -14,8 +14,8 @@ export default function SupplierPOPrintTemplate({
   supplier,
   settings,
 }: SupplierPOPrintTemplateProps) {
-  const shopName = settings?.shopName || 'VENKATA LAKSHMI ELECTRONICS';
-  const tagline = settings?.tagline || 'Complete Electrical & Hardware Solutions';
+  const shopName = settings?.shopName || 'SRI VENKATA LAKSHMI ELECTRICALS';
+  const tagline = settings?.tagline || 'Complete Electrical Solutions';
   const phone = settings?.phone || '+91 98765 43210';
   const address = settings?.address || 'Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001';
   const gstin = settings?.gstin || '36ABCDE1234F1Z5';
@@ -230,7 +230,7 @@ export default function SupplierPOPrintTemplate({
         </div>
         <div>
           <div className="h-12 border-b border-slate-400 mb-2"></div>
-          <div className="font-bold text-slate-800">For VENKATA LAKSHMI ELECTRONICS</div>
+          <div className="font-bold text-slate-800">For SRI VENKATA LAKSHMI ELECTRICALS</div>
           <div className="text-[10px] text-slate-500">Authorized Signatory</div>
         </div>
       </div>

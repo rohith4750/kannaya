@@ -100,7 +100,7 @@ export default function WhatsAppPage() {
         <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm space-y-4">
           <h3 className="text-sm font-bold text-[#4a4a4a] border-b border-[#cbcbcb] pb-2">Automated Message Template Preview</h3>
           <div className="bg-[#ffffe3] border border-[#cbcbcb] p-4 rounded-[5px] text-xs space-y-2 font-mono text-[#4a4a4a]">
-            <p className="font-bold">⚡ VENKATA LAKSHMI ELECTRONICS ⚡</p>
+            <p className="font-bold">⚡ SRI VENKATA LAKSHMI ELECTRICALS ⚡</p>
             <p>Dear Ramesh Kumar,</p>
             <p>Your outstanding credit balance is ₹18,500.</p>
             <p>Kindly settle the amount via Cash or UPI.</p>

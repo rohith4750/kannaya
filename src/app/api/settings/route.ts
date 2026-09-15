@@ -11,8 +11,8 @@ export async function GET() {
     if (!settings) {
       const defaultData: any = {
         id: 'default',
-        shopName: 'VENKATA LAKSHMI ELECTRONICS',
-        tagline: 'Complete Electrical & Hardware Solutions',
+        shopName: 'SRI VENKATA LAKSHMI ELECTRICALS',
+        tagline: 'Complete Electrical Solutions',
         phone: '+91 98765 43210',
         email: 'info@venkatalakshmi.com',
         address: 'Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001',
@@ -120,8 +120,8 @@ export async function PUT(request: Request) {
 
     const createPayload: any = {
       id: 'default',
-      shopName: shopName?.trim() || 'VENKATA LAKSHMI ELECTRONICS',
-      tagline: tagline?.trim() || 'Complete Electrical & Hardware Solutions',
+      shopName: shopName?.trim() || 'SRI VENKATA LAKSHMI ELECTRICALS',
+      tagline: tagline?.trim() || 'Complete Electrical Solutions',
       phone: phone?.trim() || '+91 98765 43210',
       email: email?.trim() || 'info@venkatalakshmi.com',
       address: address?.trim() || 'Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001',

@@ -11,9 +11,9 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Kannaya ERP - Electrical & Hardware Shop Management OS',
+  title: 'Kannaya ERP - Electrical & Electronics Shop Management OS',
   description:
-    'Comprehensive ERP system for Electrical & Hardware Stores featuring Rack Tracking, Thermal Printing, Customer Credit Ledger, WhatsApp Automations, and AI Insights.',
+    'Comprehensive ERP system for Electrical & Electronics Stores featuring Rack Tracking, Thermal Printing, Customer Credit Ledger, WhatsApp Automations, and AI Insights.',
   icons: {
     icon: '/icon.png',
     shortcut: '/favicon.ico',

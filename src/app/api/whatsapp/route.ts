@@ -7,7 +7,7 @@ export async function POST(request: Request) {
       await request.json();
 
     const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
-    const shopName = settings?.shopName || 'VENKATA LAKSHMI ELECTRONICS';
+    const shopName = settings?.shopName || 'VENKATA LAKSHMI ELECTRICALS';
 
     let cleanPhone = (customerPhone || supplierPhone || '').replace(/\D/g, '');
     if (cleanPhone.length === 10) {

@@ -35,8 +35,8 @@ export default function InvoicePrintTemplate({
     }
   }, [invoice?.invoiceNo]);
 
-  const shopName = settings?.shopName || 'VENKATA LAKSHMI ELECTRONICS';
-  const tagline = settings?.tagline || 'Complete Electrical & Hardware Solutions';
+  const shopName = settings?.shopName || 'SRI VENKATA LAKSHMI ELECTRICALS';
+  const tagline = settings?.tagline || 'Complete Electrical Solutions';
   const phone = settings?.phone || '+91 98765 43210';
   const address = settings?.address || 'Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001';
   const gstin = settings?.gstin || '36ABCDE1234F1Z5';

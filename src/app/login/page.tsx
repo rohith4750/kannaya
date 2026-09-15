@@ -111,19 +111,19 @@ export default function LoginPage() {
               <div className="relative w-36 h-36 rounded-full bg-white p-2 border-4 border-emerald-100/30 shadow-2xl flex items-center justify-center overflow-hidden">
                 <img
                   src="/logo.png"
-                  alt="Venkata Lakshmi Electronics Logo"
+                  alt="Sri Venkata Lakshmi Electricals Logo"
                   className="w-full h-full object-contain rounded-full"
                 />
               </div>
             </div>
 
-            {/* Venkata Lakshmi Electronics Title & Subtitle */}
+            {/* Sri Venkata Lakshmi Electricals Title & Subtitle */}
             <div className="space-y-2 max-w-xs">
               <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
-                Venkata Lakshmi Electronics
+                Sri Venkata Lakshmi Electricals
               </h1>
               <p className="text-xs text-emerald-200/90 font-medium tracking-wide">
-                Complete Electrical & Hardware Solutions
+                Complete Electrical Solutions
               </p>
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function LoginPage() {
           {/* Footer Branch Badge */}
           <div className="relative z-10 text-[11px] text-emerald-300/80 font-medium flex items-center gap-1.5 pt-4 border-t border-emerald-700/40 w-full justify-center">
             <Store className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Sri Lakshmi Electricals & Hardware</span>
+            <span>Sri Venkata Lakshmi Electricals</span>
           </div>
         </div>
 

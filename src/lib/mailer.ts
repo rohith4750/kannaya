@@ -61,7 +61,7 @@ export async function sendCreditLimitExceededAlert({
     }
 
     const exceededAmount = Math.max(0, currentOutstanding - creditLimit);
-    const shopName = settings.shopName || 'VENKATA LAKSHMI ELECTRONICS';
+    const shopName = settings.shopName || 'VENKATA LAKSHMI ELECTRICALS';
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -166,7 +166,7 @@ export async function sendTestSmtpEmail(testRecipient: string) {
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; padding: 20px; border: 2px solid #6d8196; border-radius: 8px; max-width: 500px;">
         <h2 style="color: #6d8196; margin-top: 0;">✅ SMTP Email Test Successful!</h2>
-        <p>This is a test notification sent from <strong>${settings.shopName || 'VENKATA LAKSHMI ELECTRONICS'} ERP System</strong>.</p>
+        <p>This is a test notification sent from <strong>${settings.shopName || 'VENKATA LAKSHMI ELECTRICALS'} ERP System</strong>.</p>
         <p>Your SMTP mail configuration is active and working properly.</p>
         <hr style="border: none; border-top: 1px solid #ddd;" />
         <p style="font-size: 11px; color: #888;">Timestamp: ${new Date().toLocaleString('en-IN')}</p>

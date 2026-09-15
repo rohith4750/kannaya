@@ -212,8 +212,8 @@ model PurchaseOrderItem {
 
 model ShopSettings {
   id                      String   @id @default("default")
-  shopName                String   @default("VENKATA LAKSHMI ELECTRONICS")
-  tagline                 String   @default("Complete Electrical & Hardware Solutions")
+  shopName                String   @default("SRI VENKATA LAKSHMI ELECTRICALS")
+  tagline                 String   @default("Complete Electrical Solutions")
   phone                   String   @default("+91 98765 43210")
   email                   String?  @default("info@venkatalakshmi.com")
   address                 String   @default("Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001")

@@ -353,7 +353,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
   const handleWhatsAppReorder = async (po?: any) => {
     if (!supplier) return;
     const poRefText = po ? `PO #${po.poNumber}` : 'a new stock order';
-    let text = `Hello ${supplier.name}, this is Venkata Lakshmi Electronics.\nWe would like to place an order for ${poRefText}. Please check attached details.`;
+    let text = `Hello ${supplier.name}, this is Sri Venkata Lakshmi Electricals.\nWe would like to place an order for ${poRefText}. Please check attached details.`;
     if (po && po.items && po.items.length > 0) {
       text += `\n\n*Requested Products:*`;
       po.items.forEach((it: any, i: number) => {
