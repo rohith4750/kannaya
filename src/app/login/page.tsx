@@ -47,8 +47,13 @@ export default function LoginPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        if (data.user?.id) localStorage.setItem('kannaya_user_id', data.user.id);
         localStorage.setItem('kannaya_user_role', data.user.role);
         localStorage.setItem('kannaya_user_name', data.user.name);
+        if (data.user?.allowedModules && data.user.allowedModules.length > 0) {
+          localStorage.setItem('kannaya_active_modules', JSON.stringify(data.user.allowedModules));
+          window.dispatchEvent(new Event('modules_changed'));
+        }
         window.dispatchEvent(new Event('role_changed'));
         router.push('/');
       } else {

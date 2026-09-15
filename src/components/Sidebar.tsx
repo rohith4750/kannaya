@@ -25,20 +25,22 @@ import {
   Wallet,
 } from 'lucide-react';
 
+import ModulePermissionsModal, { getEnabledModules } from '@/components/ModulePermissionsModal';
+import { SlidersHorizontal } from 'lucide-react';
+
 interface NavItem {
+  id: string;
   name: string;
   href: string;
   icon: any;
   highlight?: boolean;
   badge?: string;
-  roles: string[];
 }
 
 interface NavGroup {
   id: string;
   title: string;
   icon: any;
-  roles: string[];
   items: NavItem[];
 }
 
@@ -47,74 +49,69 @@ const navGroups: NavGroup[] = [
     id: 'core',
     title: 'Overview',
     icon: Store,
-    roles: ['ADMIN', 'STAFF'],
     items: [
-      { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['ADMIN'] },
-      { name: 'Smart POS Billing', href: '/billing', icon: ShoppingCart, highlight: true, roles: ['ADMIN', 'STAFF'] },
+      { id: 'dashboard', name: 'Dashboard', href: '/', icon: LayoutDashboard },
+      { id: 'billing', name: 'Smart POS Billing', href: '/billing', icon: ShoppingCart, highlight: true },
     ],
   },
   {
     id: 'sales',
     title: 'Sales & Invoices',
     icon: Receipt,
-    roles: ['ADMIN', 'STAFF'],
     items: [
-      { name: 'Bills & Invoices', href: '/invoices', icon: FileText, roles: ['ADMIN', 'STAFF'] },
-      { name: 'Customer Credit Accounts', href: '/customers', icon: Users, roles: ['ADMIN', 'STAFF'] },
-      { name: 'Expenses & Outflow', href: '/expenses', icon: Wallet, roles: ['ADMIN', 'STAFF'] },
+      { id: 'invoices', name: 'Bills & Invoices', href: '/invoices', icon: FileText },
+      { id: 'customers', name: 'Customer Credit Accounts', href: '/customers', icon: Users },
+      { id: 'expenses', name: 'Expenses & Outflow', href: '/expenses', icon: Wallet },
     ],
   },
   {
     id: 'inventory',
     title: 'Stock & Inventory',
     icon: Boxes,
-    roles: ['ADMIN', 'STAFF'],
     items: [
-      { name: 'Inventory & Products', href: '/products', icon: Package, roles: ['ADMIN', 'STAFF'] },
-      { name: 'Categories & Brands', href: '/categories', icon: FolderPlus, roles: ['ADMIN', 'STAFF'] },
-      { name: 'Rack Locations', href: '/racks', icon: Layers, roles: ['ADMIN', 'STAFF'] },
+      { id: 'products', name: 'Inventory & Products', href: '/products', icon: Package },
+      { id: 'categories', name: 'Categories & Brands', href: '/categories', icon: FolderPlus },
+      { id: 'racks', name: 'Rack Locations', href: '/racks', icon: Layers },
     ],
   },
   {
     id: 'procurement',
     title: 'Suppliers & Procurement',
     icon: Truck,
-    roles: ['ADMIN', 'STAFF'],
     items: [
-      { name: 'Supplier Dues & Orders', href: '/suppliers', icon: Truck, roles: ['ADMIN', 'STAFF'] },
+      { id: 'suppliers', name: 'Supplier Dues & Orders', href: '/suppliers', icon: Truck },
     ],
   },
   {
     id: 'system',
     title: 'System & Analytics',
     icon: ShieldCheck,
-    roles: ['ADMIN', 'STAFF'],
     items: [
-      { name: 'User Management', href: '/users', icon: ShieldCheck, roles: ['ADMIN'] },
-      { name: 'WhatsApp Center', href: '/whatsapp', icon: MessageSquare, roles: ['ADMIN', 'STAFF'] },
-      { name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI', roles: ['ADMIN'] },
-      { name: 'Reports & Analytics', href: '/reports', icon: BarChart3, roles: ['ADMIN'] },
-      { name: 'System Settings', href: '/settings', icon: Settings, roles: ['ADMIN'] },
+      { id: 'users', name: 'User Management', href: '/users', icon: ShieldCheck },
+      { id: 'whatsapp', name: 'WhatsApp Center', href: '/whatsapp', icon: MessageSquare },
+      { id: 'ai_assistant', name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI' },
+      { id: 'reports', name: 'Reports & Analytics', href: '/reports', icon: BarChart3 },
+      { id: 'settings', name: 'System Settings', href: '/settings', icon: Settings },
     ],
   },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [userRole, setUserRole] = useState<'ADMIN' | 'STAFF'>('ADMIN');
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [enabledModules, setEnabledModules] = useState<string[]>([]);
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
 
   useEffect(() => {
-    const checkRole = () => {
-      const saved = localStorage.getItem('kannaya_user_role') as 'ADMIN' | 'STAFF';
-      if (saved) setUserRole(saved);
+    const updateModules = () => {
+      setEnabledModules(getEnabledModules());
     };
-    checkRole();
-    window.addEventListener('role_changed', checkRole);
-    window.addEventListener('storage', checkRole);
+    updateModules();
+    window.addEventListener('modules_changed', updateModules);
+    window.addEventListener('storage', updateModules);
     return () => {
-      window.removeEventListener('role_changed', checkRole);
-      window.removeEventListener('storage', checkRole);
+      window.removeEventListener('modules_changed', updateModules);
+      window.removeEventListener('storage', updateModules);
     };
   }, []);
 
@@ -173,10 +170,12 @@ export default function Sidebar() {
         </Link>
       </div>
 
-      {/* Navigation Groups with Simple Static Sub-Headings */}
+      {/* Navigation Groups with Dynamic Module Permission Filtering */}
       <nav className="flex-1 px-2.5 py-2 space-y-3.5 overflow-y-auto custom-scrollbar">
         {navGroups.map((group) => {
-          const visibleItems = group.items.filter((item) => item.roles.includes(userRole));
+          const visibleItems = group.items.filter((item) =>
+            enabledModules.length === 0 ? true : enabledModules.includes(item.id)
+          );
           if (visibleItems.length === 0) return null;
 
           return (
@@ -235,11 +234,37 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Matching Sidebar Bottom Bar */}
-      <div className="h-9 px-3.5 bg-[#383838] flex items-center justify-between text-[10px] text-[#cbcbcb] flex-shrink-0 font-medium">
-        {!isCollapsed && <span className="truncate">Venkata Lakshmi ERP</span>}
-        <span className="text-[#ffffe3] font-bold mx-auto md:mx-0">v2.0</span>
+      {/* Dynamic Module Permission Controls Footer */}
+      <div className="p-2 border-t border-[#383838] bg-[#383838] flex flex-col gap-1.5">
+        <button
+          onClick={() => setShowPermissionsModal(true)}
+          className={`w-full bg-[#4a4a4a] hover:bg-[#585858] text-[#ffffe3] text-[11px] font-bold py-1.5 px-2.5 rounded-[5px] flex items-center ${
+            isCollapsed ? 'justify-center' : 'justify-between'
+          } border border-slate-600 transition-all shadow-xs`}
+          title="Configure Dynamic Frontend Menu Permissions"
+        >
+          <span className="flex items-center gap-1.5 truncate">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            {!isCollapsed && <span className="truncate">Module Access</span>}
+          </span>
+          {!isCollapsed && (
+            <span className="bg-amber-400/20 text-amber-300 text-[9px] px-1.5 py-0.5 rounded font-mono font-bold">
+              Config
+            </span>
+          )}
+        </button>
+
+        <div className="h-6 px-1 flex items-center justify-between text-[10px] text-[#cbcbcb] font-medium">
+          {!isCollapsed && <span className="truncate">Venkata Lakshmi ERP</span>}
+          <span className="text-[#ffffe3] font-bold mx-auto md:mx-0">v2.0</span>
+        </div>
       </div>
+
+      {/* Dynamic Permissions Control Modal */}
+      <ModulePermissionsModal
+        isOpen={showPermissionsModal}
+        onClose={() => setShowPermissionsModal(false)}
+      />
     </aside>
   );
 }

@@ -23,50 +23,55 @@ import {
   Settings,
 } from 'lucide-react';
 
+import { getEnabledModules } from '@/components/ModulePermissionsModal';
+
 const mainTabs = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['ADMIN'] },
-  { name: 'POS Bill', href: '/billing', icon: ShoppingCart, highlight: true, roles: ['ADMIN', 'STAFF'] },
-  { name: 'Invoices', href: '/invoices', icon: FileText, roles: ['ADMIN', 'STAFF'] },
-  { name: 'Products', href: '/products', icon: Package, roles: ['ADMIN', 'STAFF'] },
-  { name: 'Customers', href: '/customers', icon: Users, roles: ['ADMIN', 'STAFF'] },
+  { id: 'dashboard', name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { id: 'billing', name: 'POS Bill', href: '/billing', icon: ShoppingCart, highlight: true },
+  { id: 'invoices', name: 'Invoices', href: '/invoices', icon: FileText },
+  { id: 'products', name: 'Products', href: '/products', icon: Package },
+  { id: 'customers', name: 'Customers', href: '/customers', icon: Users },
 ];
 
 const secondaryLinks = [
-  { name: 'Categories & Brands', href: '/categories', icon: FolderPlus, roles: ['ADMIN'] },
-  { name: 'Rack Locations', href: '/racks', icon: Layers, roles: ['ADMIN', 'STAFF'] },
-  { name: 'Supplier Dues', href: '/suppliers', icon: Truck, roles: ['ADMIN'] },
-  // { name: 'Barcode Studio', href: '/barcode', icon: Barcode, roles: ['ADMIN', 'STAFF'] },
-  { name: 'User Management', href: '/users', icon: ShieldCheck, roles: ['ADMIN'] },
-  { name: 'WhatsApp Center', href: '/whatsapp', icon: MessageSquare, roles: ['ADMIN', 'STAFF'] },
-  { name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI', roles: ['ADMIN'] },
-  { name: 'Reports & Analytics', href: '/reports', icon: BarChart3, roles: ['ADMIN'] },
-  { name: 'System Settings', href: '/settings', icon: Settings, roles: ['ADMIN'] },
+  { id: 'categories', name: 'Categories & Brands', href: '/categories', icon: FolderPlus },
+  { id: 'racks', name: 'Rack Locations', href: '/racks', icon: Layers },
+  { id: 'suppliers', name: 'Supplier Dues', href: '/suppliers', icon: Truck },
+  { id: 'expenses', name: 'Expenses & Outflow', href: '/expenses', icon: Package },
+  { id: 'users', name: 'User Management', href: '/users', icon: ShieldCheck },
+  { id: 'whatsapp', name: 'WhatsApp Center', href: '/whatsapp', icon: MessageSquare },
+  { id: 'ai_assistant', name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI' },
+  { id: 'reports', name: 'Reports & Analytics', href: '/reports', icon: BarChart3 },
+  { id: 'settings', name: 'System Settings', href: '/settings', icon: Settings },
 ];
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const [userRole, setUserRole] = useState<'ADMIN' | 'STAFF'>('ADMIN');
+  const [enabledModules, setEnabledModules] = useState<string[]>([]);
 
   React.useEffect(() => {
-    const checkRole = () => {
-      const saved = localStorage.getItem('kannaya_user_role') as 'ADMIN' | 'STAFF';
-      if (saved) setUserRole(saved);
+    const updateModules = () => {
+      setEnabledModules(getEnabledModules());
     };
-    checkRole();
-    window.addEventListener('role_changed', checkRole);
-    window.addEventListener('storage', checkRole);
+    updateModules();
+    window.addEventListener('modules_changed', updateModules);
+    window.addEventListener('storage', updateModules);
     return () => {
-      window.removeEventListener('role_changed', checkRole);
-      window.removeEventListener('storage', checkRole);
+      window.removeEventListener('modules_changed', updateModules);
+      window.removeEventListener('storage', updateModules);
     };
   }, []);
 
   // Don't render on login page
   if (pathname === '/login') return null;
 
-  const visibleMainTabs = mainTabs.filter((tab) => tab.roles.includes(userRole));
-  const visibleSecondaryLinks = secondaryLinks.filter((link) => link.roles.includes(userRole));
+  const visibleMainTabs = mainTabs.filter((tab) =>
+    enabledModules.length === 0 ? true : enabledModules.includes(tab.id)
+  );
+  const visibleSecondaryLinks = secondaryLinks.filter((link) =>
+    enabledModules.length === 0 ? true : enabledModules.includes(link.id)
+  );
 
   return (
     <>

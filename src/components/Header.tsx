@@ -24,7 +24,12 @@ export default function Header() {
         if (data.authenticated && data.user) {
           setCurrentRole(data.user.role || 'ADMIN');
           setUserName(data.user.name || 'Owner Admin');
+          if (data.user.id) localStorage.setItem('kannaya_user_id', data.user.id);
           localStorage.setItem('kannaya_user_role', data.user.role || 'ADMIN');
+          if (data.user.allowedModules && Array.isArray(data.user.allowedModules) && data.user.allowedModules.length > 0) {
+            localStorage.setItem('kannaya_active_modules', JSON.stringify(data.user.allowedModules));
+            window.dispatchEvent(new Event('modules_changed'));
+          }
         }
       })
       .catch(() => { });
@@ -88,7 +93,6 @@ export default function Header() {
 
       {/* Right Controls */}
       <div className="flex items-center gap-2.5">
-
         {/* Live Clock */}
         <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-[#ffffe3] bg-[#4a4a4a] px-2.5 py-1.5 rounded-[5px]">
           <Clock className="w-3.5 h-3.5 text-[#f59e0b]" />

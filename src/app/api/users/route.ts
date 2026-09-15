@@ -11,6 +11,7 @@ export async function GET(request: Request) {
         email: true,
         role: true,
         pinCode: true,
+        allowedModules: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -27,7 +28,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, password, pinCode, role } = body;
+    const { name, email, password, pinCode, role, allowedModules } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -66,6 +67,7 @@ export async function POST(request: Request) {
         password,
         pinCode: assignedPin,
         role: assignedRole,
+        allowedModules: Array.isArray(allowedModules) ? allowedModules : [],
       },
       select: {
         id: true,
@@ -73,6 +75,7 @@ export async function POST(request: Request) {
         email: true,
         role: true,
         pinCode: true,
+        allowedModules: true,
         createdAt: true,
       },
     });
@@ -87,11 +90,11 @@ export async function POST(request: Request) {
   }
 }
 
-// PUT /api/users - Update internal user details or PIN
+// PUT /api/users - Update internal user details or PIN or allowedModules
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { id, name, email, password, pinCode, role } = body;
+    const { id, name, email, password, pinCode, role, allowedModules } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -112,6 +115,7 @@ export async function PUT(request: Request) {
         ...(password && { password }),
         ...(pinCode && { pinCode: pinCode.trim() }),
         ...(role && { role: role === 'ADMIN' ? 'ADMIN' : 'STAFF' }),
+        ...(Array.isArray(allowedModules) && { allowedModules }),
       },
       select: {
         id: true,
@@ -119,6 +123,7 @@ export async function PUT(request: Request) {
         email: true,
         role: true,
         pinCode: true,
+        allowedModules: true,
         createdAt: true,
       },
     });
