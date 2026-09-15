@@ -260,6 +260,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const [payAmount, setPayAmount] = useState('');
   const [payMethod, setPayMethod] = useState('CASH');
   const [payNotes, setPayNotes] = useState('');
+  const [payDate, setPayDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   // Quick Add Product Purchase / Bill In-Page Form State
   const [showInPageAddBill, setShowInPageAddBill] = useState(false);
@@ -453,12 +454,14 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
           amount: payAmount,
           paymentMethod: payMethod,
           notes: payNotes,
+          paymentDate: payDate,
         }),
       });
       if (res.ok) {
         setShowPayModal(false);
         setPayAmount('');
         setPayNotes('');
+        setPayDate(new Date().toISOString().split('T')[0]);
         loadCustomerData();
       }
     } catch (e) {
@@ -1450,6 +1453,17 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                     { value: 'UPI', label: 'UPI / GPay / PhonePe' },
                     { value: 'CARD', label: 'Bank Transfer / Card' },
                   ]}
+                />
+              </div>
+
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Payment Completion Date</label>
+                <input
+                  type="date"
+                  required
+                  value={payDate}
+                  onChange={(e) => setPayDate(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] font-semibold focus:outline-none focus:border-[#6d8196]"
                 />
               </div>
 

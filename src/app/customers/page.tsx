@@ -118,6 +118,7 @@ export default function CustomersPage() {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [paymentNotes, setPaymentNotes] = useState('');
+  const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   const loadCustomers = async () => {
     try {
@@ -177,12 +178,14 @@ export default function CustomersPage() {
           amount: paymentAmount,
           paymentMethod,
           notes: paymentNotes,
+          paymentDate,
         }),
       });
       if (res.ok) {
         setPayModalCustomer(null);
         setPaymentAmount('');
         setPaymentNotes('');
+        setPaymentDate(new Date().toISOString().split('T')[0]);
         loadCustomers();
       }
     } catch (e) {
@@ -536,6 +539,17 @@ export default function CustomersPage() {
                     { value: 'UPI', label: 'UPI / GPay / PhonePe' },
                     { value: 'CARD', label: 'Bank Transfer / Card' },
                   ]}
+                />
+              </div>
+
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Payment Completion Date</label>
+                <input
+                  type="date"
+                  required
+                  value={paymentDate}
+                  onChange={(e) => setPaymentDate(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] font-semibold focus:bg-white focus:border-[#6d8196] focus:outline-none"
                 />
               </div>
 

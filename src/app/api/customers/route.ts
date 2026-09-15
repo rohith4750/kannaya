@@ -69,7 +69,7 @@ export async function POST(request: Request) {
 
     // 1. Record Credit Payment (Clear Balance)
     if (action === 'payment') {
-      const { customerId, amount, paymentMethod = 'CASH', notes } = body;
+      const { customerId, amount, paymentMethod = 'CASH', notes, paymentDate } = body;
       const payAmt = parseFloat(amount);
 
       if (!customerId || !payAmt || payAmt <= 0) {
@@ -100,6 +100,7 @@ export async function POST(request: Request) {
           amount: payAmt,
           balance: newOutstanding,
           notes: notes || `Credit Payment received via ${paymentMethod}`,
+          createdAt: paymentDate ? new Date(paymentDate) : new Date(),
         },
       });
 

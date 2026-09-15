@@ -21,6 +21,7 @@ export default function SuppliersPage() {
 
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
+  const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   const loadSuppliers = async () => {
     try {
@@ -70,12 +71,14 @@ export default function SuppliersPage() {
           supplierId: payModalSupplier.id,
           amount: paymentAmount,
           notes: paymentNotes,
+          paymentDate,
         }),
       });
       if (res.ok) {
         setPayModalSupplier(null);
         setPaymentAmount('');
         setPaymentNotes('');
+        setPaymentDate(new Date().toISOString().split('T')[0]);
         loadSuppliers();
       }
     } catch (e) {
@@ -369,6 +372,17 @@ export default function SuppliersPage() {
                   onChange={(e) => setPaymentAmount(e.target.value)}
                   placeholder={`Max ₹${payModalSupplier.outstanding}`}
                   className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-emerald-700 font-bold text-lg focus:outline-none focus:border-[#6d8196]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Payment Completion Date</label>
+                <input
+                  type="date"
+                  required
+                  value={paymentDate}
+                  onChange={(e) => setPaymentDate(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] font-semibold focus:outline-none focus:border-[#6d8196]"
                 />
               </div>
 

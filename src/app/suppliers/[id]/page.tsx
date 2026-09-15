@@ -55,6 +55,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
   const [showPayModal, setShowPayModal] = useState(false);
   const [payAmount, setPayAmount] = useState('');
   const [payNotes, setPayNotes] = useState('');
+  const [payDate, setPayDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   // Inline Purchase Order Form State (On-Page, Not a Modal!)
   const [showPoForm, setShowPoForm] = useState(false);
@@ -121,12 +122,14 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
           supplierId: id,
           amount: payAmount,
           notes: payNotes,
+          paymentDate: payDate,
         }),
       });
       if (res.ok) {
         setShowPayModal(false);
         setPayAmount('');
         setPayNotes('');
+        setPayDate(new Date().toISOString().split('T')[0]);
         loadSupplierData();
       }
     } catch (e) {
@@ -1635,6 +1638,17 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                   onChange={(e) => setPayAmount(e.target.value)}
                   placeholder="Enter payment amount"
                   className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-4 py-2.5 text-emerald-700 font-black text-xl focus:outline-none focus:border-[#6d8196] font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Payment Completion Date</label>
+                <input
+                  type="date"
+                  required
+                  value={payDate}
+                  onChange={(e) => setPayDate(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] font-semibold focus:outline-none focus:border-[#6d8196]"
                 />
               </div>
 

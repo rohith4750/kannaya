@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     // 1. Record Payment to Supplier
     if (action === 'payment') {
-      const { supplierId, amount, notes } = body;
+      const { supplierId, amount, notes, paymentDate } = body;
       const payAmt = parseFloat(amount);
 
       const supp = await prisma.supplier.findUnique({ where: { id: supplierId } });
@@ -53,6 +53,7 @@ export async function POST(request: Request) {
           amount: payAmt,
           balance: newOutstanding,
           notes: notes || `Payment made to supplier`,
+          createdAt: paymentDate ? new Date(paymentDate) : new Date(),
         },
       });
 
