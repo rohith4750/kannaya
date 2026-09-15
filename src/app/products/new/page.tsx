@@ -459,124 +459,100 @@ export default function AddNewProductPage() {
           </div>
         </div>
 
-        {/* Section 2: Variant Matrix Manager */}
+        {/* Section 2: Variant Cards Builder */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#4a4a4a] flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-[#6d8196]" /> 2. Product Variants Configuration ({variants.length} variants)
+              <Layers className="w-3.5 h-3.5 text-[#6d8196]" /> 2. Product Variants Cards ({variants.length} variants)
             </h2>
             <button
               type="button"
               onClick={addVariantRow}
-              className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold px-3 py-1 rounded-[4px] text-xs flex items-center gap-1"
+              className="bg-[#6d8196] hover:bg-[#5b6f84] text-white font-bold px-3.5 py-1.5 rounded-[5px] text-xs flex items-center gap-1.5 shadow-sm transition-all"
             >
-              <Plus className="w-3.5 h-3.5" /> Add Variant Row
+              <Plus className="w-4 h-4" /> Add Variant Card
             </button>
           </div>
 
-          <div className="overflow-x-auto border border-[#cbcbcb] rounded-[5px] bg-slate-50">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-200 text-[#4a4a4a] font-bold border-b border-[#cbcbcb]">
-                  <th className="p-2 w-32">Variant Name</th>
-                  <th className="p-2 w-28">Barcode</th>
-                  <th className="p-2 w-24">HSN Code</th>
-                  <th className="p-2 w-24 text-right">Purchase (₹)</th>
-                  <th className="p-2 w-24 text-right">Retail (₹)</th>
-                  <th className="p-2 w-24 text-right">Wholesale (₹)</th>
-                  <th className="p-2 w-20 text-center">Stock</th>
-                  <th className="p-2 w-20 text-center">Alert Qty</th>
-                  <th className="p-2 w-32">Rack</th>
-                  <th className="p-2 w-10 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {variants.map((row, idx) => (
-                  <tr key={idx} className="border-b border-[#cbcbcb] hover:bg-white transition-colors">
-                    <td className="p-1.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {variants.map((row, idx) => (
+              <div key={idx} className="bg-white border border-[#cbcbcb] rounded-[6px] shadow-2xs hover:shadow-md transition-shadow flex flex-col justify-between overflow-hidden">
+                {/* Card Header */}
+                <div className="bg-slate-100 px-3.5 py-2 border-b border-[#cbcbcb] flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-[#6d8196] text-white font-black text-[10px] px-2 py-0.5 rounded-full">
+                      #{idx + 1}
+                    </span>
+                    <span className="font-bold text-xs text-[#4a4a4a] truncate max-w-[150px]">
+                      {row.variantName || `Variant ${idx + 1}`}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeVariantRow(idx)}
+                    disabled={variants.length <= 1}
+                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-[4px] transition-colors disabled:opacity-30"
+                    title="Delete Variant Card"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* Card Body */}
+                <div className="p-3.5 space-y-3 text-xs">
+                  {/* Variant Name & Barcode */}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 uppercase block mb-1">
+                        Variant Name *
+                      </label>
                       <input
                         type="text"
                         required
                         value={row.variantName}
                         onChange={(e) => updateVariant(idx, 'variantName', e.target.value)}
                         placeholder="e.g. 1.5 SQMM"
-                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs font-bold text-[#4a4a4a] focus:border-[#6d8196] focus:outline-none"
+                        className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[4px] px-2.5 py-1.5 text-xs font-bold text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
                       />
-                    </td>
-                    <td className="p-1.5">
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 uppercase block mb-1">
+                        Barcode
+                      </label>
                       <input
                         type="text"
                         value={row.barcode}
                         onChange={(e) => updateVariant(idx, 'barcode', e.target.value)}
                         placeholder="Barcode"
-                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs font-mono text-[#4a4a4a] focus:border-[#6d8196] focus:outline-none"
+                        className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[4px] px-2.5 py-1.5 text-xs font-mono text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
                       />
-                    </td>
-                    <td className="p-1.5">
+                    </div>
+                  </div>
+
+                  {/* HSN Code & Rack Location */}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 uppercase block mb-1">
+                        HSN Code (Variant)
+                      </label>
                       <input
                         type="text"
                         value={row.hsnCode || ''}
                         onChange={(e) => updateVariant(idx, 'hsnCode', e.target.value)}
                         placeholder={productData.hsnCode || '8544'}
-                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs font-mono text-[#4a4a4a] focus:border-[#6d8196] focus:outline-none uppercase"
+                        className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[4px] px-2.5 py-1.5 text-xs font-mono text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none uppercase"
                       />
-                    </td>
-                    <td className="p-1.5">
-                      <input
-                        type="number"
-                        step="0.01"
-                        required
-                        value={row.purchasePrice}
-                        onChange={(e) => updateVariant(idx, 'purchasePrice', e.target.value)}
-                        placeholder="800"
-                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-right font-semibold text-slate-700 focus:border-[#6d8196] focus:outline-none"
-                      />
-                    </td>
-                    <td className="p-1.5">
-                      <input
-                        type="number"
-                        step="0.01"
-                        required
-                        value={row.sellingPrice}
-                        onChange={(e) => updateVariant(idx, 'sellingPrice', e.target.value)}
-                        placeholder="950"
-                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-right font-black text-emerald-800 focus:border-[#6d8196] focus:outline-none"
-                      />
-                    </td>
-                    <td className="p-1.5">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={row.wholesalePrice}
-                        onChange={(e) => updateVariant(idx, 'wholesalePrice', e.target.value)}
-                        placeholder="880"
-                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-right font-extrabold text-amber-700 focus:border-[#6d8196] focus:outline-none"
-                      />
-                    </td>
-                    <td className="p-1.5">
-                      <input
-                        type="number"
-                        required
-                        value={row.stockQuantity}
-                        onChange={(e) => updateVariant(idx, 'stockQuantity', e.target.value)}
-                        placeholder="100"
-                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-center font-bold text-slate-900 focus:border-[#6d8196] focus:outline-none"
-                      />
-                    </td>
-                    <td className="p-1.5">
-                      <input
-                        type="number"
-                        value={row.minStockAlert}
-                        onChange={(e) => updateVariant(idx, 'minStockAlert', e.target.value)}
-                        placeholder="10"
-                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-center text-slate-600 focus:border-[#6d8196] focus:outline-none"
-                      />
-                    </td>
-                    <td className="p-1.5">
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 uppercase block mb-1">
+                        Rack Location
+                      </label>
                       <select
                         value={row.rackId}
                         onChange={(e) => updateVariant(idx, 'rackId', e.target.value)}
-                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-1.5 py-1 text-xs text-slate-700 focus:border-[#6d8196] focus:outline-none font-medium"
+                        className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[4px] px-2.5 py-1.5 text-xs text-slate-700 focus:bg-white focus:border-[#6d8196] focus:outline-none font-medium"
                       >
                         <option value="">Unassigned</option>
                         {racks.map((r) => (
@@ -585,22 +561,85 @@ export default function AddNewProductPage() {
                           </option>
                         ))}
                       </select>
-                    </td>
-                    <td className="p-1.5 text-center">
-                      <button
-                        type="button"
-                        onClick={() => removeVariantRow(idx)}
-                        disabled={variants.length <= 1}
-                        className="p-1 text-rose-600 hover:bg-rose-100 rounded-[3px] disabled:opacity-30"
-                        title="Delete Variant Row"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+
+                  {/* Pricing Box */}
+                  <div className="bg-slate-50 p-2.5 rounded-[5px] border border-[#cbcbcb] space-y-2">
+                    <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-1">
+                      Pricing (₹)
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="text-[9px] font-bold text-slate-600 uppercase block mb-0.5">Purchase</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          required
+                          value={row.purchasePrice}
+                          onChange={(e) => updateVariant(idx, 'purchasePrice', e.target.value)}
+                          placeholder="800"
+                          className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-right font-semibold text-slate-700 focus:border-[#6d8196] focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-bold text-emerald-800 uppercase block mb-0.5">Retail *</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          required
+                          value={row.sellingPrice}
+                          onChange={(e) => updateVariant(idx, 'sellingPrice', e.target.value)}
+                          placeholder="950"
+                          className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-right font-black text-emerald-800 focus:border-[#6d8196] focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-bold text-amber-800 uppercase block mb-0.5">Wholesale</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={row.wholesalePrice}
+                          onChange={(e) => updateVariant(idx, 'wholesalePrice', e.target.value)}
+                          placeholder="880"
+                          className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-right font-extrabold text-amber-700 focus:border-[#6d8196] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stock Quantity & Alert */}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 uppercase block mb-1">
+                        Stock Quantity *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        value={row.stockQuantity}
+                        onChange={(e) => updateVariant(idx, 'stockQuantity', e.target.value)}
+                        placeholder="100"
+                        className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[4px] px-2.5 py-1.5 text-xs text-center font-bold text-slate-900 focus:bg-white focus:border-[#6d8196] focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 uppercase block mb-1">
+                        Low Stock Alert
+                      </label>
+                      <input
+                        type="number"
+                        value={row.minStockAlert}
+                        onChange={(e) => updateVariant(idx, 'minStockAlert', e.target.value)}
+                        placeholder="10"
+                        className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[4px] px-2.5 py-1.5 text-xs text-center text-slate-600 focus:bg-white focus:border-[#6d8196] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
