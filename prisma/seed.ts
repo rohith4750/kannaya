@@ -128,7 +128,6 @@ async function main() {
           {
             variantName: '1.5 SQMM',
             barcode: '890123',
-            sku: 'SVE-WIR-1.5',
             purchasePrice: 800,
             sellingPrice: 950,
             wholesalePrice: 880,
@@ -140,7 +139,6 @@ async function main() {
           {
             variantName: '2.5 SQMM',
             barcode: '890124',
-            sku: 'SVE-WIR-2.5',
             purchasePrice: 1200,
             sellingPrice: 1450,
             wholesalePrice: 1320,
@@ -152,7 +150,6 @@ async function main() {
           {
             variantName: '4 SQMM',
             barcode: '890125',
-            sku: 'SVE-WIR-4.0',
             purchasePrice: 1800,
             sellingPrice: 2200,
             wholesalePrice: 2000,
@@ -164,7 +161,6 @@ async function main() {
           {
             variantName: '6 SQMM',
             barcode: '890126',
-            sku: 'SVE-WIR-6.0',
             purchasePrice: 2600,
             sellingPrice: 3100,
             wholesalePrice: 2850,
@@ -194,7 +190,6 @@ async function main() {
           {
             variantName: '9W',
             barcode: '890223',
-            sku: 'SVE-LED-9W',
             purchasePrice: 55,
             sellingPrice: 85,
             wholesalePrice: 70,
@@ -206,7 +201,6 @@ async function main() {
           {
             variantName: '12W',
             barcode: '890224',
-            sku: 'SVE-LED-12W',
             purchasePrice: 70,
             sellingPrice: 110,
             wholesalePrice: 90,
@@ -218,7 +212,6 @@ async function main() {
           {
             variantName: '15W',
             barcode: '890225',
-            sku: 'SVE-LED-15W',
             purchasePrice: 95,
             sellingPrice: 145,
             wholesalePrice: 120,
@@ -230,7 +223,6 @@ async function main() {
           {
             variantName: '20W',
             barcode: '890226',
-            sku: 'SVE-LED-20W',
             purchasePrice: 130,
             sellingPrice: 190,
             wholesalePrice: 160,
@@ -260,7 +252,6 @@ async function main() {
           {
             variantName: '6A',
             barcode: '890323',
-            sku: 'SVE-MCB-6A',
             purchasePrice: 110,
             sellingPrice: 165,
             wholesalePrice: 135,
@@ -272,7 +263,6 @@ async function main() {
           {
             variantName: '10A',
             barcode: '890324',
-            sku: 'SVE-MCB-10A',
             purchasePrice: 110,
             sellingPrice: 165,
             wholesalePrice: 135,
@@ -284,7 +274,6 @@ async function main() {
           {
             variantName: '16A',
             barcode: '890325',
-            sku: 'SVE-MCB-16A',
             purchasePrice: 115,
             sellingPrice: 170,
             wholesalePrice: 140,
@@ -296,7 +285,6 @@ async function main() {
           {
             variantName: '20A',
             barcode: '890326',
-            sku: 'SVE-MCB-20A',
             purchasePrice: 120,
             sellingPrice: 175,
             wholesalePrice: 145,
@@ -308,7 +296,6 @@ async function main() {
           {
             variantName: '32A',
             barcode: '890327',
-            sku: 'SVE-MCB-32A',
             purchasePrice: 135,
             sellingPrice: 195,
             wholesalePrice: 165,
@@ -337,7 +324,6 @@ async function main() {
           {
             variantName: '20mm',
             barcode: '890423',
-            sku: 'SVE-PIP-20MM',
             purchasePrice: 45,
             sellingPrice: 65,
             wholesalePrice: 55,
@@ -349,7 +335,6 @@ async function main() {
           {
             variantName: '25mm',
             barcode: '890424',
-            sku: 'SVE-PIP-25MM',
             purchasePrice: 60,
             sellingPrice: 85,
             wholesalePrice: 72,
@@ -361,7 +346,6 @@ async function main() {
           {
             variantName: '32mm',
             barcode: '890425',
-            sku: 'SVE-PIP-32MM',
             purchasePrice: 90,
             sellingPrice: 130,
             wholesalePrice: 110,
@@ -373,7 +357,6 @@ async function main() {
           {
             variantName: '40mm',
             barcode: '890426',
-            sku: 'SVE-PIP-40MM',
             purchasePrice: 125,
             sellingPrice: 175,
             wholesalePrice: 150,
@@ -402,7 +385,6 @@ async function main() {
           {
             variantName: '1 Way',
             barcode: '890523',
-            sku: 'SVE-SWI-1W',
             purchasePrice: 22,
             sellingPrice: 35,
             wholesalePrice: 27,
@@ -414,7 +396,6 @@ async function main() {
           {
             variantName: '2 Way',
             barcode: '890524',
-            sku: 'SVE-SWI-2W',
             purchasePrice: 32,
             sellingPrice: 48,
             wholesalePrice: 38,
@@ -426,7 +407,6 @@ async function main() {
           {
             variantName: 'Bell Switch',
             barcode: '890525',
-            sku: 'SVE-SWI-BELL',
             purchasePrice: 40,
             sellingPrice: 60,
             wholesalePrice: 48,
@@ -438,7 +418,6 @@ async function main() {
           {
             variantName: 'Fan Regulator',
             barcode: '890526',
-            sku: 'SVE-REG-FAN',
             purchasePrice: 180,
             sellingPrice: 250,
             wholesalePrice: 210,
@@ -467,7 +446,6 @@ async function main() {
           {
             variantName: '1200mm Brown',
             barcode: '890623',
-            sku: 'SVE-FAN-1200-BRN',
             purchasePrice: 1450,
             sellingPrice: 1950,
             wholesalePrice: 1680,
@@ -479,7 +457,6 @@ async function main() {
           {
             variantName: '1200mm White',
             barcode: '890624',
-            sku: 'SVE-FAN-1200-WHT',
             purchasePrice: 1450,
             sellingPrice: 1950,
             wholesalePrice: 1680,
@@ -491,7 +468,6 @@ async function main() {
           {
             variantName: '1400mm Ivory',
             barcode: '890625',
-            sku: 'SVE-FAN-1400-IVR',
             purchasePrice: 1650,
             sellingPrice: 2200,
             wholesalePrice: 1900,

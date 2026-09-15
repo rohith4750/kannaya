@@ -85,7 +85,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </div>
             <h1 className="text-2xl font-extrabold text-[#4a4a4a]">{product.name}</h1>
             <div className="flex items-center gap-4 text-xs text-slate-500 font-mono mt-2">
-              {product.sku && <span>SKU: <strong className="text-[#4a4a4a]">{product.sku}</strong></span>}
               <span>HSN: <strong className="text-[#4a4a4a]">{product.hsnCode || '8544'}</strong></span>
               <span>GST: <strong className="text-[#4a4a4a]">{product.gstPercent || 18}%</strong></span>
             </div>

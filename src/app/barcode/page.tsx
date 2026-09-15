@@ -50,8 +50,7 @@ export default function BarcodePage() {
     return (
       v.productName.toLowerCase().includes(q) ||
       v.variantName.toLowerCase().includes(q) ||
-      v.barcode.toLowerCase().includes(q) ||
-      (v.sku && v.sku.toLowerCase().includes(q))
+      v.barcode.toLowerCase().includes(q)
     );
   });
 

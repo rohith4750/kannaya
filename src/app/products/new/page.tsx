@@ -22,9 +22,7 @@ import MaterialSelect from '@/components/MaterialSelect';
 interface VariantRow {
   variantName: string;
   barcode: string;
-  sku: string;
   hsnCode?: string;
-  gstPercent?: string;
   purchasePrice: string;
   sellingPrice: string;
   wholesalePrice: string;
@@ -66,9 +64,7 @@ export default function AddNewProductPage() {
     {
       variantName: '1.5 SQMM',
       barcode: '',
-      sku: '',
       hsnCode: '',
-      gstPercent: '',
       purchasePrice: '',
       sellingPrice: '',
       wholesalePrice: '',
@@ -197,9 +193,7 @@ export default function AddNewProductPage() {
     const newRows: VariantRow[] = names.map((name, i) => ({
       variantName: name,
       barcode: `${890000 + Math.floor(Math.random() * 90000)}`,
-      sku: `SVE-${name.replace(/\s+/g, '-').toUpperCase()}`,
       hsnCode: '',
-      gstPercent: '',
       purchasePrice: '',
       sellingPrice: '',
       wholesalePrice: '',
@@ -218,9 +212,7 @@ export default function AddNewProductPage() {
       {
         variantName: `Variant ${prev.length + 1}`,
         barcode: `${890000 + Math.floor(Math.random() * 90000)}`,
-        sku: '',
         hsnCode: '',
-        gstPercent: '',
         purchasePrice: '',
         sellingPrice: '',
         wholesalePrice: '',
@@ -265,9 +257,7 @@ export default function AddNewProductPage() {
           ...v,
           variantName: v.variantName?.toUpperCase().trim(),
           barcode: v.barcode?.toUpperCase().trim(),
-          sku: v.sku?.toUpperCase().trim(),
           hsnCode: v.hsnCode ? v.hsnCode.toUpperCase().trim() : undefined,
-          gstPercent: v.gstPercent !== undefined && v.gstPercent !== '' ? v.gstPercent : undefined,
         })),
       };
 
@@ -490,9 +480,7 @@ export default function AddNewProductPage() {
                 <tr className="bg-slate-200 text-[#4a4a4a] font-bold border-b border-[#cbcbcb]">
                   <th className="p-2 w-32">Variant Name</th>
                   <th className="p-2 w-28">Barcode</th>
-                  <th className="p-2 w-24">SKU</th>
-                  <th className="p-2 w-20">HSN Code</th>
-                  <th className="p-2 w-16 text-center">GST %</th>
+                  <th className="p-2 w-24">HSN Code</th>
                   <th className="p-2 w-24 text-right">Purchase (₹)</th>
                   <th className="p-2 w-24 text-right">Retail (₹)</th>
                   <th className="p-2 w-24 text-right">Wholesale (₹)</th>
@@ -527,29 +515,10 @@ export default function AddNewProductPage() {
                     <td className="p-1.5">
                       <input
                         type="text"
-                        value={row.sku}
-                        onChange={(e) => updateVariant(idx, 'sku', e.target.value)}
-                        placeholder="SKU"
-                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs font-mono text-[#4a4a4a] focus:border-[#6d8196] focus:outline-none"
-                      />
-                    </td>
-                    <td className="p-1.5">
-                      <input
-                        type="text"
                         value={row.hsnCode || ''}
                         onChange={(e) => updateVariant(idx, 'hsnCode', e.target.value)}
                         placeholder={productData.hsnCode || '8544'}
                         className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs font-mono text-[#4a4a4a] focus:border-[#6d8196] focus:outline-none uppercase"
-                      />
-                    </td>
-                    <td className="p-1.5">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={row.gstPercent || ''}
-                        onChange={(e) => updateVariant(idx, 'gstPercent', e.target.value)}
-                        placeholder={productData.gstPercent || '18'}
-                        className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-center font-bold text-slate-700 focus:border-[#6d8196] focus:outline-none"
                       />
                     </td>
                     <td className="p-1.5">

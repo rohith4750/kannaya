@@ -103,9 +103,7 @@ function ProductsContent() {
               id: editVariant.id,
               variantName: editVariant.variantName,
               barcode: editVariant.barcode,
-              sku: editVariant.sku,
               hsnCode: editVariant.hsnCode || null,
-              gstPercent: editVariant.gstPercent !== undefined && editVariant.gstPercent !== null && editVariant.gstPercent !== '' ? parseFloat(editVariant.gstPercent) : null,
               stockQuantity: editVariant.stockQuantity,
               sellingPrice: editVariant.sellingPrice,
               purchasePrice: editVariant.purchasePrice,
@@ -183,7 +181,7 @@ function ProductsContent() {
     const matchesSearch =
       !q ||
       p.name.toLowerCase().includes(q) ||
-      (p.variants && p.variants.some((v: any) => v.barcode?.toLowerCase().includes(q) || v.variantName?.toLowerCase().includes(q) || v.sku?.toLowerCase().includes(q)));
+      (p.variants && p.variants.some((v: any) => v.barcode?.toLowerCase().includes(q) || v.variantName?.toLowerCase().includes(q)));
 
     const matchesCategory = !selectedCategory || p.categoryId === selectedCategory;
     const matchesBrand = !selectedBrand || p.brandId === selectedBrand || p.brand?.id === selectedBrand;
@@ -420,9 +418,7 @@ function ProductsContent() {
                                 </div>
                                 <div className="pl-4 text-[10px] font-mono text-slate-400 flex items-center gap-3 flex-wrap">
                                   <span>Barcode: {v.barcode}</span>
-                                  {v.sku && <span>SKU: {v.sku}</span>}
                                   {v.hsnCode && <span className="font-bold text-amber-700 bg-amber-50 px-1 py-0.2 rounded border border-amber-200">HSN: {v.hsnCode}</span>}
-                                  {v.gstPercent !== null && v.gstPercent !== undefined && <span className="font-bold text-slate-700 bg-slate-100 px-1 py-0.2 rounded border border-slate-200">GST: {v.gstPercent}%</span>}
                                 </div>
                               </td>
 
@@ -564,18 +560,6 @@ function ProductsContent() {
                   />
                 </div>
                 <div>
-                  <label className="text-slate-700 uppercase text-[10px] font-bold">SKU</label>
-                  <input
-                    type="text"
-                    value={editVariant.sku || ''}
-                    onChange={(e) => setEditVariant({ ...editVariant, sku: e.target.value })}
-                    className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-slate-900 font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
                   <label className="text-slate-700 uppercase text-[10px] font-bold">Variant HSN Code (Override)</label>
                   <input
                     type="text"
@@ -583,17 +567,6 @@ function ProductsContent() {
                     onChange={(e) => setEditVariant({ ...editVariant, hsnCode: e.target.value })}
                     placeholder="Leave empty for Product HSN"
                     className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-slate-900 font-mono uppercase"
-                  />
-                </div>
-                <div>
-                  <label className="text-slate-700 uppercase text-[10px] font-bold">Variant GST % (Override)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editVariant.gstPercent !== undefined && editVariant.gstPercent !== null ? editVariant.gstPercent : ''}
-                    onChange={(e) => setEditVariant({ ...editVariant, gstPercent: e.target.value })}
-                    placeholder="Leave empty for Product GST"
-                    className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-slate-900 font-bold"
                   />
                 </div>
               </div>

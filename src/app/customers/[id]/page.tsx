@@ -539,8 +539,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const filteredCatalogProducts = catalogProducts.filter(
     (p) =>
       p.name.toLowerCase().includes(billSearchQuery.toLowerCase()) ||
-      (p.barcode && p.barcode.includes(billSearchQuery)) ||
-      (p.sku && p.sku.toLowerCase().includes(billSearchQuery.toLowerCase()))
+      (p.barcode && p.barcode.includes(billSearchQuery))
   );
 
   // Group Invoices by Date (Today, Yesterday, Date)
@@ -803,7 +802,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                   type="text"
                   value={billSearchQuery}
                   onChange={(e) => setBillSearchQuery(e.target.value)}
-                  placeholder="Type to filter inventory products by name, barcode, SKU..."
+                  placeholder="Type to filter inventory products by name, barcode..."
                   className="w-full pl-9 pr-3 py-2 border border-[#cbcbcb] rounded-[5px] bg-white text-xs font-semibold focus:outline-none focus:border-[#6d8196]"
                 />
               </div>

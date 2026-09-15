@@ -129,7 +129,6 @@ export default function BillingPOSPage() {
                 variantName: v.variantName,
                 name: v.variantName && v.variantName !== 'Standard' ? `${p.name} (${v.variantName})` : p.name,
                 barcode: v.barcode,
-                sku: v.sku,
                 unit: p.unit || 'pcs',
                 sellingPrice: v.sellingPrice,
                 purchasePrice: v.purchasePrice,
@@ -184,7 +183,6 @@ export default function BillingPOSPage() {
     return (
       item.name.toLowerCase().includes(q) ||
       item.barcode.toLowerCase().includes(q) ||
-      (item.sku && item.sku.toLowerCase().includes(q)) ||
       (item.brandName && item.brandName.toLowerCase().includes(q)) ||
       (item.categoryName && item.categoryName.toLowerCase().includes(q))
     );
@@ -225,7 +223,7 @@ export default function BillingPOSPage() {
   const handleKeyDownSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
       const exactMatch = variantItems.find(
-        (it) => it.barcode === searchQuery.trim() || (it.sku && it.sku === searchQuery.trim())
+        (it) => it.barcode === searchQuery.trim()
       );
       if (exactMatch) {
         addToCart(exactMatch);
@@ -420,7 +418,7 @@ export default function BillingPOSPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDownSearch}
-              placeholder="Search product variant, barcode (e.g. 890123), brand, SKU..."
+              placeholder="Search product variant, barcode (e.g. 890123), brand..."
               className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-10 pr-4 py-2 text-xs text-[#4a4a4a] placeholder-slate-400 focus:outline-none focus:border-[#6d8196] focus:bg-white"
             />
           </div>

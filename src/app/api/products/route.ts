@@ -20,7 +20,6 @@ export async function GET(request: Request) {
               OR: [
                 { variantName: { contains: query, mode: 'insensitive' } },
                 { barcode: { contains: query, mode: 'insensitive' } },
-                { sku: { contains: query, mode: 'insensitive' } },
                 { hsnCode: { contains: query, mode: 'insensitive' } },
               ],
             },
@@ -102,9 +101,7 @@ export async function POST(request: Request) {
       {
         variantName: 'Standard',
         barcode: body.barcode || `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
-        sku: body.sku || `SVE-${Date.now()}`,
         hsnCode: body.hsnCode || null,
-        gstPercent: body.gstPercent || null,
         purchasePrice: parseFloat(body.purchasePrice) || 0,
         sellingPrice: parseFloat(body.sellingPrice) || 0,
         wholesalePrice: body.wholesalePrice ? parseFloat(body.wholesalePrice) : null,
@@ -129,9 +126,7 @@ export async function POST(request: Request) {
           create: variantList.map((v: any, index: number) => ({
             variantName: (v.variantName || `Variant ${index + 1}`).trim().toUpperCase(),
             barcode: v.barcode && v.barcode.trim() ? v.barcode.trim().toUpperCase() : `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
-            sku: v.sku && v.sku.trim() ? v.sku.trim().toUpperCase() : `SVE-${Date.now()}-${index + 1}`,
             hsnCode: v.hsnCode && v.hsnCode.trim() ? v.hsnCode.trim().toUpperCase() : null,
-            gstPercent: v.gstPercent !== undefined && v.gstPercent !== null && v.gstPercent !== '' ? parseFloat(v.gstPercent) : null,
             purchasePrice: parseFloat(v.purchasePrice) || 0,
             sellingPrice: parseFloat(v.sellingPrice) || 0,
             wholesalePrice: v.wholesalePrice !== undefined && v.wholesalePrice !== null && v.wholesalePrice !== '' ? parseFloat(v.wholesalePrice) : null,
@@ -197,9 +192,7 @@ export async function PUT(request: Request) {
             data: {
               ...(v.variantName && { variantName: v.variantName.trim().toUpperCase() }),
               ...(v.barcode && { barcode: v.barcode.trim().toUpperCase() }),
-              ...(v.sku !== undefined && { sku: v.sku ? v.sku.trim().toUpperCase() : null }),
               ...(v.hsnCode !== undefined && { hsnCode: v.hsnCode ? v.hsnCode.trim().toUpperCase() : null }),
-              ...(v.gstPercent !== undefined && { gstPercent: v.gstPercent !== null && v.gstPercent !== '' ? parseFloat(v.gstPercent) : null }),
               ...(v.purchasePrice !== undefined && { purchasePrice: parseFloat(v.purchasePrice) }),
               ...(v.sellingPrice !== undefined && { sellingPrice: parseFloat(v.sellingPrice) }),
               ...(v.wholesalePrice !== undefined && { wholesalePrice: v.wholesalePrice ? parseFloat(v.wholesalePrice) : null }),
@@ -216,9 +209,7 @@ export async function PUT(request: Request) {
               productId: id,
               variantName: (v.variantName || 'Variant').trim().toUpperCase(),
               barcode: v.barcode && v.barcode.trim() ? v.barcode.trim().toUpperCase() : `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
-              sku: v.sku ? v.sku.trim().toUpperCase() : `SVE-${Date.now()}`,
               hsnCode: v.hsnCode ? v.hsnCode.trim().toUpperCase() : null,
-              gstPercent: v.gstPercent !== undefined && v.gstPercent !== null && v.gstPercent !== '' ? parseFloat(v.gstPercent) : null,
               purchasePrice: parseFloat(v.purchasePrice) || 0,
               sellingPrice: parseFloat(v.sellingPrice) || 0,
               wholesalePrice: v.wholesalePrice ? parseFloat(v.wholesalePrice) : null,

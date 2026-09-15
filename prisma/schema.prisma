@@ -89,10 +89,8 @@ model ProductVariant {
   productId       String
   product         Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
   variantName     String              // e.g. "1.5 SQMM", "9W", "1200mm Brown"
-  sku             String?             @unique
   barcode         String              @unique
   hsnCode         String?             // Variant-specific HSN code (optional override)
-  gstPercent      Float?              // Variant-specific GST % (optional override)
   purchasePrice   Float
   sellingPrice    Float
   wholesalePrice  Float?
