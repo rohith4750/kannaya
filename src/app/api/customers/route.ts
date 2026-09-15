@@ -203,7 +203,24 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Customer ID or Ledger ID required' }, { status: 400 });
     }
 
-    await prisma.customer.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      // 1. Unlink existing invoices so invoice history is preserved with customerName and customerPhone
+      await tx.invoice.updateMany({
+        where: { customerId: id },
+        data: { customerId: null },
+      });
+
+      // 2. Delete customer ledger entries
+      await tx.customerLedger.deleteMany({
+        where: { customerId: id },
+      });
+
+      // 3. Delete customer record
+      await tx.customer.delete({
+        where: { id },
+      });
+    });
+
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Customers DELETE error:', error);

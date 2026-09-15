@@ -663,6 +663,130 @@ export default function CustomersPage() {
           </div>
         </div>
       )}
+
+      {/* EDIT CUSTOMER MODAL */}
+      {editModalCustomer && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-md w-full p-5 space-y-3 shadow-2xl">
+            <h3 className="text-sm font-bold text-[#4a4a4a] flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
+              <Pencil className="w-4 h-4 text-[#6d8196]" /> Edit Customer Account
+            </h3>
+
+            <form onSubmit={handleUpdateCustomer} className="space-y-3 text-xs">
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Customer Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editCustName}
+                  onChange={(e) => setEditCustName(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Phone Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={editCustPhone}
+                    onChange={(e) => setEditCustPhone(e.target.value)}
+                    className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Credit Limit (₹)</label>
+                  <input
+                    type="number"
+                    value={editCustCreditLimit}
+                    onChange={(e) => setEditCustCreditLimit(e.target.value)}
+                    className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] font-mono focus:bg-white focus:border-[#6d8196] focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Email Address</label>
+                <input
+                  type="email"
+                  value={editCustEmail}
+                  onChange={(e) => setEditCustEmail(e.target.value)}
+                  placeholder="e.g. customer@gmail.com"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Address / Site Location</label>
+                <input
+                  type="text"
+                  value={editCustAddress}
+                  onChange={(e) => setEditCustAddress(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-[#4a4a4a] focus:bg-white focus:border-[#6d8196] focus:outline-none"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditModalCustomer(null)}
+                  className="w-1/2 bg-slate-100 text-[#4a4a4a] py-2 rounded-[5px] font-bold border border-[#cbcbcb] hover:bg-slate-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updatingCust}
+                  className="w-1/2 bg-[#6d8196] hover:bg-[#5b6f84] text-white py-2 rounded-[5px] font-bold shadow-sm disabled:opacity-50"
+                >
+                  {updatingCust ? 'Updating...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CUSTOMER CONFIRMATION MODAL */}
+      {deleteModalCustomer && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-md w-full p-5 space-y-4 shadow-2xl">
+            <h3 className="text-sm font-bold text-red-700 flex items-center gap-2 border-b border-[#cbcbcb] pb-2">
+              <Trash2 className="w-4 h-4 text-red-600" /> Confirm Customer Deletion
+            </h3>
+
+            <div className="bg-red-50 border border-red-200 rounded-[5px] p-3 text-xs text-red-900 space-y-1">
+              <p className="font-bold">Are you sure you want to delete this customer account?</p>
+              <p className="font-semibold text-[#4a4a4a]">Name: <span className="font-bold text-slate-900">{deleteModalCustomer.name}</span></p>
+              <p className="font-semibold text-[#4a4a4a]">Phone: <span className="font-mono text-slate-900">{deleteModalCustomer.phone}</span></p>
+              {deleteModalCustomer.outstanding > 0 && (
+                <p className="text-amber-800 font-extrabold mt-1">
+                  ⚠️ Warning: This customer has an outstanding balance of ₹{deleteModalCustomer.outstanding.toLocaleString('en-IN')}.
+                </p>
+              )}
+              <p className="text-[11px] text-slate-500 pt-1">
+                This action will remove the customer profile and their ledger history. Existing generated invoices will be preserved.
+              </p>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setDeleteModalCustomer(null)}
+                className="w-1/2 bg-slate-100 text-[#4a4a4a] py-2 rounded-[5px] font-bold border border-[#cbcbcb] hover:bg-slate-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteCustomer}
+                disabled={deletingCust}
+                className="w-1/2 bg-red-600 hover:bg-red-700 text-white py-2 rounded-[5px] font-bold shadow-sm disabled:opacity-50 flex items-center justify-center gap-1"
+              >
+                {deletingCust ? 'Deleting...' : 'Delete Customer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
