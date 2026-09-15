@@ -29,6 +29,12 @@ import {
   Banknote,
   Coins,
   ShieldAlert,
+  Store,
+  Phone,
+  MapPin,
+  User,
+  ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -42,6 +48,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import MaterialSelect from '@/components/MaterialSelect';
+import { getEnabledModules } from '@/components/ModulePermissionsModal';
 
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState<any>(null);
@@ -50,6 +57,31 @@ export default function DashboardPage() {
   const [categoryPerformance, setCategoryPerformance] = useState<any[]>([]);
   const [topSellingProducts, setTopSellingProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [enabledModulesList, setEnabledModulesList] = useState<string[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    const updateModules = () => {
+      setEnabledModulesList(getEnabledModules());
+    };
+    updateModules();
+    window.addEventListener('modules_changed', updateModules);
+    window.addEventListener('storage', updateModules);
+
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user) {
+          setCurrentUser(data.user);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      window.removeEventListener('modules_changed', updateModules);
+      window.removeEventListener('storage', updateModules);
+    };
+  }, []);
 
   // Filter States
   const [period, setPeriod] = useState<string>('this_month');
@@ -125,6 +157,147 @@ export default function DashboardPage() {
   const upiPct = Math.round(((metrics?.upiSales || 0) / totalPOSSales) * 100);
   const cardPct = Math.round(((metrics?.cardSales || 0) / totalPOSSales) * 100);
   const creditPct = Math.round(((metrics?.creditSales || 0) / totalPOSSales) * 100);
+
+  // If Dashboard module permission is disabled in Module Permissions, show Welcome Landing Screen
+  if (enabledModulesList.length > 0 && !enabledModulesList.includes('dashboard')) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6 py-6 font-sans select-none">
+        {/* Banner Card */}
+        <div className="bg-gradient-to-br from-[#4a4a4a] via-[#383838] to-[#2b2b2b] text-white p-6 sm:p-8 rounded-[5px] border-2 border-[#6d8196] shadow-xl space-y-6 relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="w-24 h-24 rounded-full bg-white p-1 border-4 border-[#6d8196] shadow-2xl overflow-hidden shrink-0">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain rounded-full" />
+            </div>
+
+            <div className="space-y-1.5 text-center sm:text-left">
+              <div className="inline-flex items-center gap-1.5 bg-[#6d8196]/40 text-[#ffffe3] px-3 py-1 rounded-[5px] text-xs font-bold border border-[#6d8196]">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Sri Venkata Lakshmi Electricals ERP
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Welcome to Sri Venkata Lakshmi Electricals
+              </h1>
+              <p className="text-xs text-[#ffffe3] font-semibold">
+                Complete Electrical Solutions • Powering Your Needs (Since 2025)
+              </p>
+            </div>
+          </div>
+
+          {/* Proprietor & Store Contact Card */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/10 p-4 rounded-[5px] backdrop-blur-xs border border-white/20 text-xs">
+            <div className="space-y-2">
+              <div className="text-[10px] uppercase font-extrabold text-amber-300 tracking-wider flex items-center gap-1">
+                <Store className="w-3.5 h-3.5" /> Store Proprietor & Contact Information
+              </div>
+              <div className="space-y-1.5 font-medium">
+                <div className="flex items-center gap-2 text-white">
+                  <User className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Store Proprietor: <strong className="text-amber-200 font-bold">Kannaya Reddy</strong></span>
+                </div>
+                <div className="flex items-center gap-2 text-white">
+                  <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Phone / WhatsApp: <strong className="font-mono text-white font-bold">+91 98765 43210</strong></span>
+                </div>
+                <div className="flex items-start gap-2 text-slate-200 text-[11px]">
+                  <MapPin className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <span>Shop #12-4, Main Market Road, Near Town Clock Tower, City - 500001</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2 border-t md:border-t-0 md:border-l border-white/20 pt-3 md:pt-0 md:pl-4">
+              <div className="text-[10px] uppercase font-extrabold text-amber-300 tracking-wider flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5" /> Current Signed-In Session & Login Details
+              </div>
+              <div className="space-y-1.5 font-medium text-xs">
+                <div className="text-white">
+                  <span className="text-slate-300">Signed-In User: </span>
+                  <strong className="text-emerald-300 font-bold">{currentUser?.name || 'Store Cashier User'}</strong>
+                </div>
+                <div className="text-white">
+                  <span className="text-slate-300">Login ID / Email: </span>
+                  <strong className="font-mono text-white">{currentUser?.email || 'staff@venkatalakshmi.com'}</strong>
+                </div>
+                <div className="text-white">
+                  <span className="text-slate-300">Account Access Role: </span>
+                  <span className="bg-emerald-700 text-white px-2 py-0.5 rounded text-[10px] font-bold font-mono uppercase">
+                    {currentUser?.role || 'STAFF'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Navigation Cards */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-extrabold text-[#4a4a4a] flex items-center gap-2">
+            <ShoppingCart className="w-4 h-4 text-[#6d8196]" /> Quick Counter Actions & Active Features
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {enabledModulesList.includes('billing') && (
+              <Link
+                href="/billing"
+                className="p-4 bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm hover:shadow-md hover:border-[#6d8196] transition-all flex items-center gap-3 group"
+              >
+                <div className="p-3 bg-emerald-100 text-emerald-800 rounded-[5px] group-hover:bg-emerald-700 group-hover:text-white transition-colors">
+                  <ShoppingCart className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm text-[#4a4a4a] group-hover:text-[#6d8196]">Smart POS Billing</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">Create new customer bills (F2)</p>
+                </div>
+              </Link>
+            )}
+
+            {enabledModulesList.includes('invoices') && (
+              <Link
+                href="/invoices"
+                className="p-4 bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm hover:shadow-md hover:border-[#6d8196] transition-all flex items-center gap-3 group"
+              >
+                <div className="p-3 bg-blue-100 text-blue-800 rounded-[5px] group-hover:bg-blue-700 group-hover:text-white transition-colors">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm text-[#4a4a4a] group-hover:text-[#6d8196]">Bills & Invoices</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">View & print customer sales invoices</p>
+                </div>
+              </Link>
+            )}
+
+            {enabledModulesList.includes('customers') && (
+              <Link
+                href="/customers"
+                className="p-4 bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm hover:shadow-md hover:border-[#6d8196] transition-all flex items-center gap-3 group"
+              >
+                <div className="p-3 bg-amber-100 text-amber-800 rounded-[5px] group-hover:bg-amber-700 group-hover:text-white transition-colors">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm text-[#4a4a4a] group-hover:text-[#6d8196]">Customer Accounts</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">Manage master credit & ledger accounts</p>
+                </div>
+              </Link>
+            )}
+
+            {enabledModulesList.includes('products') && (
+              <Link
+                href="/products"
+                className="p-4 bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm hover:shadow-md hover:border-[#6d8196] transition-all flex items-center gap-3 group"
+              >
+                <div className="p-3 bg-purple-100 text-purple-800 rounded-[5px] group-hover:bg-purple-700 group-hover:text-white transition-colors">
+                  <Package className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm text-[#4a4a4a] group-hover:text-[#6d8196]">Inventory Products</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">Search electrical items stock & prices</p>
+                </div>
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 w-full select-none pb-12">
