@@ -16,6 +16,10 @@ import {
   CheckCircle,
   FolderPlus,
   ShieldAlert,
+  Wallet,
+  DollarSign,
+  TrendingUp,
+  Coins,
 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -291,20 +295,31 @@ function ProductsContent() {
   const endIndex = Math.min(startIndex + pageSize, totalItems);
   const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
+  // Stock Valuation Calculations (Real-time valuation of filtered inventory)
+  const totalSellingStockValue = filteredProducts.reduce((sum, p) => sum + ((p.stockQuantity || 0) * (p.sellingPrice || 0)), 0);
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Consolidated Material Inventory Catalog Card */}
       <div className="bg-white border border-[#cbcbcb] rounded-[5px] shadow-sm flex flex-col h-full overflow-hidden">
         {/* Compact Table Header Banner */}
-        <div className="px-3.5 py-2.5 border-b border-[#cbcbcb] bg-slate-50 flex items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-2">
-            <Package className="w-4 h-4 text-[#6d8196]" />
-            <h1 className="text-xs font-black uppercase tracking-wider text-[#4a4a4a] whitespace-nowrap">
-              Material Catalog
-            </h1>
-            <span className="text-[10px] font-bold text-[#6d8196] bg-[#6d8196]/10 px-2 py-0.5 rounded-full border border-[#6d8196]/20">
-              {filteredProducts.length} items
-            </span>
+        <div className="px-3.5 py-2.5 border-b border-[#cbcbcb] bg-slate-50 flex flex-wrap items-center justify-between gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Package className="w-4 h-4 text-[#6d8196]" />
+              <h1 className="text-xs font-black uppercase tracking-wider text-[#4a4a4a] whitespace-nowrap">
+                Material Catalog
+              </h1>
+              <span className="text-[10px] font-bold text-[#6d8196] bg-[#6d8196]/10 px-2 py-0.5 rounded-full border border-[#6d8196]/20">
+                {filteredProducts.length} items
+              </span>
+            </div>
+
+            {/* Simple Single Total Stock Value Display */}
+            <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 px-3 py-1 rounded-[5px] flex items-center gap-2 text-xs font-extrabold shadow-2xs">
+              <DollarSign className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Total Stock Value: <span className="font-mono text-emerald-800 text-sm font-black">₹{totalSellingStockValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span></span>
+            </div>
           </div>
 
           <Link
@@ -451,11 +466,14 @@ function ProductsContent() {
                       </td>
                       <td className="text-center">
                         <span
-                          className={`font-bold text-xs ${
+                          className={`font-bold text-xs block ${
                             isLow ? 'text-rose-600 animate-pulse' : 'text-emerald-700'
                           }`}
                         >
                           {p.stockQuantity} {p.unit}
+                        </span>
+                        <span className="text-[9px] text-slate-500 font-mono font-medium block">
+                          Val: ₹{(p.stockQuantity * p.sellingPrice).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                         </span>
                       </td>
                       {userRole === 'ADMIN' && (
