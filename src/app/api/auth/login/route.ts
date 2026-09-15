@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       name: user.name,
       email: user.email,
       role: user.role,
-      allowedModules: user.allowedModules || [],
+      allowedModules: (user as any).allowedModules || [],
     };
 
     const response = NextResponse.json({
@@ -40,11 +40,12 @@ export async function POST(request: Request) {
       user: sessionData,
     });
 
-    // Set HTTP session cookie
+    // Set HTTP session cookie (30 days persistent)
     response.cookies.set('kannaya_session', JSON.stringify(sessionData), {
       httpOnly: false,
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
     });
 
     return response;

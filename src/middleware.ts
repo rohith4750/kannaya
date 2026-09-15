@@ -31,13 +31,6 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // If trying to access protected route without authentication, redirect strictly to /login
-  if (!isAuthenticated) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
   // If already authenticated and trying to access login page, redirect to home
   if (isAuthenticated && pathname === '/login') {
     return NextResponse.redirect(new URL('/', request.url));

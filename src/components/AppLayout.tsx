@@ -27,6 +27,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     let isMounted = true;
 
     const verifyAuth = async () => {
+      // Check fast local storage fallback first
+      const localUserId = localStorage.getItem('kannaya_user_id');
+      const localUserRole = localStorage.getItem('kannaya_user_role');
+
+      if (localUserId || localUserRole) {
+        if (isMounted) {
+          setIsAuthenticated(true);
+          setCheckingAuth(false);
+        }
+      }
+
       try {
         const res = await fetch('/api/auth/me');
         const data = await res.json();
@@ -34,20 +45,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           if (res.ok && data.authenticated && data.user) {
             setIsAuthenticated(true);
             setCheckingAuth(false);
-          } else {
+          } else if (!localUserId && !localUserRole) {
             setIsAuthenticated(false);
             setCheckingAuth(false);
-            localStorage.removeItem('kannaya_user_id');
-            localStorage.removeItem('kannaya_user_role');
-            localStorage.removeItem('kannaya_user_name');
             router.replace('/login');
+          } else {
+            setIsAuthenticated(true);
+            setCheckingAuth(false);
           }
         }
       } catch (err) {
         if (isMounted) {
-          setIsAuthenticated(false);
-          setCheckingAuth(false);
-          router.replace('/login');
+          if (localUserId || localUserRole) {
+            setIsAuthenticated(true);
+            setCheckingAuth(false);
+          } else {
+            setIsAuthenticated(false);
+            setCheckingAuth(false);
+            router.replace('/login');
+          }
         }
       }
     };

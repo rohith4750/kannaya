@@ -312,7 +312,7 @@ export default function DashboardPage() {
               Sri Venkata Lakshmi Electricals
             </h1>
             <p className="text-slate-500 text-xs mt-0.5 font-medium">
-              Real-Time Financial Performance & Dual Active Profit Analytics • Powering Your Needs.
+              Real-Time Stock Valuation, Low Stock Health Alerts & Store Expense Analytics.
             </p>
           </div>
         </div>
@@ -334,79 +334,79 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* DUAL ACTIVE PROFIT & LOSS OVERVIEW BANNER */}
+      {/* DUAL STOCK VALUATION & EXPENSE OUTFLOW OVERVIEW BANNER */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Card 1: TODAY'S ACTIVE PROFIT */}
-        <div className="bg-gradient-to-br from-emerald-900 via-[#1b4332] to-[#2d6a4f] text-white p-4 sm:p-5 rounded-[5px] shadow-md relative overflow-hidden border border-emerald-700/50">
-          <div className="flex items-center justify-between pb-3 border-b border-emerald-600/40">
+        {/* Card 1: INVENTORY & STOCK VALUATION OVERVIEW */}
+        <div className="bg-gradient-to-br from-[#4a4a4a] via-[#383838] to-[#282828] text-white p-4 sm:p-5 rounded-[5px] shadow-md relative overflow-hidden border border-[#6d8196]">
+          <div className="flex items-center justify-between pb-3 border-b border-[#6d8196]/40">
             <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-[#ffffe3] animate-pulse" />
+              <Package className="w-5 h-5 text-[#ffffe3]" />
               <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#ffffe3]">
-                Today's Active Profit Overview
+                Inventory Stock Valuation & Health
               </h2>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#ffffe3] text-emerald-950 font-mono">
-              {metrics?.todayProfitMargin !== undefined ? `${metrics.todayProfitMargin.toFixed(1)}% Margin` : '0% Margin'}
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#6d8196] text-[#ffffe3] font-mono border border-[#6d8196]">
+              {metrics?.totalProductCount || 0} Total SKUs
             </span>
           </div>
 
           <div className="mt-4 grid grid-cols-3 gap-3 text-center">
             <div className="bg-black/20 p-2.5 rounded-[5px] border border-white/10">
-              <span className="text-[10px] text-emerald-200 block uppercase font-medium">Today's Revenue</span>
+              <span className="text-[10px] text-[#ffffe3]/90 block uppercase font-medium">Stock Valuation</span>
               <span className="text-base sm:text-lg font-black font-mono text-white">
-                ₹{(metrics?.todaySales || 0).toLocaleString('en-IN')}
+                ₹{(metrics?.totalInventoryCostValue || 0).toLocaleString('en-IN')}
               </span>
             </div>
 
             <div className="bg-black/20 p-2.5 rounded-[5px] border border-white/10">
-              <span className="text-[10px] text-emerald-200 block uppercase font-medium">Cost of Goods (COGS)</span>
-              <span className="text-base sm:text-lg font-black font-mono text-emerald-200">
-                ₹{(metrics?.todayCost || 0).toLocaleString('en-IN')}
+              <span className="text-[10px] text-slate-300 block uppercase font-medium">Total Products</span>
+              <span className="text-base sm:text-lg font-black font-mono text-slate-200">
+                {metrics?.totalProductCount || 0} Items
               </span>
             </div>
 
-            <div className="bg-emerald-500/20 p-2.5 rounded-[5px] border border-emerald-400/40">
-              <span className="text-[10px] text-[#ffffe3] block uppercase font-bold">Net Gross Profit</span>
-              <span className="text-base sm:text-lg font-black font-mono text-[#ffffe3]">
-                ₹{(metrics?.todayGrossProfit || 0).toLocaleString('en-IN')}
+            <div className="bg-amber-500/20 p-2.5 rounded-[5px] border border-amber-400/40">
+              <span className="text-[10px] text-[#ffffe3] block uppercase font-bold">Low Stock Alert</span>
+              <span className="text-base sm:text-lg font-black font-mono text-amber-300">
+                {metrics?.lowStockCount || 0} Low Stock
               </span>
             </div>
           </div>
         </div>
 
-        {/* Card 2: SELECTED PERIOD ACTIVE PROFIT */}
+        {/* Card 2: EXPENSES & STORE OUTFLOW ANALYTICS */}
         <div className="bg-gradient-to-br from-slate-900 via-[#1e293b] to-[#334155] text-white p-4 sm:p-5 rounded-[5px] shadow-md relative overflow-hidden border border-slate-700">
           <div className="flex items-center justify-between pb-3 border-b border-slate-700">
             <div className="flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-[#ffffe3]" />
               <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#ffffe3]">
-                {getPeriodLabel()} Active Profit
+                {getPeriodLabel()} Store Expenses & Outflow
               </h2>
             </div>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#ffffe3] text-slate-900 font-mono">
-              {metrics?.periodProfitMargin !== undefined ? `${metrics.periodProfitMargin.toFixed(1)}% Margin` : '0% Margin'}
+              Store Operating Outflows
             </span>
           </div>
 
           <div className="mt-4 grid grid-cols-3 gap-3 text-center">
             <div className="bg-white/5 p-2.5 rounded-[5px] border border-white/10">
-              <span className="text-[10px] text-slate-300 block uppercase font-medium">Period Revenue</span>
-              <span className="text-base sm:text-lg font-black font-mono text-white">
-                ₹{(metrics?.periodSales || 0).toLocaleString('en-IN')}
+              <span className="text-[10px] text-slate-300 block uppercase font-medium">Period Outflow</span>
+              <span className="text-base sm:text-lg font-black font-mono text-rose-300">
+                ₹{(metrics?.totalExpenses || 0).toLocaleString('en-IN')}
               </span>
             </div>
 
             <div className="bg-white/5 p-2.5 rounded-[5px] border border-white/10">
-              <span className="text-[10px] text-slate-300 block uppercase font-medium">Cost of Goods (COGS)</span>
-              <span className="text-base sm:text-lg font-black font-mono text-slate-300">
-                ₹{(metrics?.periodCost || 0).toLocaleString('en-IN')}
+              <span className="text-[10px] text-slate-300 block uppercase font-medium">Cash Collected</span>
+              <span className="text-base sm:text-lg font-black font-mono text-emerald-300">
+                ₹{(metrics?.cashSales || 0).toLocaleString('en-IN')}
               </span>
             </div>
 
             <div className="bg-blue-500/20 p-2.5 rounded-[5px] border border-blue-400/40">
-              <span className="text-[10px] text-[#ffffe3] block uppercase font-bold">Net Gross Profit</span>
-              <span className="text-base sm:text-lg font-black font-mono text-[#ffffe3]">
-                ₹{(metrics?.periodGrossProfit || 0).toLocaleString('en-IN')}
+              <span className="text-[10px] text-[#ffffe3] block uppercase font-bold">UPI / Digital Received</span>
+              <span className="text-base sm:text-lg font-black font-mono text-blue-300">
+                ₹{(metrics?.upiSales || 0).toLocaleString('en-IN')}
               </span>
             </div>
           </div>
@@ -596,28 +596,26 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Period Gross Profit */}
-        <div className="bg-white p-4 rounded-[5px] border border-emerald-300 shadow-sm bg-emerald-50/20">
+        {/* Store Expenses & Outflow */}
+        <Link href="/expenses" className="bg-white p-4 rounded-[5px] border border-rose-300 shadow-sm bg-rose-50/20 hover:border-rose-400 transition-colors block">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-emerald-900 uppercase tracking-wider">
-              Period Gross Profit
+            <span className="text-[10px] font-bold text-rose-900 uppercase tracking-wider">
+              Store Expenses
             </span>
-            <div className="p-1.5 rounded-[5px] bg-emerald-100 text-emerald-800 font-bold">
-              <Percent className="w-4 h-4" />
+            <div className="p-1.5 rounded-[5px] bg-rose-100 text-rose-800 font-bold">
+              <FileText className="w-4 h-4 text-rose-700" />
             </div>
           </div>
           <div className="mt-2">
-            <h3 className="text-xl font-extrabold text-emerald-800">
-              ₹{(metrics?.periodGrossProfit || 0).toLocaleString('en-IN')}
+            <h3 className="text-xl font-extrabold text-rose-800">
+              ₹{(metrics?.totalExpenses || 0).toLocaleString('en-IN')}
             </h3>
-            <p className="text-[10px] text-emerald-700 font-semibold mt-1 flex justify-between">
-              <span>Revenue minus COGS</span>
-              <span className="px-1.5 py-0.5 rounded bg-emerald-700 text-white font-mono font-bold text-[9px]">
-                {metrics?.periodProfitMargin !== undefined ? `${metrics.periodProfitMargin.toFixed(1)}%` : '0%'}
-              </span>
+            <p className="text-[10px] text-rose-700 font-semibold mt-1 flex items-center justify-between">
+              <span>Operating Costs Outflow</span>
+              <ArrowUpRight className="w-3 h-3 text-rose-700" />
             </p>
           </div>
-        </div>
+        </Link>
 
         {/* Cash & Digital Collection */}
         <div className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm">
@@ -660,17 +658,17 @@ export default function DashboardPage() {
         <Link href="/products" className="bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm hover:border-[#6d8196] transition-colors block">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-[#4a4a4a] uppercase tracking-wider">Stock Valuation</span>
-            <div className="p-1.5 rounded-[5px] bg-purple-50 text-purple-700">
+            <div className="p-1.5 rounded-[5px] bg-[#6d8196]/10 text-[#6d8196]">
               <Package className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2">
-            <h3 className="text-xl font-extrabold text-purple-900">
+            <h3 className="text-xl font-extrabold text-[#4a4a4a]">
               ₹{(metrics?.totalInventoryCostValue || 0).toLocaleString('en-IN')}
             </h3>
             <p className="text-[10px] text-slate-500 mt-1 flex items-center justify-between">
               <span>Cost Value ({metrics?.totalProductCount || 0} items)</span>
-              <ArrowUpRight className="w-3 h-3 text-purple-700" />
+              <ArrowUpRight className="w-3 h-3 text-[#6d8196]" />
             </p>
           </div>
         </Link>
@@ -755,25 +753,21 @@ export default function DashboardPage() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Sales, Profit & Collection Multi-Trend Chart */}
+        {/* Sales & Collection Trend Chart */}
         <div className="lg:col-span-2 bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="text-sm font-bold text-[#4a4a4a]">Sales, Profit & Collection Trend</h3>
-              <p className="text-xs text-slate-500">Filtered financial trend for {getPeriodLabel()}</p>
+              <h3 className="text-sm font-bold text-[#4a4a4a]">Sales & Cash Collection Trend</h3>
+              <p className="text-xs text-slate-500 font-medium">Billed revenue and payment collection for {getPeriodLabel()}</p>
             </div>
             <div className="flex items-center gap-4 text-xs font-semibold">
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded-[5px] bg-[#6d8196]" />
-                <span className="text-[#4a4a4a]">Sales</span>
+                <span className="text-[#4a4a4a]">Billed Sales</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded-[5px] bg-emerald-600" />
-                <span className="text-[#4a4a4a]">Collection</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-[5px] bg-violet-600" />
-                <span className="text-[#4a4a4a]">Net Profit</span>
+                <span className="text-[#4a4a4a]">Cash/UPI Collection</span>
               </div>
             </div>
           </div>
@@ -789,10 +783,6 @@ export default function DashboardPage() {
                   <linearGradient id="collectGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#059669" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="#059669" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -810,41 +800,34 @@ export default function DashboardPage() {
                 />
                 <Area type="monotone" dataKey="sales" stroke="#6d8196" strokeWidth={2.5} fillOpacity={1} fill="url(#salesGrad)" />
                 <Area type="monotone" dataKey="collection" stroke="#059669" strokeWidth={2.5} fillOpacity={1} fill="url(#collectGrad)" />
-                <Area type="monotone" dataKey="profit" stroke="#7c3aed" strokeWidth={2.5} fillOpacity={1} fill="url(#profitGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Category Profit Performance Leaderboard */}
+        {/* Category Sales & Stock Revenue Breakdown */}
         <div className="bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-2 mb-3">
               <h3 className="text-sm font-bold text-[#4a4a4a] flex items-center gap-1.5">
-                <Tag className="w-4 h-4 text-[#6d8196]" /> Category Profit Ranking
+                <Tag className="w-4 h-4 text-[#6d8196]" /> Category Sales Revenue
               </h3>
-              <span className="text-[10px] font-bold text-slate-500 uppercase">Margin %</span>
+              <span className="text-[10px] font-bold text-slate-500 uppercase">Revenue</span>
             </div>
 
             <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
               {categoryPerformance.length > 0 ? (
-                categoryPerformance.map((cat, idx) => {
-                  const catMargin = cat.sales > 0 ? (cat.profit / cat.sales) * 100 : 0;
-                  return (
-                    <div key={idx} className="bg-slate-50 p-2.5 rounded-[5px] border border-[#cbcbcb] flex items-center justify-between text-xs">
-                      <div>
-                        <span className="font-bold text-[#4a4a4a] block truncate max-w-[140px]">{cat.name}</span>
-                        <span className="text-[10px] text-slate-500">Sales: ₹{cat.sales.toLocaleString('en-IN')}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="font-extrabold text-emerald-700 block">₹{cat.profit.toLocaleString('en-IN')}</span>
-                        <span className="text-[10px] font-mono font-bold text-purple-700 bg-purple-50 px-1 rounded">
-                          {catMargin.toFixed(1)}% margin
-                        </span>
-                      </div>
+                categoryPerformance.map((cat, idx) => (
+                  <div key={idx} className="bg-slate-50 p-2.5 rounded-[5px] border border-[#cbcbcb] flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-bold text-[#4a4a4a] block truncate max-w-[140px]">{cat.name}</span>
+                      <span className="text-[10px] text-slate-500">Category Sales</span>
                     </div>
-                  );
-                })
+                    <div className="text-right">
+                      <span className="font-extrabold text-[#6d8196] block">₹{cat.sales.toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                ))
               ) : (
                 <p className="text-xs text-slate-400 italic text-center py-4">No category sales in period.</p>
               )}
@@ -855,7 +838,7 @@ export default function DashboardPage() {
             href="/reports"
             className="mt-4 w-full py-2 bg-slate-100 hover:bg-slate-200 text-[#4a4a4a] font-bold rounded-[5px] text-xs text-center block transition-colors border border-[#cbcbcb]"
           >
-            View Detailed Reports & Analytics →
+            View Inventory Reports & Analytics →
           </Link>
         </div>
       </div>
