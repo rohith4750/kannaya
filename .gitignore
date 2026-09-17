@@ -37,3 +37,5 @@ prisma_out.txt
 /dist
 /dist-app
 dist-app/
+.whatsapp-auth
+

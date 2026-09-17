@@ -19,6 +19,7 @@ import {
   FileSpreadsheet,
   QrCode,
   ShieldAlert,
+  MessageSquare,
 } from 'lucide-react';
 import MaterialSelect from '@/components/MaterialSelect';
 import AdminSecurityGuard from '@/components/AdminSecurityGuard';
@@ -609,6 +610,9 @@ export default function SettingsPage() {
                   </div>
                 )}
               </div>
+
+              {/* Section 5: Self-Hosted WhatsApp Web Automation Gateway */}
+              <WhatsAppGatewaySettingsPanel userRole={userRole} />
             </div>
 
             {/* Right Column - Live Receipt Preview */}
@@ -687,6 +691,258 @@ export default function SettingsPage() {
   );
 }
 
+function WhatsAppGatewaySettingsPanel({ userRole }: { userRole: string }) {
+  const [gatewayState, setGatewayState] = useState<{
+    status: 'DISCONNECTED' | 'CONNECTING' | 'QR_READY' | 'CONNECTED';
+    qrCodeDataUrl: string | null;
+    connectedPhone: string | null;
+    connectedName: string | null;
+    lastError: string | null;
+  }>({
+    status: 'DISCONNECTED',
+    qrCodeDataUrl: null,
+    connectedPhone: null,
+    connectedName: null,
+    lastError: null,
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [testPhone, setTestPhone] = useState('');
+  const [testMessage, setTestMessage] = useState('Hello! This is an automated test WhatsApp message from Sri Venkata Lakshmi ERP.');
+  const [testStatus, setTestStatus] = useState<{ success?: boolean; error?: string; sending?: boolean } | null>(null);
+
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch('/api/whatsapp/gateway');
+      const data = await res.json();
+      if (data && !data.error) {
+        setGatewayState(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchStatus();
+    const interval = setInterval(() => {
+      fetchStatus();
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleConnect = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/whatsapp/gateway', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'connect' }),
+      });
+      const data = await res.json();
+      if (data.state) setGatewayState(data.state);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!confirm('Are you sure you want to unlink and disconnect WhatsApp Gateway?')) return;
+    setLoading(true);
+    try {
+      await fetch('/api/whatsapp/gateway', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'disconnect' }),
+      });
+      fetchStatus();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendTestMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!testPhone || !testMessage) return;
+    setTestStatus({ sending: true });
+    try {
+      const res = await fetch('/api/whatsapp/gateway', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'send-test', phone: testPhone, message: testMessage }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setTestStatus({ success: true });
+      } else {
+        setTestStatus({ success: false, error: data.error || 'Failed to send test message' });
+      }
+    } catch (e: any) {
+      setTestStatus({ success: false, error: e.message });
+    }
+  };
+
+  return (
+    <div className="space-y-3 pt-5 border-t border-[#cbcbcb]">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="w-4 h-4 text-emerald-600" />
+          <h2 className="text-xs font-bold text-[#4a4a4a] uppercase tracking-wider">
+            WhatsApp Web Automation Gateway (Without Meta)
+          </h2>
+        </div>
+
+        {gatewayState.status === 'CONNECTED' ? (
+          <span className="px-2.5 py-0.5 rounded-[5px] text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+            🟢 Connected (+{gatewayState.connectedPhone})
+          </span>
+        ) : gatewayState.status === 'QR_READY' ? (
+          <span className="px-2.5 py-0.5 rounded-[5px] text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+            🟡 Scan QR Code
+          </span>
+        ) : (
+          <span className="px-2.5 py-0.5 rounded-[5px] text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
+            🔴 Disconnected
+          </span>
+        )}
+      </div>
+
+      <p className="text-[11px] text-slate-500 font-medium">
+        Links your shop's WhatsApp phone to automatically dispatch POS receipts, payment reminders, and wholesale purchase orders without Meta API fees or registration.
+      </p>
+
+      {/* Gateway Controls & Scanner Box */}
+      <div className="bg-slate-50 p-4 rounded-[5px] border border-[#cbcbcb] space-y-4">
+        {gatewayState.status === 'CONNECTED' ? (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-emerald-50 border border-emerald-300 p-3.5 rounded-[5px]">
+            <div>
+              <div className="font-extrabold text-xs text-emerald-900 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Linked to WhatsApp (+{gatewayState.connectedPhone})
+              </div>
+              <p className="text-[11px] text-emerald-700 font-medium mt-0.5">
+                Device Name: {gatewayState.connectedName || 'Sri Venkata Lakshmi ERP Gateway'}
+              </p>
+            </div>
+
+            {userRole === 'ADMIN' && (
+              <button
+                type="button"
+                onClick={handleDisconnect}
+                disabled={loading}
+                className="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-[5px] text-xs font-bold transition-all shadow-sm shrink-0"
+              >
+                Unlink WhatsApp Device
+              </button>
+            )}
+          </div>
+        ) : gatewayState.status === 'QR_READY' && gatewayState.qrCodeDataUrl ? (
+          <div className="flex flex-col sm:flex-row items-center gap-6 bg-white p-4 rounded-[5px] border border-[#cbcbcb]">
+            <div className="p-2 bg-white border-2 border-[#6d8196] rounded-[5px] shadow-sm shrink-0">
+              <img src={gatewayState.qrCodeDataUrl} alt="WhatsApp QR Code" className="w-44 h-44 object-contain" />
+            </div>
+
+            <div className="space-y-2 text-xs text-[#4a4a4a]">
+              <h4 className="font-extrabold text-sm text-[#4a4a4a] flex items-center gap-1.5">
+                <QrCode className="w-4 h-4 text-[#6d8196]" /> Scan QR Code with your Phone
+              </h4>
+              <ol className="list-decimal pl-4 space-y-1 text-[11px] text-slate-600 font-medium">
+                <li>Open <strong>WhatsApp</strong> on your shop's mobile phone.</li>
+                <li>Tap <strong>Menu / Settings</strong> (top 3 dots or gear icon).</li>
+                <li>Select <strong>Linked Devices</strong> → <strong>Link a Device</strong>.</li>
+                <li>Point your camera at this QR Code to pair instantly.</li>
+              </ol>
+              <p className="text-[10px] text-amber-700 font-bold bg-amber-50 p-1.5 rounded border border-amber-200">
+                ⏳ QR Code refreshes automatically every 15 seconds.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center p-6 text-center space-y-3 bg-white border border-[#cbcbcb] rounded-[5px]">
+            <MessageSquare className="w-8 h-8 text-[#6d8196] animate-pulse" />
+            <div>
+              <h4 className="font-bold text-xs text-[#4a4a4a]">WhatsApp Web Gateway Disconnected</h4>
+              <p className="text-[11px] text-slate-500 mt-0.5 max-w-md">
+                Click below to initialize the WhatsApp Web session and generate a QR Code.
+              </p>
+            </div>
+
+            {userRole === 'ADMIN' && (
+              <button
+                type="button"
+                onClick={handleConnect}
+                disabled={loading}
+                className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-4 py-2 rounded-[5px] text-xs font-bold shadow-sm transition-all flex items-center gap-2"
+              >
+                {loading ? 'Initializing Gateway...' : '📱 Link WhatsApp Device (Generate QR Code)'}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Test Message Box (Only if Connected) */}
+        {gatewayState.status === 'CONNECTED' && userRole === 'ADMIN' && (
+          <form onSubmit={handleSendTestMessage} className="bg-white p-3.5 rounded-[5px] border border-[#cbcbcb] space-y-3 text-xs">
+            <h4 className="font-bold text-xs text-[#4a4a4a] flex items-center gap-1.5 border-b border-[#cbcbcb] pb-2">
+              <Phone className="w-3.5 h-3.5 text-[#6d8196]" /> Send Instant Test WhatsApp Message
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="text-[10px] font-bold text-[#4a4a4a] uppercase">Recipient Phone Number</label>
+                <input
+                  type="text"
+                  required
+                  value={testPhone}
+                  onChange={(e) => setTestPhone(e.target.value)}
+                  placeholder="e.g. 9848012345"
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs text-[#4a4a4a] focus:bg-white focus:outline-none focus:border-[#6d8196]"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="text-[10px] font-bold text-[#4a4a4a] uppercase">Test Message Body</label>
+                <input
+                  type="text"
+                  required
+                  value={testMessage}
+                  onChange={(e) => setTestMessage(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs text-[#4a4a4a] focus:bg-white focus:outline-none focus:border-[#6d8196]"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <button
+                type="submit"
+                disabled={testStatus?.sending}
+                className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-1.5 rounded-[5px] text-xs shadow-2xs transition-all disabled:opacity-50"
+              >
+                {testStatus?.sending ? 'Sending...' : '🚀 Send WhatsApp Test Message'}
+              </button>
+
+              {testStatus?.success && (
+                <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Message Sent Successfully!
+                </span>
+              )}
+
+              {testStatus?.error && (
+                <span className="text-xs font-bold text-rose-600 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" /> {testStatus.error}
+                </span>
+              )}
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function TagIcon(props: any) {
   return (
     <svg
@@ -706,3 +962,5 @@ function TagIcon(props: any) {
     </svg>
   );
 }
+
+

@@ -1,10 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendWhatsAppGatewayMessage, getWhatsAppGatewayState } from '@/lib/whatsapp-gateway';
 
 export async function POST(request: Request) {
   try {
-    const { action, customerPhone, customerName, invoiceNo, totalAmount, dueAmount, supplierPhone, supplierName } =
-      await request.json();
+    const {
+      action,
+      customerPhone,
+      customerName,
+      invoiceNo,
+      totalAmount,
+      dueAmount,
+      supplierPhone,
+      supplierName,
+      sendDirectly = false,
+    } = await request.json();
 
     const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
     const shopName = settings?.shopName || 'VENKATA LAKSHMI ELECTRICALS';
@@ -56,8 +66,24 @@ export async function POST(request: Request) {
 
     const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
 
+    // If gateway is connected or sendDirectly is true, attempt direct dispatch
+    const gatewayState = getWhatsAppGatewayState();
+    let gatewaySent = false;
+    let gatewayError = null;
+
+    if (gatewayState.status === 'CONNECTED' && cleanPhone) {
+      const sendRes = await sendWhatsAppGatewayMessage(cleanPhone, messageText);
+      if (sendRes.success) {
+        gatewaySent = true;
+      } else {
+        gatewayError = sendRes.error;
+      }
+    }
+
     return NextResponse.json({
       success: true,
+      gatewaySent,
+      gatewayError,
       whatsappUrl,
       messageText,
       phone: cleanPhone,
@@ -67,3 +93,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to generate WhatsApp payload' }, { status: 500 });
   }
 }
+
