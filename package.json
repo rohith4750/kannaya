@@ -28,7 +28,8 @@
       "package.json"
     ],
     "win": {
-      "target": ["nsis", "portable"]
+      "target": ["nsis", "portable"],
+      "icon": "public/logo.png"
     }
   },
   "dependencies": {
