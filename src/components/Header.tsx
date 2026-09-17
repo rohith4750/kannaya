@@ -26,12 +26,24 @@ export default function Header() {
           const name = data.user.name || (role === 'SUPER_ADMIN' ? 'Super Administrator' : role === 'ADMIN' ? 'Store Administrator' : 'Counter Staff');
           setCurrentRole(role);
           setUserName(name);
-          if (data.user.id) localStorage.setItem('kannaya_user_id', data.user.id);
-          localStorage.setItem('kannaya_user_role', role);
-          localStorage.setItem('kannaya_user_name', name);
+
+          if (data.user.id && localStorage.getItem('kannaya_user_id') !== data.user.id) {
+            localStorage.setItem('kannaya_user_id', data.user.id);
+          }
+          if (localStorage.getItem('kannaya_user_role') !== role) {
+            localStorage.setItem('kannaya_user_role', role);
+          }
+          if (localStorage.getItem('kannaya_user_name') !== name) {
+            localStorage.setItem('kannaya_user_name', name);
+          }
+
           if (data.user.allowedModules && Array.isArray(data.user.allowedModules) && data.user.allowedModules.length > 0) {
-            localStorage.setItem('kannaya_active_modules', JSON.stringify(data.user.allowedModules));
-            window.dispatchEvent(new Event('modules_changed'));
+            const newModulesStr = JSON.stringify(data.user.allowedModules);
+            const curModulesStr = localStorage.getItem('kannaya_active_modules');
+            if (curModulesStr !== newModulesStr) {
+              localStorage.setItem('kannaya_active_modules', newModulesStr);
+              window.dispatchEvent(new Event('modules_changed'));
+            }
           }
         }
       })
@@ -40,11 +52,16 @@ export default function Header() {
 
   useEffect(() => {
     loadUserData();
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'kannaya_user_role' || e.key === 'kannaya_user_name') {
+        loadUserData();
+      }
+    };
     window.addEventListener('role_changed', loadUserData);
-    window.addEventListener('storage', loadUserData);
+    window.addEventListener('storage', handleStorageChange);
     return () => {
       window.removeEventListener('role_changed', loadUserData);
-      window.removeEventListener('storage', loadUserData);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 

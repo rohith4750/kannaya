@@ -119,12 +119,18 @@ export default function DashboardPage() {
     };
 
     checkLandingPage();
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'kannaya_user_role' || e.key === 'kannaya_active_modules') {
+        checkLandingPage();
+      }
+    };
+
     window.addEventListener('modules_changed', checkLandingPage);
-    window.addEventListener('storage', checkLandingPage);
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
       window.removeEventListener('modules_changed', checkLandingPage);
-      window.removeEventListener('storage', checkLandingPage);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, [router]);
 

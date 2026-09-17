@@ -119,8 +119,12 @@ export default function Sidebar() {
         if (meData.authenticated && meData.user) {
           role = meData.user.role || role;
           setUserRole(role);
-          localStorage.setItem('kannaya_user_role', role);
-          if (meData.user.name) localStorage.setItem('kannaya_user_name', meData.user.name);
+          if (localStorage.getItem('kannaya_user_role') !== role) {
+            localStorage.setItem('kannaya_user_role', role);
+          }
+          if (meData.user.name && localStorage.getItem('kannaya_user_name') !== meData.user.name) {
+            localStorage.setItem('kannaya_user_name', meData.user.name);
+          }
         }
 
         let modulesForRole: string[] = [];
@@ -133,7 +137,10 @@ export default function Sidebar() {
         }
 
         setEnabledModules(modulesForRole);
-        localStorage.setItem('kannaya_active_modules', JSON.stringify(modulesForRole));
+        const newModStr = JSON.stringify(modulesForRole);
+        if (localStorage.getItem('kannaya_active_modules') !== newModStr) {
+          localStorage.setItem('kannaya_active_modules', newModStr);
+        }
       } catch (err) {
         console.error('Failed to load permissions in Sidebar:', err);
         setEnabledModules(getEnabledModules());
@@ -141,14 +148,20 @@ export default function Sidebar() {
     };
 
     fetchRoleAndPermissions();
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'kannaya_user_role' || e.key === 'kannaya_active_modules') {
+        fetchRoleAndPermissions();
+      }
+    };
+
     window.addEventListener('modules_changed', fetchRoleAndPermissions);
     window.addEventListener('role_changed', fetchRoleAndPermissions);
-    window.addEventListener('storage', fetchRoleAndPermissions);
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
       window.removeEventListener('modules_changed', fetchRoleAndPermissions);
       window.removeEventListener('role_changed', fetchRoleAndPermissions);
-      window.removeEventListener('storage', fetchRoleAndPermissions);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 

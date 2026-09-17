@@ -81,14 +81,20 @@ export default function MobileBottomNav() {
     };
 
     fetchRoleAndPermissions();
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'kannaya_user_role' || e.key === 'kannaya_active_modules') {
+        fetchRoleAndPermissions();
+      }
+    };
+
     window.addEventListener('modules_changed', fetchRoleAndPermissions);
     window.addEventListener('role_changed', fetchRoleAndPermissions);
-    window.addEventListener('storage', fetchRoleAndPermissions);
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
       window.removeEventListener('modules_changed', fetchRoleAndPermissions);
       window.removeEventListener('role_changed', fetchRoleAndPermissions);
-      window.removeEventListener('storage', fetchRoleAndPermissions);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
