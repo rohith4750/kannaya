@@ -617,7 +617,60 @@ export default function SettingsPage() {
                 )}
               </div>
 
-              {/* Section 5: Self-Hosted WhatsApp Web Automation Gateway */}
+              {/* Section 5: UltraMsg WhatsApp Gateway (Automated Cloud Dispatch) */}
+              <div className="space-y-3 pt-5 border-t border-[#cbcbcb]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-emerald-600" />
+                    <h2 className="text-xs font-bold text-[#4a4a4a] uppercase tracking-wider">
+                      UltraMsg WhatsApp Gateway (Cloud Auto-Dispatch)
+                    </h2>
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#4a4a4a]">
+                    <input
+                      type="checkbox"
+                      disabled={userRole !== 'ADMIN'}
+                      checked={formData.enableWhatsAppAutoSend}
+                      onChange={(e) => setFormData({ ...formData, enableWhatsAppAutoSend: e.target.checked })}
+                      className="w-4 h-4 accent-emerald-600"
+                    />
+                    <span>Enable WhatsApp Auto-Send</span>
+                  </label>
+                </div>
+
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Configures UltraMsg Cloud Instance for automatic background dispatch of invoices, payment reminders, and purchase orders.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-50 p-3.5 rounded-[5px] border border-[#cbcbcb]">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-[#4a4a4a]">UltraMsg Instance ID</label>
+                    <input
+                      type="text"
+                      disabled={userRole !== 'ADMIN'}
+                      value={formData.ultraMsgInstanceId}
+                      onChange={(e) => setFormData({ ...formData, ultraMsgInstanceId: e.target.value })}
+                      placeholder="instance191882"
+                      className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs text-[#4a4a4a] font-mono focus:outline-none focus:border-[#6d8196]"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-[#4a4a4a]">UltraMsg API Token</label>
+                    <input
+                      type="password"
+                      disabled={userRole !== 'ADMIN'}
+                      value={formData.ultraMsgToken}
+                      onChange={(e) => setFormData({ ...formData, ultraMsgToken: e.target.value })}
+                      placeholder="nf1d6jqukm5blsc0"
+                      className="w-full bg-white border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs text-[#4a4a4a] font-mono focus:outline-none focus:border-[#6d8196]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 6: Self-Hosted WhatsApp Web Automation Gateway */}
               <WhatsAppGatewaySettingsPanel userRole={userRole} />
             </div>
 
