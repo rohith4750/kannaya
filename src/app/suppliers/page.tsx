@@ -208,13 +208,6 @@ export default function SuppliersPage() {
           </div>
 
           <button
-            onClick={() => window.print()}
-            className="bg-slate-100 hover:bg-slate-200 text-[#4a4a4a] border border-[#cbcbcb] px-3.5 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all"
-          >
-            <Printer className="w-4 h-4 text-[#6d8196]" /> Print Directory PDF
-          </button>
-
-          <button
             onClick={() => setShowAddSupplierModal(true)}
             className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-3.5 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-sm border border-[#cbcbcb]/40"
           >
@@ -341,22 +334,6 @@ export default function SuppliersPage() {
                 className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 px-2 rounded-[5px] text-xs flex items-center justify-center gap-1 transition-colors disabled:opacity-40 shadow-sm"
               >
                 <DollarSign className="w-3.5 h-3.5" /> Pay Supplier
-              </button>
-
-              <button
-                onClick={() => handleWhatsAppReorder(s)}
-                className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 p-2 rounded-[5px] text-xs"
-                title="Send Low Stock WhatsApp Reorder"
-              >
-                <MessageSquare className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={() => setDeleteModalSupplier(s)}
-                className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 p-2 rounded-[5px] text-xs transition-colors"
-                title="Delete Supplier Account"
-              >
-                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>

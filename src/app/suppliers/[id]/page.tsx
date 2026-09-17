@@ -636,13 +636,6 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => setShowLedgerPrintModal(true)}
-            className="bg-slate-100 hover:bg-slate-200 text-[#4a4a4a] border border-[#cbcbcb] px-3.5 py-2 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-2xs transition-all"
-          >
-            <Printer className="w-4 h-4 text-[#6d8196]" /> Print Ledger PDF
-          </button>
-
-          <button
             onClick={() => setShowPoForm(!showPoForm)}
             className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-4 py-2 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
           >
@@ -657,21 +650,6 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
               <DollarSign className="w-4 h-4" /> Pay Supplier Dues
             </button>
           )}
-
-          <button
-            onClick={() => handleWhatsAppReorder()}
-            className="bg-emerald-800 hover:bg-emerald-900 text-white px-3.5 py-2 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-2xs transition-all"
-          >
-            <MessageSquare className="w-4 h-4" /> WhatsApp Reorder
-          </button>
-
-          <button
-            onClick={() => setDeleteConfirmSupplier(true)}
-            className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 px-3.5 py-2 rounded-[5px] text-xs font-bold flex items-center gap-1.5 transition-all"
-            title="Delete Supplier Account"
-          >
-            <Trash2 className="w-4 h-4" /> Delete Supplier
-          </button>
         </div>
       </div>
 
