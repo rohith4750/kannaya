@@ -10,7 +10,7 @@ export async function GET() {
           include: {
             product: true,
             variant: true,
-          },
+          } as any,
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -43,13 +43,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Purchase Order not found' }, { status: 404 });
       }
 
-      const updatedPo = await prisma.$transaction(async (tx) => {
+      const updatedPo = await prisma.$transaction(async (tx: any) => {
         let allFullyReceived = true;
         let anyReceived = false;
 
         for (const rec of itemsReceived) {
           const { itemId, receivedQty } = rec;
-          const poItem = existingPo.items.find((i) => i.id === itemId);
+          const poItem = (existingPo.items as any[]).find((i) => i.id === itemId);
           if (!poItem) continue;
 
           const targetReceived = Math.min(poItem.quantity, Math.max(0, parseFloat(receivedQty) || 0));
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
           // Update item received quantity
           await tx.purchaseOrderItem.update({
             where: { id: itemId },
-            data: { receivedQuantity: targetReceived },
+            data: { receivedQuantity: targetReceived } as any,
           });
 
           if (targetReceived < poItem.quantity) {
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
           data: { status: newStatus },
           include: {
             supplier: true,
-            items: { include: { product: true, variant: true } },
+            items: { include: { product: true, variant: true } as any },
           },
         });
       });
@@ -150,7 +150,7 @@ export async function POST(request: Request) {
       ? (dueAmount > 0 ? 'PARTIAL' : 'COMPLETED')
       : 'ORDERED';
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // 1. Create Purchase Order
       const po = await tx.purchaseOrder.create({
         data: {
@@ -165,7 +165,7 @@ export async function POST(request: Request) {
           },
         },
         include: {
-          items: { include: { product: true, variant: true } },
+          items: { include: { product: true, variant: true } as any },
           supplier: true,
         },
       });
@@ -250,9 +250,9 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Purchase Order not found' }, { status: 404 });
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       // 1. Rollback Stock quantities for received items
-      for (const item of existingPo.items) {
+      for (const item of (existingPo.items as any[])) {
         const qtyToDecrement = item.receivedQuantity || 0;
         if (qtyToDecrement > 0) {
           if (item.variantId) {
@@ -310,3 +310,4 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: error.message || 'Failed to delete purchase order' }, { status: 500 });
   }
 }
+
