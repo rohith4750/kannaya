@@ -82,13 +82,61 @@ function createWindow() {
       contextIsolation: true,
       webSecurity: false,
     },
-    autoHideMenuBar: false,
+    autoHideMenuBar: true,
     show: false,
     backgroundColor: '#0f172a',
   });
 
-  // Remove default menu bar
-  Menu.setApplicationMenu(null);
+  // Configure application menu to enable Ctrl+R, F5, Copy/Paste, Zoom shortcuts
+  const menuTemplate = [
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' },
+      ],
+    },
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload', accelerator: 'CmdOrControl+R' },
+        { role: 'forceReload', accelerator: 'CmdOrControl+Shift+R' },
+        { role: 'toggleDevTools', accelerator: 'F12' },
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' },
+      ],
+    },
+  ];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
+
+  // Explicit shortcut handler for Ctrl+R, F5, and DevTools
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown') return;
+
+    // Ctrl+R, Cmd+R or F5 -> Reload page
+    if (((input.control || input.meta) && input.key.toLowerCase() === 'r') || input.key === 'F5') {
+      if (input.shift) {
+        mainWindow.webContents.reloadIgnoringCache();
+      } else {
+        mainWindow.webContents.reload();
+      }
+      event.preventDefault();
+    }
+    // F12 or Ctrl+Shift+I -> Toggle DevTools
+    else if (input.key === 'F12' || ((input.control || input.meta) && input.shift && input.key.toLowerCase() === 'i')) {
+      mainWindow.webContents.toggleDevTools();
+      event.preventDefault();
+    }
+  });
 
   // Splash screen loader HTML
   const loadingHtml = `data:text/html;charset=utf-8,${encodeURIComponent(`
