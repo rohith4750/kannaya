@@ -26,8 +26,7 @@ const LedgerType = {
 async function main() {
   console.log('Seeding Kannaya Electrical ERP Database...');
 
-  // 1. Clean existing data
-  await prisma.user.deleteMany();
+  // 1. Clean existing operational data (Users are preserved)
   await prisma.invoiceItem.deleteMany();
   await prisma.customerLedger.deleteMany();
   await prisma.invoice.deleteMany();
@@ -43,7 +42,18 @@ async function main() {
   await prisma.supplier.deleteMany();
   await prisma.shopSettings.deleteMany();
 
-  // 2. Default Users (Admin & Staff)
+  // 2. Default Users (Super Admin, Admin & Staff)
+  await prisma.user.create({
+    data: {
+      name: 'Rohith (Super Admin)',
+      email: 'rohithtelidevara@gmail.com',
+      password: 'Rohith@143',
+      pinCode: '1234',
+      role: 'SUPER_ADMIN' as any,
+      allowedModules: ['super_admin', 'users', 'settings'],
+    },
+  });
+
   await prisma.user.create({
     data: {
       name: 'Owner Admin',

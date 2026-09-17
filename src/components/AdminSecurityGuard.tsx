@@ -55,13 +55,15 @@ export default function AdminSecurityGuard({
       });
       const data = await res.json();
 
-      if (res.ok && data.success && data.user?.role === 'ADMIN') {
+      const isAdminOrSuperAdmin = data.user?.role === 'ADMIN' || data.user?.role === 'SUPER_ADMIN';
+
+      if (res.ok && data.success && isAdminOrSuperAdmin) {
         sessionStorage.setItem('kannaya_admin_pin_unlocked', 'true');
         setIsUnlocked(true);
         setPinInput('');
         window.dispatchEvent(new Event('security_state_changed'));
-      } else if (res.ok && data.success && data.user?.role !== 'ADMIN') {
-        setPinError('Access Denied: This Security PIN belongs to Staff. Admin PIN required.');
+      } else if (res.ok && data.success && !isAdminOrSuperAdmin) {
+        setPinError('Access Denied: This Security PIN belongs to Staff. Admin or Super Admin PIN required.');
       } else {
         setPinError(data.error || 'Invalid Admin Security PIN Code! Access Denied.');
       }

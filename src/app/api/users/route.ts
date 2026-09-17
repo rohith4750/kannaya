@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+const validRoles = ['SUPER_ADMIN', 'ADMIN', 'STAFF', 'BILLING_STAFF', 'INVENTORY_STAFF'];
+
 // GET /api/users - List all internal users
 export async function GET(request: Request) {
   try {
@@ -38,8 +40,8 @@ export async function POST(request: Request) {
     }
 
     const cleanEmail = email.toLowerCase().trim();
-    const assignedRole = role === 'ADMIN' ? 'ADMIN' : 'STAFF';
-    const assignedPin = pinCode ? pinCode.trim() : (assignedRole === 'ADMIN' ? '1234' : '0000');
+    const assignedRole = validRoles.includes(role) ? role : 'STAFF';
+    const assignedPin = pinCode ? pinCode.trim() : (assignedRole === 'ADMIN' || assignedRole === 'SUPER_ADMIN' ? '1234' : '0000');
 
     if (assignedPin && !/^\d{4}$/.test(assignedPin)) {
       return NextResponse.json(
@@ -114,7 +116,7 @@ export async function PUT(request: Request) {
         ...(email && { email: email.toLowerCase().trim() }),
         ...(password && { password }),
         ...(pinCode && { pinCode: pinCode.trim() }),
-        ...(role && { role: role === 'ADMIN' ? 'ADMIN' : 'STAFF' }),
+        ...(role && { role: validRoles.includes(role) ? role : 'STAFF' }),
         ...(Array.isArray(allowedModules) && { allowedModules }),
       },
       select: {

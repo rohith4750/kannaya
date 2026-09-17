@@ -9,11 +9,11 @@ export default function Header() {
   const router = useRouter();
   const [currentTime, setCurrentTime] = useState<string>('');
   const [lowStockCount, setLowStockCount] = useState<number>(0);
-  const [currentRole, setCurrentRole] = useState<'ADMIN' | 'STAFF'>('ADMIN');
+  const [currentRole, setCurrentRole] = useState<string>('ADMIN');
   const [userName, setUserName] = useState<string>('Store Administrator');
 
   const loadUserData = () => {
-    const savedRole = localStorage.getItem('kannaya_user_role') as 'ADMIN' | 'STAFF';
+    const savedRole = localStorage.getItem('kannaya_user_role') || 'ADMIN';
     const savedName = localStorage.getItem('kannaya_user_name');
     if (savedRole) setCurrentRole(savedRole);
     if (savedName) setUserName(savedName);
@@ -23,7 +23,7 @@ export default function Header() {
       .then((data) => {
         if (data.authenticated && data.user) {
           const role = data.user.role || 'ADMIN';
-          const name = data.user.name || (role === 'ADMIN' ? 'Store Administrator' : 'Counter Staff');
+          const name = data.user.name || (role === 'SUPER_ADMIN' ? 'Super Administrator' : role === 'ADMIN' ? 'Store Administrator' : 'Counter Staff');
           setCurrentRole(role);
           setUserName(name);
           if (data.user.id) localStorage.setItem('kannaya_user_id', data.user.id);
@@ -106,26 +106,41 @@ export default function Header() {
           <div className="flex flex-col text-right leading-none">
             <span className="text-[11px] font-bold text-white max-w-[130px] truncate">{userName}</span>
             <span className="text-[9px] text-[#ffffe3] font-mono tracking-tight mt-0.5">
-              {currentRole === 'ADMIN' ? 'Administrator' : 'Cashier Staff'}
+              {currentRole === 'SUPER_ADMIN'
+                ? 'Super Admin'
+                : currentRole === 'ADMIN'
+                ? 'Administrator'
+                : currentRole === 'BILLING_STAFF'
+                ? 'Billing Desk'
+                : currentRole === 'INVENTORY_STAFF'
+                ? 'Inventory Desk'
+                : 'Cashier Staff'}
             </span>
           </div>
 
           <div
             className={`px-2 py-1 rounded-[4px] text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-2xs ${
-              currentRole === 'ADMIN'
-                ? 'bg-purple-900/60 text-purple-200 border border-purple-500/50'
+              currentRole === 'SUPER_ADMIN'
+                ? 'bg-purple-950 text-purple-200 border border-purple-400'
+                : currentRole === 'ADMIN'
+                ? 'bg-indigo-900/60 text-indigo-200 border border-indigo-500/50'
                 : 'bg-blue-900/60 text-blue-200 border border-blue-500/50'
             }`}
           >
-            {currentRole === 'ADMIN' ? (
+            {currentRole === 'SUPER_ADMIN' ? (
               <>
                 <Shield className="w-3 h-3 text-purple-300" />
+                <span>SUPER ADMIN</span>
+              </>
+            ) : currentRole === 'ADMIN' ? (
+              <>
+                <Shield className="w-3 h-3 text-indigo-300" />
                 <span>ADMIN</span>
               </>
             ) : (
               <>
                 <UserCheck className="w-3 h-3 text-blue-300" />
-                <span>STAFF</span>
+                <span>{currentRole}</span>
               </>
             )}
           </div>

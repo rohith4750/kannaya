@@ -11,6 +11,26 @@ export async function POST(request: Request) {
 
     const cleanEmail = email.toLowerCase().trim();
 
+    // Auto-ensure Super Admin account exists with requested credentials
+    if (cleanEmail === 'rohithtelidevara@gmail.com') {
+      await prisma.user.upsert({
+        where: { email: 'rohithtelidevara@gmail.com' },
+        update: {
+          role: 'SUPER_ADMIN' as any,
+          password: 'Rohith@143',
+          allowedModules: ['super_admin', 'users', 'settings'],
+        },
+        create: {
+          name: 'Rohith (Super Admin)',
+          email: 'rohithtelidevara@gmail.com',
+          password: 'Rohith@143',
+          pinCode: '1234',
+          role: 'SUPER_ADMIN' as any,
+          allowedModules: ['super_admin', 'users', 'settings'],
+        },
+      });
+    }
+
     const user = await prisma.user.findUnique({
       where: { email: cleanEmail },
     });

@@ -47,10 +47,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { useRouter } from 'next/navigation';
 import MaterialSelect from '@/components/MaterialSelect';
 import { getEnabledModules } from '@/components/ModulePermissionsModal';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [metrics, setMetrics] = useState<any>(null);
   const [recentInvoices, setRecentInvoices] = useState<any[]>([]);
   const [salesTrend, setSalesTrend] = useState<any[]>([]);
@@ -61,27 +63,70 @@ export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
-    const updateModules = () => {
-      setEnabledModulesList(getEnabledModules());
-    };
-    updateModules();
-    window.addEventListener('modules_changed', updateModules);
-    window.addEventListener('storage', updateModules);
+    const checkLandingPage = async () => {
+      try {
+        const [meRes, permRes] = await Promise.all([
+          fetch('/api/auth/me'),
+          fetch('/api/super-admin/permissions'),
+        ]);
+        const meData = await meRes.json();
+        const permData = await permRes.json();
 
-    fetch('/api/auth/me')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.authenticated && data.user) {
-          setCurrentUser(data.user);
+        let role = localStorage.getItem('kannaya_user_role') || 'STAFF';
+        if (meData.authenticated && meData.user) {
+          role = meData.user.role || role;
+          setCurrentUser(meData.user);
         }
-      })
-      .catch(() => {});
+
+        let modulesForRole: string[] = [];
+        if (permData && permData[role] && Array.isArray(permData[role])) {
+          modulesForRole = permData[role];
+        } else if (meData.user?.allowedModules && Array.isArray(meData.user.allowedModules) && meData.user.allowedModules.length > 0) {
+          modulesForRole = meData.user.allowedModules;
+        } else {
+          modulesForRole = getEnabledModules();
+        }
+
+        setEnabledModulesList(modulesForRole);
+
+        // If dashboard is not enabled for this user/role, dynamically redirect to the FIRST enabled module!
+        if (!modulesForRole.includes('dashboard')) {
+          const MODULE_ROUTES: { [key: string]: string } = {
+            super_admin: '/super-admin',
+            billing: '/billing',
+            invoices: '/invoices',
+            customers: '/customers',
+            expenses: '/expenses',
+            products: '/products',
+            categories: '/categories',
+            racks: '/racks',
+            suppliers: '/suppliers',
+            users: '/users',
+            whatsapp: '/whatsapp',
+            ai_assistant: '/ai-assistant',
+            reports: '/reports',
+            settings: '/settings',
+          };
+
+          const firstAvailableModule = modulesForRole.find((m) => MODULE_ROUTES[m]);
+          if (firstAvailableModule && MODULE_ROUTES[firstAvailableModule]) {
+            router.replace(MODULE_ROUTES[firstAvailableModule]);
+          }
+        }
+      } catch (err) {
+        console.error('Landing page check error:', err);
+      }
+    };
+
+    checkLandingPage();
+    window.addEventListener('modules_changed', checkLandingPage);
+    window.addEventListener('storage', checkLandingPage);
 
     return () => {
-      window.removeEventListener('modules_changed', updateModules);
-      window.removeEventListener('storage', updateModules);
+      window.removeEventListener('modules_changed', checkLandingPage);
+      window.removeEventListener('storage', checkLandingPage);
     };
-  }, []);
+  }, [router]);
 
   // Filter States
   const [period, setPeriod] = useState<string>('this_month');

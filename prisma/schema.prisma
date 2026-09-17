@@ -24,8 +24,11 @@ enum LedgerType {
 }
 
 enum Role {
+  SUPER_ADMIN
   ADMIN
   STAFF
+  BILLING_STAFF
+  INVENTORY_STAFF
 }
 
 model User {
@@ -37,6 +40,12 @@ model User {
   role           Role     @default(STAFF)
   allowedModules String[] @default([])
   createdAt      DateTime @default(now())
+}
+
+model PermissionConfig {
+  id              String   @id @default("default")
+  rolePermissions Json
+  updatedAt       DateTime @updatedAt
 }
 
 model Category {

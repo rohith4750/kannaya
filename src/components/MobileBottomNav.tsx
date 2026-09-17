@@ -51,27 +51,52 @@ export default function MobileBottomNav() {
   const [enabledModules, setEnabledModules] = useState<string[]>([]);
 
   React.useEffect(() => {
-    const updateModules = () => {
-      setEnabledModules(getEnabledModules());
+    const fetchRoleAndPermissions = async () => {
+      try {
+        const [meRes, permRes] = await Promise.all([
+          fetch('/api/auth/me'),
+          fetch('/api/super-admin/permissions'),
+        ]);
+        const meData = await meRes.json();
+        const permData = await permRes.json();
+
+        let role = localStorage.getItem('kannaya_user_role') || 'STAFF';
+        if (meData.authenticated && meData.user) {
+          role = meData.user.role || role;
+        }
+
+        let modulesForRole: string[] = [];
+        if (permData && permData[role] && Array.isArray(permData[role])) {
+          modulesForRole = permData[role];
+        } else if (meData.user?.allowedModules && Array.isArray(meData.user.allowedModules) && meData.user.allowedModules.length > 0) {
+          modulesForRole = meData.user.allowedModules;
+        } else {
+          modulesForRole = getEnabledModules();
+        }
+
+        setEnabledModules(modulesForRole);
+      } catch (err) {
+        setEnabledModules(getEnabledModules());
+      }
     };
-    updateModules();
-    window.addEventListener('modules_changed', updateModules);
-    window.addEventListener('storage', updateModules);
+
+    fetchRoleAndPermissions();
+    window.addEventListener('modules_changed', fetchRoleAndPermissions);
+    window.addEventListener('role_changed', fetchRoleAndPermissions);
+    window.addEventListener('storage', fetchRoleAndPermissions);
+
     return () => {
-      window.removeEventListener('modules_changed', updateModules);
-      window.removeEventListener('storage', updateModules);
+      window.removeEventListener('modules_changed', fetchRoleAndPermissions);
+      window.removeEventListener('role_changed', fetchRoleAndPermissions);
+      window.removeEventListener('storage', fetchRoleAndPermissions);
     };
   }, []);
 
   // Don't render on login page
   if (pathname === '/login') return null;
 
-  const visibleMainTabs = mainTabs.filter((tab) =>
-    enabledModules.length === 0 ? true : enabledModules.includes(tab.id)
-  );
-  const visibleSecondaryLinks = secondaryLinks.filter((link) =>
-    enabledModules.length === 0 ? true : enabledModules.includes(link.id)
-  );
+  const visibleMainTabs = mainTabs.filter((tab) => enabledModules.includes(tab.id));
+  const visibleSecondaryLinks = secondaryLinks.filter((link) => enabledModules.includes(link.id));
 
   return (
     <>

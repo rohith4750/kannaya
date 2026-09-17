@@ -3,6 +3,7 @@
 import React from 'react';
 import {
   ShieldCheck,
+  ShieldAlert,
   X,
   LayoutDashboard,
   ShoppingCart,
@@ -36,6 +37,7 @@ export const ALL_MODULES = [
   { id: 'ai_assistant', name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, category: 'System & Analytics' },
   { id: 'reports', name: 'Reports & Analytics', href: '/reports', icon: BarChart3, category: 'System & Analytics' },
   { id: 'settings', name: 'System Settings', href: '/settings', icon: Settings, category: 'System & Analytics' },
+  { id: 'super_admin', name: 'Super Admin Control', href: '/super-admin', icon: ShieldAlert, category: 'System & Analytics' },
 ];
 
 export const DEFAULT_ENABLED_MODULES = ALL_MODULES.map((m) => m.id);
@@ -43,10 +45,14 @@ export const DEFAULT_ENABLED_MODULES = ALL_MODULES.map((m) => m.id);
 export function getEnabledModules(): string[] {
   if (typeof window === 'undefined') return DEFAULT_ENABLED_MODULES;
   try {
+    const role = localStorage.getItem('kannaya_user_role');
     const saved = localStorage.getItem('kannaya_active_modules');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
+    }
+    if (role === 'SUPER_ADMIN') {
+      return ['super_admin', 'users', 'settings'];
     }
   } catch (e) {
     console.error('Error reading enabled modules:', e);

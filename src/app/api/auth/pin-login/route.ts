@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
@@ -19,10 +20,26 @@ export async function POST(request: Request) {
   const cleanPin = pinCode.trim();
 
   try {
-    // Strictly search database for user with matching pinCode
-    const user = await prisma.user.findFirst({
-      where: { pinCode: cleanPin },
-    });
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('kannaya_session');
+    let sessionUser: any = null;
+    if (sessionCookie?.value) {
+      try { sessionUser = JSON.parse(sessionCookie.value); } catch (e) {}
+    }
+
+    let user = null;
+    if (sessionUser?.id) {
+      const activeUser = await prisma.user.findUnique({ where: { id: sessionUser.id } });
+      if (activeUser && activeUser.pinCode === cleanPin) {
+        user = activeUser;
+      }
+    }
+
+    if (!user) {
+      user = await prisma.user.findFirst({
+        where: { pinCode: cleanPin },
+      });
+    }
 
     if (!user) {
       return NextResponse.json({ error: 'Invalid Security PIN code' }, { status: 401 });

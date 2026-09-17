@@ -16,6 +16,7 @@ import {
   Bot,
   BarChart3,
   ShieldCheck,
+  ShieldAlert,
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
@@ -92,6 +93,7 @@ const navGroups: NavGroup[] = [
       { id: 'ai_assistant', name: 'Kannaya AI Assistant', href: '/ai-assistant', icon: Bot, badge: 'AI' },
       { id: 'reports', name: 'Reports & Analytics', href: '/reports', icon: BarChart3 },
       { id: 'settings', name: 'System Settings', href: '/settings', icon: Settings },
+      { id: 'super_admin', name: 'Super Admin Control', href: '/super-admin', icon: ShieldAlert, badge: 'SUPER' },
     ],
   },
 ];
@@ -101,17 +103,52 @@ export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [enabledModules, setEnabledModules] = useState<string[]>([]);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+  const [userRole, setUserRole] = useState<string>('');
 
   useEffect(() => {
-    const updateModules = () => {
-      setEnabledModules(getEnabledModules());
+    const fetchRoleAndPermissions = async () => {
+      try {
+        const [meRes, permRes] = await Promise.all([
+          fetch('/api/auth/me'),
+          fetch('/api/super-admin/permissions'),
+        ]);
+        const meData = await meRes.json();
+        const permData = await permRes.json();
+
+        let role = localStorage.getItem('kannaya_user_role') || 'STAFF';
+        if (meData.authenticated && meData.user) {
+          role = meData.user.role || role;
+          setUserRole(role);
+          localStorage.setItem('kannaya_user_role', role);
+          if (meData.user.name) localStorage.setItem('kannaya_user_name', meData.user.name);
+        }
+
+        let modulesForRole: string[] = [];
+        if (permData && permData[role] && Array.isArray(permData[role])) {
+          modulesForRole = permData[role];
+        } else if (meData.user?.allowedModules && Array.isArray(meData.user.allowedModules) && meData.user.allowedModules.length > 0) {
+          modulesForRole = meData.user.allowedModules;
+        } else {
+          modulesForRole = getEnabledModules();
+        }
+
+        setEnabledModules(modulesForRole);
+        localStorage.setItem('kannaya_active_modules', JSON.stringify(modulesForRole));
+      } catch (err) {
+        console.error('Failed to load permissions in Sidebar:', err);
+        setEnabledModules(getEnabledModules());
+      }
     };
-    updateModules();
-    window.addEventListener('modules_changed', updateModules);
-    window.addEventListener('storage', updateModules);
+
+    fetchRoleAndPermissions();
+    window.addEventListener('modules_changed', fetchRoleAndPermissions);
+    window.addEventListener('role_changed', fetchRoleAndPermissions);
+    window.addEventListener('storage', fetchRoleAndPermissions);
+
     return () => {
-      window.removeEventListener('modules_changed', updateModules);
-      window.removeEventListener('storage', updateModules);
+      window.removeEventListener('modules_changed', fetchRoleAndPermissions);
+      window.removeEventListener('role_changed', fetchRoleAndPermissions);
+      window.removeEventListener('storage', fetchRoleAndPermissions);
     };
   }, []);
 
@@ -150,32 +187,32 @@ export default function Sidebar() {
       </div>
 
       {/* POS Quick Access Banner */}
-      <div className="px-2.5 pt-2.5 pb-2">
-        <Link
-          href="/billing"
-          title="Quick POS Billing (F2)"
-          className={`w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold py-2 px-3 rounded-[5px] flex items-center ${
-            isCollapsed ? 'justify-center' : 'justify-between'
-          } shadow-md transition-all group`}
-        >
-          <span className="flex items-center gap-2 text-xs">
-            <ShoppingCart className="w-4 h-4 text-[#ffffe3] shrink-0" />
-            {!isCollapsed && <span>Quick POS Bill</span>}
-          </span>
-          {!isCollapsed && (
-            <span className="bg-[#ffffe3]/20 px-1.5 py-0.5 rounded-[5px] text-[10px] text-[#ffffe3] font-bold">
-              F2
+      {enabledModules.includes('billing') && (
+        <div className="px-2.5 pt-2.5 pb-2">
+          <Link
+            href="/billing"
+            title="Quick POS Billing (F2)"
+            className={`w-full bg-[#6d8196] hover:bg-[#5b6f84] text-white font-semibold py-2 px-3 rounded-[5px] flex items-center ${
+              isCollapsed ? 'justify-center' : 'justify-between'
+            } shadow-md transition-all group`}
+          >
+            <span className="flex items-center gap-2 text-xs">
+              <ShoppingCart className="w-4 h-4 text-[#ffffe3] shrink-0" />
+              {!isCollapsed && <span>Quick POS Bill</span>}
             </span>
-          )}
-        </Link>
-      </div>
+            {!isCollapsed && (
+              <span className="bg-[#ffffe3]/20 px-1.5 py-0.5 rounded-[5px] text-[10px] text-[#ffffe3] font-bold">
+                F2
+              </span>
+            )}
+          </Link>
+        </div>
+      )}
 
       {/* Navigation Groups with Dynamic Module Permission Filtering */}
       <nav className="flex-1 px-2.5 py-2 space-y-3.5 overflow-y-auto custom-scrollbar">
         {navGroups.map((group) => {
-          const visibleItems = group.items.filter((item) =>
-            enabledModules.length === 0 ? true : enabledModules.includes(item.id)
-          );
+          const visibleItems = group.items.filter((item) => enabledModules.includes(item.id));
           if (visibleItems.length === 0) return null;
 
           return (
@@ -234,25 +271,27 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Dynamic Module Permission Controls Footer */}
+      {/* Dynamic Module Permission Controls Footer (Super Admin Only) */}
       <div className="p-2 border-t border-[#383838] bg-[#383838] flex flex-col gap-1.5">
-        <button
-          onClick={() => setShowPermissionsModal(true)}
-          className={`w-full bg-[#4a4a4a] hover:bg-[#585858] text-[#ffffe3] text-[11px] font-bold py-1.5 px-2.5 rounded-[5px] flex items-center ${
-            isCollapsed ? 'justify-center' : 'justify-between'
-          } border border-slate-600 transition-all shadow-xs`}
-          title="Configure Dynamic Frontend Menu Permissions"
-        >
-          <span className="flex items-center gap-1.5 truncate">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            {!isCollapsed && <span className="truncate">Module Access</span>}
-          </span>
-          {!isCollapsed && (
-            <span className="bg-amber-400/20 text-amber-300 text-[9px] px-1.5 py-0.5 rounded font-mono font-bold">
-              Config
+        {userRole === 'SUPER_ADMIN' && (
+          <button
+            onClick={() => setShowPermissionsModal(true)}
+            className={`w-full bg-[#4a4a4a] hover:bg-[#585858] text-[#ffffe3] text-[11px] font-bold py-1.5 px-2.5 rounded-[5px] flex items-center ${
+              isCollapsed ? 'justify-center' : 'justify-between'
+            } border border-slate-600 transition-all shadow-xs`}
+            title="Configure Dynamic Frontend Menu Permissions"
+          >
+            <span className="flex items-center gap-1.5 truncate">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              {!isCollapsed && <span className="truncate">Module Access</span>}
             </span>
-          )}
-        </button>
+            {!isCollapsed && (
+              <span className="bg-amber-400/20 text-amber-300 text-[9px] px-1.5 py-0.5 rounded font-mono font-bold">
+                Config
+              </span>
+            )}
+          </button>
+        )}
 
         <div className="h-6 px-1 flex items-center justify-between text-[10px] text-[#cbcbcb] font-medium">
           {!isCollapsed && <span className="truncate">Venkata Lakshmi ERP</span>}
