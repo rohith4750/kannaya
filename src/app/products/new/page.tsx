@@ -667,8 +667,14 @@ export default function AddNewProductPage() {
 
       {/* DYNAMIC CATEGORY CREATION MODAL */}
       {showAddCategoryModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-sm w-full p-5 space-y-3 shadow-2xl">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setShowAddCategoryModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-sm w-full p-5 space-y-3 shadow-2xl"
+          >
             <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-2">
               <h4 className="text-xs font-bold text-[#4a4a4a] flex items-center gap-1.5">
                 <FolderPlus className="w-4 h-4 text-[#6d8196]" /> Create New Category
@@ -699,8 +705,14 @@ export default function AddNewProductPage() {
 
       {/* DYNAMIC BRAND CREATION MODAL */}
       {showAddBrandModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-sm w-full p-5 space-y-3 shadow-2xl">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setShowAddBrandModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-sm w-full p-5 space-y-3 shadow-2xl"
+          >
             <div className="flex items-center justify-between border-b border-[#cbcbcb] pb-2">
               <h4 className="text-xs font-bold text-[#4a4a4a] flex items-center gap-1.5">
                 <Tag className="w-4 h-4 text-[#6d8196]" /> Create New Brand
