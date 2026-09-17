@@ -625,38 +625,38 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         </div>
       )}
 
-      {/* Screen View Header Controls */}
-      <div className="print:hidden flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[#cbcbcb] shadow-xs">
-        <Link
-          href="/suppliers"
-          className="text-xs text-[#4a4a4a] hover:text-[#6d8196] flex items-center gap-2 font-bold bg-slate-100 border border-[#cbcbcb] px-3.5 py-2 rounded-[5px] transition-all shadow-2xs w-fit"
-        >
-          <ArrowLeft className="w-4 h-4 text-[#6d8196]" /> Back to Supplier Accounts
-        </Link>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => setShowPoForm(!showPoForm)}
-            className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-4 py-2 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
+      {/* SINGLE UNIFIED SUPPLIER HEADER CONTAINER */}
+      <div className="print:hidden bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-xs space-y-4">
+        {/* Top Controls Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#cbcbcb] pb-4">
+          <Link
+            href="/suppliers"
+            className="text-xs text-[#4a4a4a] hover:text-[#6d8196] flex items-center gap-2 font-bold bg-slate-100 border border-[#cbcbcb] px-3.5 py-1.5 rounded-[5px] transition-all shadow-2xs w-fit"
           >
-            <Plus className="w-4 h-4" /> {showPoForm ? 'Hide Order Builder' : 'New Stock Purchase Order'}
-          </button>
+            <ArrowLeft className="w-4 h-4 text-[#6d8196]" /> Back to Supplier Accounts
+          </Link>
 
-          {outstandingVal > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={() => setShowPayModal(true)}
-              className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
+              onClick={() => setShowPoForm(!showPoForm)}
+              className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-4 py-2 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
             >
-              <DollarSign className="w-4 h-4" /> Pay Supplier Dues
+              <Plus className="w-4 h-4" /> {showPoForm ? 'Hide Order Builder' : 'New Stock Purchase Order'}
             </button>
-          )}
-        </div>
-      </div>
 
-      {/* SUPPLIER FINANCIAL HEADER & METRICS CARDS */}
-      <div className="print:hidden bg-white p-5 rounded-[5px] border border-[#cbcbcb] shadow-xs space-y-5">
+            {outstandingVal > 0 && (
+              <button
+                onClick={() => setShowPayModal(true)}
+                className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-[5px] text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
+              >
+                <DollarSign className="w-4 h-4" /> Pay Supplier Dues
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Supplier Profile Row */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#cbcbcb] pb-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-2xl font-extrabold text-[#4a4a4a]">{supplier.name}</h1>

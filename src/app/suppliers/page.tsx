@@ -189,155 +189,158 @@ export default function SuppliersPage() {
   const totalSupplierDueAll = suppliers.reduce((sum, s) => sum + (s.outstanding || 0), 0);
 
   return (
-    <div className="space-y-4 w-full">
-      {/* Top Title & Header Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-[5px] border border-[#cbcbcb] shadow-sm">
-        <div>
-          <h1 className="text-xl font-extrabold text-[#4a4a4a] flex items-center gap-2">
-            <Truck className="w-5 h-5 text-[#6d8196]" /> Supplier Directory & Purchase Dues
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Manage wholesale suppliers, purchase order ledger, pending payables, and reorder notices.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="bg-[#ffffe3] border border-[#cbcbcb] px-3.5 py-1.5 rounded-[5px] text-xs shadow-sm">
-            <span className="text-slate-500 font-bold text-[10px] uppercase">Total Supplier Pending: </span>
-            <span className="font-extrabold text-[#6d8196] font-mono">₹{(totalSupplierDueAll || 0).toLocaleString('en-IN')}</span>
+    <div className="w-full">
+      {/* SINGLE UNIFIED CONTAINER DIV */}
+      <div className="bg-white rounded-[5px] border border-[#cbcbcb] shadow-sm p-5 space-y-4">
+        {/* Top Title & Header Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#cbcbcb]">
+          <div>
+            <h1 className="text-xl font-extrabold text-[#4a4a4a] flex items-center gap-2">
+              <Truck className="w-5 h-5 text-[#6d8196]" /> Supplier Directory & Purchase Dues
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Manage wholesale suppliers, purchase order ledger, pending payables, and reorder notices.
+            </p>
           </div>
 
-          <button
-            onClick={() => setShowAddSupplierModal(true)}
-            className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-3.5 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-sm border border-[#cbcbcb]/40"
-          >
-            <Plus className="w-4 h-4" /> Add Supplier
-          </button>
-        </div>
-      </div>
-
-      {/* FILTER & SEARCH CONTROL BAR */}
-      <div className="bg-white p-3 rounded-[5px] border border-[#cbcbcb] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search suppliers by company name, contact person, or phone number..."
-            className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-9 pr-3 py-1.5 text-xs text-[#4a4a4a] focus:bg-white focus:outline-none focus:border-[#6d8196]"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-[#6d8196]" />
-          <div className="flex bg-slate-100 p-1 rounded-[5px] border border-[#cbcbcb] text-xs font-bold w-full sm:w-auto">
-            <button
-              onClick={() => setStatusFilter('ALL')}
-              className={`px-3 py-1 rounded-[4px] transition-all ${
-                statusFilter === 'ALL' ? 'bg-white text-slate-800 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              All ({suppliers.length})
-            </button>
-            <button
-              onClick={() => setStatusFilter('DUE')}
-              className={`px-3 py-1 rounded-[4px] transition-all ${
-                statusFilter === 'DUE' ? 'bg-amber-500 text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Dues Pending ({suppliers.filter((s) => s.outstanding > 0).length})
-            </button>
-            <button
-              onClick={() => setStatusFilter('PAID')}
-              className={`px-3 py-1 rounded-[4px] transition-all ${
-                statusFilter === 'PAID' ? 'bg-emerald-600 text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Paid Clear ({suppliers.filter((s) => s.outstanding <= 0).length})
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* SUPPLIERS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredSuppliers.map((s) => (
-          <div
-            key={s.id}
-            className="bg-white border border-[#cbcbcb] rounded-[5px] p-4 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow space-y-4"
-          >
-            <div className="space-y-3">
-              <div className="flex items-start justify-between gap-2 border-b border-[#cbcbcb] pb-2.5">
-                <div>
-                  <h3 className="font-extrabold text-base text-[#4a4a4a] leading-tight">{s.name}</h3>
-                  {s.contactPerson && (
-                    <span className="text-xs text-slate-500 font-medium">Contact: {s.contactPerson}</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {s.outstanding > 0 ? (
-                    <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                      Payment Due
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                      Paid Clear
-                    </span>
-                  )}
-                  <button
-                    onClick={() => openEditModal(s)}
-                    className="p-1 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-[4px] border border-slate-200 transition-colors"
-                    title="Edit Supplier Details"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Contact Info */}
-              <div className="space-y-1 text-xs text-slate-600">
-                <div className="flex items-center gap-1.5 font-medium">
-                  <Phone className="w-3.5 h-3.5 text-[#6d8196]" /> {s.phone} ({s.contactPerson || 'Sales Head'})
-                </div>
-                {s.address && <div className="text-[11px] text-slate-500 truncate">{s.address}</div>}
-              </div>
-
-              {/* Financial Totals */}
-              <div className="mt-4 pt-3 border-t border-[#cbcbcb] grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <span className="text-[10px] text-slate-500 uppercase font-bold">Total Stock Purchased</span>
-                  <div className="font-bold text-[#4a4a4a]">₹{(s.totalPurchased || 0).toLocaleString('en-IN')}</div>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-500 uppercase font-bold">Pending Payable</span>
-                  <div className={`font-black text-sm ${(s.outstanding || 0) > 0 ? 'text-[#6d8196]' : 'text-emerald-700'}`}>
-                    ₹{(s.outstanding || 0).toLocaleString('en-IN')}
-                  </div>
-                </div>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="bg-[#ffffe3] border border-[#cbcbcb] px-3.5 py-1.5 rounded-[5px] text-xs shadow-sm">
+              <span className="text-slate-500 font-bold text-[10px] uppercase">Total Supplier Pending: </span>
+              <span className="font-extrabold text-[#6d8196] font-mono">₹{(totalSupplierDueAll || 0).toLocaleString('en-IN')}</span>
             </div>
 
-            {/* Actions */}
-            <div className="mt-5 pt-3 border-t border-[#cbcbcb] flex items-center justify-between gap-1.5">
-              <Link
-                href={`/suppliers/${s.id}`}
-                className="bg-slate-100 hover:bg-slate-200 border border-[#cbcbcb] text-slate-800 font-bold py-2 px-2.5 rounded-[5px] text-[11px] flex items-center gap-1 transition-colors shadow-sm"
-                title="View Daily Itemized Purchase Orders & Ledger Statement"
-              >
-                <FileText className="w-3.5 h-3.5 text-[#6d8196]" /> Orders & Ledger
-              </Link>
+            <button
+              onClick={() => setShowAddSupplierModal(true)}
+              className="bg-[#6d8196] hover:bg-[#5b6f84] text-white px-3.5 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-sm border border-[#cbcbcb]/40"
+            >
+              <Plus className="w-4 h-4" /> Add Supplier
+            </button>
+          </div>
+        </div>
 
+        {/* FILTER & SEARCH CONTROL BAR */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pb-4 border-b border-[#cbcbcb]">
+          <div className="relative flex-1 w-full">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search suppliers by company name, contact person, or phone number..."
+              className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-9 pr-3 py-1.5 text-xs text-[#4a4a4a] focus:bg-white focus:outline-none focus:border-[#6d8196]"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Filter className="w-4 h-4 text-[#6d8196]" />
+            <div className="flex bg-slate-100 p-1 rounded-[5px] border border-[#cbcbcb] text-xs font-bold w-full sm:w-auto">
               <button
-                onClick={() => setPayModalSupplier(s)}
-                disabled={s.outstanding <= 0}
-                className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 px-2 rounded-[5px] text-xs flex items-center justify-center gap-1 transition-colors disabled:opacity-40 shadow-sm"
+                onClick={() => setStatusFilter('ALL')}
+                className={`px-3 py-1 rounded-[4px] transition-all ${
+                  statusFilter === 'ALL' ? 'bg-white text-slate-800 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
               >
-                <DollarSign className="w-3.5 h-3.5" /> Pay Supplier
+                All ({suppliers.length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('DUE')}
+                className={`px-3 py-1 rounded-[4px] transition-all ${
+                  statusFilter === 'DUE' ? 'bg-amber-500 text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Dues Pending ({suppliers.filter((s) => s.outstanding > 0).length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('PAID')}
+                className={`px-3 py-1 rounded-[4px] transition-all ${
+                  statusFilter === 'PAID' ? 'bg-emerald-600 text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Paid Clear ({suppliers.filter((s) => s.outstanding <= 0).length})
               </button>
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* SUPPLIERS GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+          {filteredSuppliers.map((s) => (
+            <div
+              key={s.id}
+              className="bg-slate-50 border border-[#cbcbcb] rounded-[5px] p-4 shadow-2xs flex flex-col justify-between hover:bg-white hover:shadow-sm transition-all space-y-4"
+            >
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-2 border-b border-[#cbcbcb] pb-2.5">
+                  <div>
+                    <h3 className="font-extrabold text-base text-[#4a4a4a] leading-tight">{s.name}</h3>
+                    {s.contactPerson && (
+                      <span className="text-xs text-slate-500 font-medium">Contact: {s.contactPerson}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {s.outstanding > 0 ? (
+                      <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                        Payment Due
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        Paid Clear
+                      </span>
+                    )}
+                    <button
+                      onClick={() => openEditModal(s)}
+                      className="p-1 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-[4px] border border-slate-200 transition-colors"
+                      title="Edit Supplier Details"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Contact Info */}
+                <div className="space-y-1 text-xs text-slate-600">
+                  <div className="flex items-center gap-1.5 font-medium">
+                    <Phone className="w-3.5 h-3.5 text-[#6d8196]" /> {s.phone} ({s.contactPerson || 'Sales Head'})
+                  </div>
+                  {s.address && <div className="text-[11px] text-slate-500 truncate">{s.address}</div>}
+                </div>
+
+                {/* Financial Totals */}
+                <div className="mt-4 pt-3 border-t border-[#cbcbcb] grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-[10px] text-slate-500 uppercase font-bold">Total Stock Purchased</span>
+                    <div className="font-bold text-[#4a4a4a]">₹{(s.totalPurchased || 0).toLocaleString('en-IN')}</div>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-500 uppercase font-bold">Pending Payable</span>
+                    <div className={`font-black text-sm ${(s.outstanding || 0) > 0 ? 'text-[#6d8196]' : 'text-emerald-700'}`}>
+                      ₹{(s.outstanding || 0).toLocaleString('en-IN')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="mt-5 pt-3 border-t border-[#cbcbcb] flex items-center justify-between gap-1.5">
+                <Link
+                  href={`/suppliers/${s.id}`}
+                  className="bg-slate-100 hover:bg-slate-200 border border-[#cbcbcb] text-slate-800 font-bold py-2 px-2.5 rounded-[5px] text-[11px] flex items-center gap-1 transition-colors shadow-sm"
+                  title="View Daily Itemized Purchase Orders & Ledger Statement"
+                >
+                  <FileText className="w-3.5 h-3.5 text-[#6d8196]" /> Orders & Ledger
+                </Link>
+
+                <button
+                  onClick={() => setPayModalSupplier(s)}
+                  disabled={s.outstanding <= 0}
+                  className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 px-2 rounded-[5px] text-xs flex items-center justify-center gap-1 transition-colors disabled:opacity-40 shadow-sm"
+                >
+                  <DollarSign className="w-3.5 h-3.5" /> Pay Supplier
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* EDIT SUPPLIER MODAL */}
