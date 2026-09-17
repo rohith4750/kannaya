@@ -155,37 +155,37 @@ export default function InvoicePrintTemplate({
   // DEFAULT PREMIUM A4 GST TAX INVOICE TEMPLATE
   return (
     <div
-      className="bg-white border border-[#cbcbcb] rounded-[5px] p-8 shadow-xl space-y-6 max-w-4xl mx-auto print:max-w-none print:w-full print:p-0 print:border-none print:shadow-none font-sans text-xs text-[#4a4a4a]"
+      className="bg-white border-2 border-black p-8 shadow-xl space-y-6 max-w-4xl mx-auto print:max-w-none print:w-full print:p-0 print:border-none print:shadow-none font-sans text-xs text-black"
       id="a4-invoice-printable"
     >
       {/* Top Header & Store Info */}
-      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b-2 border-[#6d8196] pb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b-2 border-black pb-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-16 h-16 rounded-full bg-white p-1 border-2 border-[#6d8196] shadow-md flex items-center justify-center overflow-hidden shrink-0">
-            <img src="/logo.png" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain rounded-full" />
+          <div className="w-16 h-16 bg-white p-1 border border-black flex items-center justify-center shrink-0">
+            <img src="/logo.png" alt="Venkata Lakshmi Logo" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-xl font-extrabold text-[#4a4a4a] tracking-tight">{shopName}</h1>
-            <p className="text-xs text-[#6d8196] font-bold">{tagline}</p>
-            <p className="text-[11px] text-slate-500 font-medium mt-0.5">{address}</p>
-            <p className="text-[11px] text-slate-500 font-medium">
-              Phone: {phone} | GSTIN: <span className="font-bold font-mono text-[#4a4a4a]">{gstin}</span>
+            <h1 className="text-xl font-black text-black tracking-tight uppercase">{shopName}</h1>
+            <p className="text-xs text-black font-bold">{tagline}</p>
+            <p className="text-[11px] text-black font-medium mt-0.5">{address}</p>
+            <p className="text-[11px] text-black font-semibold">
+              Phone: {phone} | GSTIN: <span className="font-bold font-mono text-black">{gstin}</span>
             </p>
           </div>
         </div>
 
         <div className="text-right sm:text-right shrink-0">
-          <div className="inline-block bg-[#6d8196] text-white px-3 py-1 rounded-[5px] text-xs font-black uppercase tracking-wider mb-2">
+          <div className="inline-block bg-white text-black border-2 border-black px-3 py-1 text-xs font-black uppercase tracking-wider mb-2">
             GST TAX INVOICE
           </div>
-          <div className="text-xs space-y-0.5">
-            <div className="font-bold text-slate-900">
-              Invoice #: <span className="font-mono text-[#6d8196]">{invoice.invoiceNo}</span>
+          <div className="text-xs space-y-0.5 text-black">
+            <div className="font-bold">
+              Invoice #: <span className="font-mono">{invoice.invoiceNo}</span>
             </div>
-            <div className="text-slate-500 font-medium">
+            <div className="font-medium">
               Date: {new Date(invoice.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
             </div>
-            <div className="text-slate-500 font-medium">
+            <div className="font-medium">
               Time: {new Date(invoice.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
@@ -193,83 +193,83 @@ export default function InvoicePrintTemplate({
       </div>
 
       {/* Bill To & Payment Meta Box */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-[5px] border border-[#cbcbcb]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white p-4 border border-black text-black">
         <div>
-          <span className="text-[10px] font-extrabold text-[#6d8196] uppercase tracking-wider block mb-1">
+          <span className="text-[10px] font-black uppercase tracking-wider block mb-1 border-b border-black pb-0.5">
             Billed To (Customer Details)
           </span>
-          <div className="font-extrabold text-sm text-[#4a4a4a]">{invoice.customerName}</div>
+          <div className="font-black text-sm text-black">{invoice.customerName}</div>
           {invoice.customerPhone && invoice.customerPhone !== 'N/A' && (
-            <div className="text-slate-600 font-mono mt-0.5">Phone: {invoice.customerPhone}</div>
+            <div className="font-mono font-bold mt-0.5">Phone: {invoice.customerPhone}</div>
           )}
           {invoice.customerAddress && (
-            <div className="text-slate-500 mt-0.5 text-[11px]">{invoice.customerAddress}</div>
+            <div className="mt-0.5 text-[11px] font-medium">{invoice.customerAddress}</div>
           )}
         </div>
 
-        <div className="sm:text-right border-t sm:border-t-0 sm:border-l border-[#cbcbcb] pt-3 sm:pt-0 sm:pl-4">
-          <span className="text-[10px] font-extrabold text-[#6d8196] uppercase tracking-wider block mb-1">
+        <div className="sm:text-right border-t sm:border-t-0 sm:border-l border-black pt-3 sm:pt-0 sm:pl-4">
+          <span className="text-[10px] font-black uppercase tracking-wider block mb-1 border-b border-black pb-0.5">
             Payment & Status Information
           </span>
-          <div className="space-y-1 text-xs">
+          <div className="space-y-1 text-xs font-semibold">
             <div>
-              <span className="text-slate-500 font-medium">Payment Mode: </span>
-              <span className="font-bold text-[#4a4a4a] bg-white px-2 py-0.5 rounded-[5px] border border-[#cbcbcb] font-mono">
+              <span>Payment Mode: </span>
+              <span className="font-bold border border-black px-2 py-0.5 bg-white font-mono">
                 {invoice.paymentMethod}
               </span>
             </div>
             <div>
-              <span className="text-slate-500 font-medium">Invoice Status: </span>
-              <span className="font-bold text-emerald-700 uppercase">{invoice.status || 'COMPLETED'}</span>
+              <span>Invoice Status: </span>
+              <span className="font-black uppercase">{invoice.status || 'COMPLETED'}</span>
             </div>
             <div>
-              <span className="text-slate-500 font-medium">Billed By: </span>
-              <span className="font-semibold text-slate-700">Counter Cashier</span>
+              <span>Billed By: </span>
+              <span className="font-bold">Counter Cashier</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Itemized Products Table */}
-      <div className="border border-[#cbcbcb] rounded-[5px] overflow-hidden">
+      <div className="border-2 border-black">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="bg-[#4a4a4a] text-white font-semibold text-[11px]">
-              <th className="py-2.5 px-3 w-10 text-center">#</th>
-              <th className="py-2.5 px-3 text-center">Date</th>
-              <th className="py-2.5 px-3">Item Description</th>
-              <th className="py-2.5 px-3 text-center">Loc</th>
-              <th className="py-2.5 px-3 text-center">HSN</th>
-              <th className="py-2.5 px-3 text-center">Qty</th>
-              <th className="py-2.5 px-3 text-right">Rate (₹)</th>
-              <th className="py-2.5 px-3 text-right">GST %</th>
-              <th className="py-2.5 px-3 text-right">Total Amount (₹)</th>
+            <tr className="bg-white text-black font-black text-[11px] border-b-2 border-black uppercase">
+              <th className="py-2 px-2.5 w-10 text-center border-r border-black">#</th>
+              <th className="py-2 px-2.5 text-center border-r border-black">Date</th>
+              <th className="py-2 px-2.5 border-r border-black">Item Description</th>
+              <th className="py-2 px-2.5 text-center border-r border-black">Loc</th>
+              <th className="py-2 px-2.5 text-center border-r border-black">HSN</th>
+              <th className="py-2 px-2.5 text-center border-r border-black">Qty</th>
+              <th className="py-2 px-2.5 text-right border-r border-black">Rate (₹)</th>
+              <th className="py-2 px-2.5 text-right border-r border-black">GST %</th>
+              <th className="py-2 px-2.5 text-right">Total Amount (₹)</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200">
+          <tbody className="divide-y divide-black text-black">
             {invoice.items?.map((item: any, idx: number) => (
-              <tr key={item.id} className="hover:bg-slate-50">
-                <td className="py-2.5 px-3 text-center font-bold text-slate-500">{idx + 1}</td>
-                <td className="py-2.5 px-3 text-center text-slate-600 font-mono text-[10px] whitespace-nowrap">
+              <tr key={item.id} className="bg-white">
+                <td className="py-2 px-2.5 text-center font-bold border-r border-black">{idx + 1}</td>
+                <td className="py-2 px-2.5 text-center font-mono text-[10px] whitespace-nowrap border-r border-black">
                   {new Date(item.createdAt || invoice.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </td>
-                <td className="py-2.5 px-3 font-bold text-[#4a4a4a]">{item.productName}</td>
-                <td className="py-2.5 px-3 text-center text-slate-500 font-mono text-[11px]">
+                <td className="py-2 px-2.5 font-extrabold border-r border-black">{item.productName}</td>
+                <td className="py-2 px-2.5 text-center font-mono text-[11px] border-r border-black">
                   {item.rackLocation || 'A1'}
                 </td>
-                <td className="py-2.5 px-3 text-center text-slate-500 font-mono text-[11px]">
+                <td className="py-2 px-2.5 text-center font-mono text-[11px] border-r border-black">
                   {item.hsnCode || '8544'}
                 </td>
-                <td className="py-2.5 px-3 text-center font-bold text-slate-800">
+                <td className="py-2 px-2.5 text-center font-bold border-r border-black">
                   {item.quantity} {item.unit}
                 </td>
-                <td className="py-2.5 px-3 text-right font-mono text-slate-700">
+                <td className="py-2 px-2.5 text-right font-mono font-semibold border-r border-black">
                   ₹{item.price.toLocaleString('en-IN')}
                 </td>
-                <td className="py-2.5 px-3 text-right text-slate-600 font-mono text-[11px]">
+                <td className="py-2 px-2.5 text-right font-mono text-[11px] border-r border-black">
                   {item.gstPercent || 18}%
                 </td>
-                <td className="py-2.5 px-3 text-right font-extrabold text-slate-900 font-mono">
+                <td className="py-2 px-2.5 text-right font-black font-mono">
                   ₹{item.total.toLocaleString('en-IN')}
                 </td>
               </tr>
@@ -279,24 +279,19 @@ export default function InvoicePrintTemplate({
       </div>
 
       {/* Financial Calculation Summary Box */}
-      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-black">
         {/* Left Side: Terms */}
         <div className="w-full sm:w-1/2 space-y-3">
-          {/* Barcode Display disabled */}
-          {/* <div className="bg-slate-50 border border-[#cbcbcb] p-3 rounded-[5px] text-center">
-            <svg ref={barcodeRef} className="mx-auto max-w-full" />
-          </div> */}
-
-          <div className="text-[10px] text-slate-500 space-y-1 bg-white p-3 rounded-[5px] border border-[#cbcbcb]">
-            <span className="font-bold text-[#4a4a4a] uppercase block">Terms & Conditions:</span>
-            <p className="whitespace-pre-line">{termsConditions}</p>
+          <div className="text-[10px] space-y-1 bg-white p-3 border border-black">
+            <span className="font-black uppercase block pb-1 border-b border-black">Terms & Conditions:</span>
+            <p className="whitespace-pre-line font-medium">{termsConditions}</p>
             {settings?.showBankDetails !== false && settings?.bankDetails && (
-              <p className="pt-1 border-t border-slate-200 text-slate-700 font-medium">
+              <p className="pt-1 border-t border-black font-semibold">
                 <strong>Bank Account:</strong> {settings.bankDetails}
               </p>
             )}
             {settings?.upiId && (
-              <p className="text-slate-700 font-medium">
+              <p className="font-semibold">
                 <strong>UPI Payment ID:</strong> {settings.upiId}
               </p>
             )}
@@ -304,38 +299,38 @@ export default function InvoicePrintTemplate({
         </div>
 
         {/* Right Side: Calculation Totals */}
-        <div className="w-full sm:w-1/2 bg-[#ffffe3] border border-[#cbcbcb] p-4 rounded-[5px] space-y-2 text-xs">
-          <div className="flex justify-between text-slate-700">
+        <div className="w-full sm:w-1/2 bg-white border-2 border-black p-4 space-y-2 text-xs text-black font-bold">
+          <div className="flex justify-between">
             <span>Taxable Amount:</span>
-            <span className="font-mono font-semibold">₹{taxableAmount.toFixed(2)}</span>
+            <span className="font-mono font-bold">₹{taxableAmount.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between text-slate-600 text-[11px]">
+          <div className="flex justify-between text-[11px]">
             <span>CGST ({(defaultGstPercent / 2).toFixed(1)}%):</span>
             <span className="font-mono">₹{cgst.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between text-slate-600 text-[11px]">
+          <div className="flex justify-between text-[11px]">
             <span>SGST ({(defaultGstPercent / 2).toFixed(1)}%):</span>
             <span className="font-mono">₹{sgst.toFixed(2)}</span>
           </div>
           {discount > 0 && (
-            <div className="flex justify-between text-rose-700 font-semibold">
+            <div className="flex justify-between">
               <span>Special Discount:</span>
               <span className="font-mono">-₹{discount.toLocaleString('en-IN')}</span>
             </div>
           )}
 
-          <div className="border-t-2 border-[#4a4a4a] pt-2 flex justify-between text-base font-extrabold text-[#4a4a4a]">
+          <div className="border-t-2 border-black pt-2 flex justify-between text-base font-black">
             <span>Net Amount Payable:</span>
-            <span className="text-[#6d8196]">₹{totalAmount.toLocaleString('en-IN')}</span>
+            <span className="font-mono">₹{totalAmount.toLocaleString('en-IN')}</span>
           </div>
 
-          <div className="pt-2 border-t border-[#cbcbcb] space-y-1 text-xs">
-            <div className="flex justify-between text-emerald-800 font-bold">
+          <div className="pt-2 border-t border-black space-y-1 text-xs">
+            <div className="flex justify-between font-extrabold">
               <span>Amount Received:</span>
               <span>₹{paidAmount.toLocaleString('en-IN')}</span>
             </div>
             {dueAmount > 0 && (
-              <div className="flex justify-between text-amber-800 font-bold">
+              <div className="flex justify-between font-black">
                 <span>Balance Credit Due:</span>
                 <span>₹{dueAmount.toLocaleString('en-IN')}</span>
               </div>
@@ -345,18 +340,19 @@ export default function InvoicePrintTemplate({
       </div>
 
       {/* Footer Signatures */}
-      <div className="pt-8 border-t border-slate-200 flex justify-between items-end text-xs text-slate-500">
+      <div className="pt-8 border-t-2 border-black flex justify-between items-end text-xs text-black">
         <div>
-          <div className="font-bold text-[#4a4a4a]">Customer Signature</div>
-          <div className="text-[10px] mt-0.5">Verified & Received in Good Condition</div>
+          <div className="font-bold">Customer Signature</div>
+          <div className="text-[10px] mt-0.5 font-medium">Verified & Received in Good Condition</div>
         </div>
 
         <div className="text-right">
-          <div className="font-bold text-[#4a4a4a]">For {shopName}</div>
-          <div className="h-10"></div>
-          <div className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider">Authorized Signatory</div>
+          <div className="font-bold">For {shopName}</div>
+          <div className="h-10 border-b border-black mb-1 w-48 ml-auto"></div>
+          <div className="text-[10px] font-bold uppercase tracking-wider">Authorized Signatory</div>
         </div>
       </div>
     </div>
   );
 }
+
