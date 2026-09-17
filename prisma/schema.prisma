@@ -255,6 +255,11 @@ model ShopSettings {
   alertRecipientEmail     String?
   enableCreditLimitAlerts Boolean  @default(true)
 
+  // UltraMsg WhatsApp Gateway Settings
+  ultraMsgInstanceId      String?  @default("instance191882")
+  ultraMsgToken           String?  @default("nf1d6jqukm5blsc0")
+  enableWhatsAppAutoSend  Boolean  @default(true)
+
   updatedAt               DateTime @updatedAt @default(now())
 }
 

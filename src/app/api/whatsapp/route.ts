@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendWhatsAppGatewayMessage, getWhatsAppGatewayState } from '@/lib/whatsapp-gateway';
+import { sendUltraMsgWhatsApp } from '@/lib/ultramsg';
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
       dueAmount,
       supplierPhone,
       supplierName,
-      sendDirectly = false,
+      sendDirectly = true,
     } = await request.json();
 
     const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
@@ -66,12 +67,25 @@ export async function POST(request: Request) {
 
     const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
 
-    // If gateway is connected or sendDirectly is true, attempt direct dispatch
+    // Primary Dispatch: UltraMsg API Instance (instance191882)
+    let ultraMsgSent = false;
+    let ultraMsgError = null;
+
+    if (cleanPhone && settings?.enableWhatsAppAutoSend !== false) {
+      const uRes = await sendUltraMsgWhatsApp(cleanPhone, messageText);
+      if (uRes.success) {
+        ultraMsgSent = true;
+      } else {
+        ultraMsgError = uRes.error;
+      }
+    }
+
+    // Secondary Fallback: Self-hosted Baileys Gateway
     const gatewayState = getWhatsAppGatewayState();
     let gatewaySent = false;
     let gatewayError = null;
 
-    if (gatewayState.status === 'CONNECTED' && cleanPhone) {
+    if (!ultraMsgSent && gatewayState.status === 'CONNECTED' && cleanPhone) {
       const sendRes = await sendWhatsAppGatewayMessage(cleanPhone, messageText);
       if (sendRes.success) {
         gatewaySent = true;
@@ -82,6 +96,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
+      ultraMsgSent,
+      ultraMsgError,
       gatewaySent,
       gatewayError,
       whatsappUrl,
@@ -93,4 +109,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to generate WhatsApp payload' }, { status: 500 });
   }
 }
+
 

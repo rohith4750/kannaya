@@ -98,6 +98,9 @@ export async function PUT(request: Request) {
       smtpSenderEmail,
       alertRecipientEmail,
       enableCreditLimitAlerts,
+      ultraMsgInstanceId,
+      ultraMsgToken,
+      enableWhatsAppAutoSend,
     } = body;
 
     const updatePayload: any = {
@@ -122,6 +125,9 @@ export async function PUT(request: Request) {
       ...(smtpSenderEmail !== undefined && { smtpSenderEmail: smtpSenderEmail.trim() }),
       ...(alertRecipientEmail !== undefined && { alertRecipientEmail: alertRecipientEmail.trim() }),
       ...(enableCreditLimitAlerts !== undefined && { enableCreditLimitAlerts: !!enableCreditLimitAlerts }),
+      ...(ultraMsgInstanceId !== undefined && { ultraMsgInstanceId: ultraMsgInstanceId.trim() }),
+      ...(ultraMsgToken !== undefined && { ultraMsgToken: ultraMsgToken.trim() }),
+      ...(enableWhatsAppAutoSend !== undefined && { enableWhatsAppAutoSend: !!enableWhatsAppAutoSend }),
     };
 
     const createPayload: any = {
@@ -147,6 +153,9 @@ export async function PUT(request: Request) {
       smtpSenderEmail: smtpSenderEmail?.trim() || '',
       alertRecipientEmail: alertRecipientEmail?.trim() || '',
       enableCreditLimitAlerts: enableCreditLimitAlerts !== undefined ? !!enableCreditLimitAlerts : true,
+      ultraMsgInstanceId: ultraMsgInstanceId?.trim() || 'instance191882',
+      ultraMsgToken: ultraMsgToken?.trim() || 'nf1d6jqukm5blsc0',
+      enableWhatsAppAutoSend: enableWhatsAppAutoSend !== undefined ? !!enableWhatsAppAutoSend : true,
     };
 
     const settings = await prisma.shopSettings.upsert({

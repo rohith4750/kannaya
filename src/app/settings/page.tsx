@@ -56,6 +56,9 @@ export default function SettingsPage() {
     smtpSenderEmail: '',
     alertRecipientEmail: '',
     enableCreditLimitAlerts: true,
+    ultraMsgInstanceId: 'instance191882',
+    ultraMsgToken: 'nf1d6jqukm5blsc0',
+    enableWhatsAppAutoSend: true,
   });
 
   useEffect(() => {
@@ -93,6 +96,9 @@ export default function SettingsPage() {
           smtpSenderEmail: data.smtpSenderEmail || '',
           alertRecipientEmail: data.alertRecipientEmail || '',
           enableCreditLimitAlerts: data.enableCreditLimitAlerts !== undefined ? data.enableCreditLimitAlerts : true,
+          ultraMsgInstanceId: data.ultraMsgInstanceId || 'instance191882',
+          ultraMsgToken: data.ultraMsgToken || 'nf1d6jqukm5blsc0',
+          enableWhatsAppAutoSend: data.enableWhatsAppAutoSend !== undefined ? data.enableWhatsAppAutoSend : true,
         });
       } else {
         setErrorMessage(data.error || 'Failed to load settings');
