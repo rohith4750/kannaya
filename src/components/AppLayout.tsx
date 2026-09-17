@@ -14,57 +14,49 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isLoginPage = pathname === '/login';
   const isBillingPage = pathname === '/billing';
 
-  const [checkingAuth, setCheckingAuth] = useState(!isLoginPage);
-  const [isAuthenticated, setIsAuthenticated] = useState(isLoginPage);
+  // Fast local check to avoid any full-screen flashing or disruption
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (isLoginPage) return true;
+    if (typeof window !== 'undefined') {
+      const localRole = localStorage.getItem('kannaya_user_role');
+      const localId = localStorage.getItem('kannaya_user_id');
+      if (localRole || localId) return true;
+    }
+    return true; // render gracefully while validating session in background
+  });
 
   useEffect(() => {
-    if (isLoginPage) {
-      setCheckingAuth(false);
-      setIsAuthenticated(true);
-      return;
-    }
+    if (isLoginPage) return;
 
     let isMounted = true;
 
     const verifyAuth = async () => {
-      // Check fast local storage fallback first
-      const localUserId = localStorage.getItem('kannaya_user_id');
-      const localUserRole = localStorage.getItem('kannaya_user_role');
-
-      if (localUserId || localUserRole) {
-        if (isMounted) {
-          setIsAuthenticated(true);
-          setCheckingAuth(false);
-        }
-      }
-
       try {
         const res = await fetch('/api/auth/me');
         const data = await res.json();
-        if (isMounted) {
-          if (res.ok && data.authenticated && data.user) {
-            setIsAuthenticated(true);
-            setCheckingAuth(false);
-          } else if (!localUserId && !localUserRole) {
+        if (!isMounted) return;
+
+        if (res.ok && data.authenticated && data.user) {
+          setIsAuthenticated(true);
+          if (data.user.id && localStorage.getItem('kannaya_user_id') !== data.user.id) {
+            localStorage.setItem('kannaya_user_id', data.user.id);
+          }
+          if (data.user.role && localStorage.getItem('kannaya_user_role') !== data.user.role) {
+            localStorage.setItem('kannaya_user_role', data.user.role);
+          }
+          if (data.user.name && localStorage.getItem('kannaya_user_name') !== data.user.name) {
+            localStorage.setItem('kannaya_user_name', data.user.name);
+          }
+        } else {
+          // If explicitly unauthenticated on server and no local session
+          const localRole = localStorage.getItem('kannaya_user_role');
+          if (!localRole && !data.authenticated) {
             setIsAuthenticated(false);
-            setCheckingAuth(false);
             router.replace('/login');
-          } else {
-            setIsAuthenticated(true);
-            setCheckingAuth(false);
           }
         }
       } catch (err) {
-        if (isMounted) {
-          if (localUserId || localUserRole) {
-            setIsAuthenticated(true);
-            setCheckingAuth(false);
-          } else {
-            setIsAuthenticated(false);
-            setCheckingAuth(false);
-            router.replace('/login');
-          }
-        }
+        // Network/offline mode: preserve local session
       }
     };
 
@@ -73,28 +65,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [pathname, isLoginPage, router]);
+  }, [isLoginPage, router]);
 
   if (isLoginPage) {
     return <main className="min-h-screen bg-[#f8fafc]">{children}</main>;
   }
 
-  // Show secure loading screen while checking auth
-  if (checkingAuth) {
-    return (
-      <div className="h-screen w-screen bg-[#383838] flex flex-col items-center justify-center p-4 text-white space-y-3 font-sans">
-        <div className="w-14 h-14 rounded-full bg-white p-1 border-2 border-[#6d8196] shadow-xl flex items-center justify-center overflow-hidden animate-pulse">
-          <img src="/logo.png" alt="Logo" className="w-full h-full object-contain rounded-full" />
-        </div>
-        <div className="flex items-center gap-2 text-xs font-bold text-[#ffffe3]">
-          <ShieldAlert className="w-4 h-4 text-amber-400 animate-bounce" />
-          <span>Verifying Strict Security Authentication Session...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // If not authenticated, don't render protected children
+  // If not authenticated, redirect to login
   if (!isAuthenticated) {
     return null;
   }
