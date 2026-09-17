@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendCreditLimitExceededAlert } from '@/lib/mailer';
+import { sendUltraMsgWhatsApp } from '@/lib/ultramsg';
 
 export async function GET(request: Request) {
   try {
@@ -104,10 +105,42 @@ export async function POST(request: Request) {
         },
       });
 
+      // Auto Send WhatsApp Payment Receipt via UltraMsg
+      const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
+      let ultraMsgSent = false;
+      let ultraMsgError = null;
+
+      if (settings?.enableWhatsAppAutoSend !== false && updatedCustomer.phone) {
+        let cleanPhone = updatedCustomer.phone.replace(/\D/g, '');
+        if (cleanPhone.length === 10) cleanPhone = `91${cleanPhone}`;
+
+        if (cleanPhone) {
+          const shopName = settings?.shopName || 'VENKATA LAKSHMI ELECTRICALS';
+          const statusBadge = newOutstanding <= 0 ? '🟢 PAID' : `🔴 PENDING (₹${newOutstanding})`;
+          const msg =
+            `💳 *PAYMENT RECEIPT - ${shopName}* 💳\n\n` +
+            `Dear *${updatedCustomer.name}*,\n\n` +
+            `We have received your payment:\n\n` +
+            `💵 *Payment Amount Received:* ₹${payAmt}\n` +
+            `📌 *Bill Status:* ${statusBadge}\n\n` +
+            `👤 *Proprietor:* Konnla Kannaya Reddy\n` +
+            `📞 *Shop Contact:* ${settings?.phone || '+91 98765 43210'}`;
+
+          const uRes = await sendUltraMsgWhatsApp(cleanPhone, msg);
+          if (uRes.success) {
+            ultraMsgSent = true;
+          } else {
+            ultraMsgError = uRes.error;
+          }
+        }
+      }
+
       return NextResponse.json({
         success: true,
         customer: updatedCustomer,
         ledgerEntry,
+        ultraMsgSent,
+        ultraMsgError,
       });
     }
 

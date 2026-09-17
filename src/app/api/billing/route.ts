@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { LedgerType, PaymentMethod } from '@prisma/client';
 import { sendCreditLimitExceededAlert } from '@/lib/mailer';
+import { sendUltraMsgWhatsApp } from '@/lib/ultramsg';
 
 export async function POST(request: Request) {
   try {
@@ -27,9 +28,32 @@ export async function POST(request: Request) {
 
     const customDate = invoiceDate ? new Date(invoiceDate) : new Date();
 
-    // Generate Invoice Number
-    const count = await prisma.invoice.count();
-    const invoiceNo = `INV-${customDate.getFullYear()}-${(count + 1).toString().padStart(4, '0')}`;
+    // Generate Guaranteed Unique Invoice Number
+    const year = customDate.getFullYear();
+    const prefix = `INV-${year}-`;
+
+    const latestInvoice = await prisma.invoice.findFirst({
+      where: { invoiceNo: { startsWith: prefix } },
+      orderBy: { createdAt: 'desc' },
+      select: { invoiceNo: true },
+    });
+
+    let nextNum = 1;
+    if (latestInvoice && latestInvoice.invoiceNo) {
+      const parts = latestInvoice.invoiceNo.split('-');
+      const lastSeq = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(lastSeq)) {
+        nextNum = lastSeq + 1;
+      }
+    }
+
+    let invoiceNo = `${prefix}${nextNum.toString().padStart(4, '0')}`;
+    let checkExists = await prisma.invoice.findUnique({ where: { invoiceNo } });
+    while (checkExists) {
+      nextNum++;
+      invoiceNo = `${prefix}${nextNum.toString().padStart(4, '0')}`;
+      checkExists = await prisma.invoice.findUnique({ where: { invoiceNo } });
+    }
 
     // Perform database transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -171,11 +195,52 @@ export async function POST(request: Request) {
 
     const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
 
+    // Auto Dispatch WhatsApp via UltraMsg
+    let ultraMsgSent = false;
+    let ultraMsgError = null;
+
+    if (settings?.enableWhatsAppAutoSend !== false && customerPhone && customerPhone !== 'N/A') {
+      let cleanPhone = customerPhone.replace(/\D/g, '');
+      if (cleanPhone.length === 10) cleanPhone = `91${cleanPhone}`;
+
+      if (cleanPhone) {
+        const itemsListStr = result.invoice.items
+          .map((it: any) => `• *${it.productName}*\n  Qty: ${it.quantity} ${it.unit} × ₹${it.price} = ₹${it.total}`)
+          .join('\n');
+
+        const totAmt = result.invoice.totalAmount;
+        const pAmt = result.invoice.paidAmount;
+        const dAmt = result.invoice.dueAmount;
+        const statusBadge = dAmt <= 0 ? '🟢 PAID' : `🔴 PENDING (₹${dAmt})`;
+
+        const messageText =
+          `⚡ *${settings?.shopName || 'VENKATA LAKSHMI ELECTRICALS'}* ⚡\n\n` +
+          `Dear *${customerName || 'Valued Customer'}*,\n\n` +
+          `Thank you for your purchase! Here is your bill summary:\n\n` +
+          `📄 *Invoice No:* ${result.invoice.invoiceNo}\n\n` +
+          `🛒 *PURCHASED ITEMS:*\n${itemsListStr}\n\n` +
+          `💰 *Total Bill Amount:* ₹${totAmt}\n` +
+          `💵 *Amount Paid:* ₹${pAmt}\n` +
+          `📌 *Bill Status:* ${statusBadge}\n\n` +
+          `👤 *Proprietor:* Konnla Kannaya Reddy\n` +
+          `📞 *Shop Contact:* ${settings?.phone || '+91 98765 43210'}`;
+
+        const uRes = await sendUltraMsgWhatsApp(cleanPhone, messageText);
+        if (uRes.success) {
+          ultraMsgSent = true;
+        } else {
+          ultraMsgError = uRes.error;
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       invoice: result.invoice,
       customer: result.customer,
       creditLimitExceededAlertSent,
+      ultraMsgSent,
+      ultraMsgError,
       settings,
     });
   } catch (error: any) {

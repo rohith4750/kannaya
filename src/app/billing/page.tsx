@@ -361,7 +361,10 @@ export default function BillingPOSPage() {
           customerName: receiptData.invoice.customerName,
           invoiceNo: receiptData.invoice.invoiceNo,
           totalAmount: receiptData.invoice.totalAmount,
+          paidAmount: receiptData.invoice.paidAmount,
           dueAmount: receiptData.invoice.dueAmount,
+          customerOutstanding: receiptData.customer?.outstanding,
+          items: receiptData.invoice.items,
         }),
       });
       const data = await res.json();

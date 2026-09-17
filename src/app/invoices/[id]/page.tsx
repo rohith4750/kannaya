@@ -66,7 +66,10 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           customerName: invoice.customerName,
           invoiceNo: invoice.invoiceNo,
           totalAmount: invoice.totalAmount,
+          paidAmount: invoice.paidAmount,
           dueAmount: invoice.dueAmount,
+          customerOutstanding: invoice.customer?.outstanding,
+          items: invoice.items,
         }),
       });
       const resData = await res.json();

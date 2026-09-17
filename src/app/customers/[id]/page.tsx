@@ -316,7 +316,43 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       const res = await fetch('/api/products');
       const data = await res.json();
       if (Array.isArray(data)) {
-        setCatalogProducts(data);
+        const flattenedVariants: any[] = [];
+        data.forEach((p: any) => {
+          if (Array.isArray(p.variants) && p.variants.length > 0) {
+            p.variants.forEach((v: any) => {
+              flattenedVariants.push({
+                id: v.id,
+                variantId: v.id,
+                productId: p.id,
+                productName: p.name,
+                variantName: v.variantName,
+                name: v.variantName && v.variantName !== 'Standard' ? `${p.name} (${v.variantName})` : p.name,
+                barcode: v.barcode,
+                unit: p.unit || 'pcs',
+                sellingPrice: v.sellingPrice || 0,
+                purchasePrice: v.purchasePrice || 0,
+                stockQuantity: v.stockQuantity !== undefined ? v.stockQuantity : (p.stockQuantity || 0),
+                rackLocation: v.rack ? `${v.rack.rackName} (${v.rack.shelfCode})` : (p.rackLocation || 'Default'),
+              });
+            });
+          } else {
+            flattenedVariants.push({
+              id: p.id,
+              variantId: null,
+              productId: p.id,
+              productName: p.name,
+              variantName: '',
+              name: p.name,
+              barcode: p.barcode,
+              unit: p.unit || 'pcs',
+              sellingPrice: p.sellingPrice || 0,
+              purchasePrice: p.purchasePrice || 0,
+              stockQuantity: p.stockQuantity || 0,
+              rackLocation: p.rackLocation || 'Default',
+            });
+          }
+        });
+        setCatalogProducts(flattenedVariants);
       }
     } catch (e) {
       console.error('Failed to load products', e);
@@ -350,13 +386,15 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
         ...billItems,
         {
           id: product.id,
+          variantId: product.variantId || null,
+          productId: product.productId || product.id,
           name: product.name,
           unit: product.unit || 'pcs',
           sellingPrice: product.sellingPrice || 0,
           quantity: 1,
           total: product.sellingPrice || 0,
           stockQuantity: product.stockQuantity,
-          rack: product.rack,
+          rackLocation: product.rackLocation || 'Default',
         },
       ]);
     }
@@ -539,6 +577,8 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const filteredCatalogProducts = catalogProducts.filter(
     (p) =>
       p.name.toLowerCase().includes(billSearchQuery.toLowerCase()) ||
+      (p.variantName && p.variantName.toLowerCase().includes(billSearchQuery.toLowerCase())) ||
+      (p.productName && p.productName.toLowerCase().includes(billSearchQuery.toLowerCase())) ||
       (p.barcode && p.barcode.includes(billSearchQuery))
   );
 
@@ -585,12 +625,74 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
     customer.invoices.forEach((inv: any) => {
       const isPaid = inv.dueAmount <= 0;
       (inv.items || []).forEach((item: any) => {
-        const key = item.productName;
+        let baseName = item.product?.name || item.productName;
+        let variantName = item.variant?.variantName || '';
+
+        // 1. Check if productName contains parentheses e.g. "Fans (1200mm Brown)"
+        if (!variantName) {
+          const match = (item.productName || '').match(/^(.*?)\s*\(([^)]+)\)$/);
+          if (match) {
+            baseName = match[1].trim();
+            variantName = match[2].trim();
+          }
+        }
+
+        // 2. Check if baseName has parentheses
+        if (baseName.includes('(') && baseName.includes(')')) {
+          const match = baseName.match(/^(.*?)\s*\(([^)]+)\)$/);
+          if (match) {
+            baseName = match[1].trim();
+            if (!variantName) variantName = match[2].trim();
+          }
+        }
+
+        // 3. Fallback: Check item.product.variants if variantName is still missing
+        if (!variantName && item.product?.variants && item.product.variants.length > 0) {
+          const itemPrice = item.price || (item.quantity > 0 ? item.total / item.quantity : 0);
+          const matchedByPrice = item.product.variants.find(
+            (v: any) => v.sellingPrice === itemPrice || v.purchasePrice === itemPrice
+          );
+          if (matchedByPrice && matchedByPrice.variantName && matchedByPrice.variantName !== 'Standard') {
+            variantName = matchedByPrice.variantName;
+          } else if (
+            item.product.variants.length === 1 &&
+            item.product.variants[0].variantName &&
+            item.product.variants[0].variantName !== 'Standard'
+          ) {
+            variantName = item.product.variants[0].variantName;
+          } else if (item.product.variants.length > 1) {
+            const validVariants = item.product.variants
+              .map((v: any) => v.variantName)
+              .filter((vn: any) => vn && vn !== 'Standard');
+            if (validVariants.length > 0) {
+              variantName = validVariants.join(' / ');
+            }
+          }
+        }
+
+        let displayName = baseName;
+        if (variantName && variantName !== 'Standard' && !displayName.toLowerCase().includes(variantName.toLowerCase())) {
+          displayName = `${baseName} (${variantName})`;
+        }
+
+        // Unit Price calculation with fallback to product/variant catalog selling price if 0
+        let effectivePrice = item.price || (item.quantity > 0 ? item.total / item.quantity : 0);
+        if (effectivePrice <= 0) {
+          effectivePrice =
+            item.variant?.sellingPrice ||
+            item.product?.variants?.find((v: any) => v.sellingPrice > 0)?.sellingPrice ||
+            item.product?.variants?.[0]?.sellingPrice ||
+            0;
+        }
+
+        const key = displayName;
         if (!productMap[key]) {
           productMap[key] = {
-            productName: item.productName,
-            unit: item.unit,
-            lastPrice: item.price,
+            productName: displayName,
+            baseProductName: baseName,
+            variantName: variantName || '',
+            unit: item.unit || item.product?.unit || 'pcs',
+            lastPrice: effectivePrice,
             totalQuantity: 0,
             totalAmountSpent: 0,
             timesPurchased: 0,
@@ -598,13 +700,15 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             hasCreditDue: false,
           };
         }
+
         productMap[key].totalQuantity += item.quantity;
-        productMap[key].totalAmountSpent += item.total;
+        const itemTotal = item.total > 0 ? item.total : effectivePrice * item.quantity;
+        productMap[key].totalAmountSpent += itemTotal;
         productMap[key].timesPurchased += 1;
         if (!isPaid) productMap[key].hasCreditDue = true;
         if (new Date(inv.createdAt) > new Date(productMap[key].lastPurchasedAt)) {
           productMap[key].lastPurchasedAt = inv.createdAt;
-          productMap[key].lastPrice = item.price;
+          if (effectivePrice > 0) productMap[key].lastPrice = effectivePrice;
         }
       });
     });
@@ -1100,15 +1204,24 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                   <tbody className="divide-y divide-slate-200 bg-white">
                     {allPurchasedProductsList.map((prod: any, idx: number) => (
                       <tr key={idx} className="hover:bg-slate-50">
-                        <td className="py-2.5 px-3 font-extrabold text-[#4a4a4a] flex items-center gap-2">
-                          <Package className="w-4 h-4 text-[#6d8196] shrink-0" />
-                          <span>{prod.productName}</span>
+                        <td className="py-2.5 px-3 font-extrabold text-[#4a4a4a]">
+                          <div className="flex items-center gap-2">
+                            <Package className="w-4 h-4 text-[#6d8196] shrink-0" />
+                            <div>
+                              <span className="font-extrabold text-[#4a4a4a] block">{prod.productName}</span>
+                              {prod.variantName && prod.variantName !== 'Standard' && (
+                                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200 mt-0.5">
+                                  Variant: {prod.variantName}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </td>
                         <td className="py-2.5 px-3 text-center font-bold text-slate-900 bg-slate-50 font-mono">
                           {prod.totalQuantity} {prod.unit}
                         </td>
                         <td className="py-2.5 px-3 text-right font-mono text-slate-700">
-                          ₹{prod.lastPrice.toLocaleString('en-IN')}
+                          ₹{(prod.lastPrice > 0 ? prod.lastPrice : (prod.totalQuantity > 0 ? Math.round(prod.totalAmountSpent / prod.totalQuantity) : 0)).toLocaleString('en-IN')}
                         </td>
                         <td className="py-2.5 px-3 text-right font-extrabold font-mono text-slate-900">
                           ₹{prod.totalAmountSpent.toLocaleString('en-IN')}

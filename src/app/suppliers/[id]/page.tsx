@@ -283,12 +283,79 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         setSelectedVariantKeys([]);
         setPoPaymentMode('paid');
         loadSupplierData();
+
+        // Auto Dispatch WhatsApp Purchase Order to Supplier via UltraMsg
+        if (supplier?.phone) {
+          const formattedItems = validItems.map((it) => ({
+            productName: it.displayName,
+            quantity: parseFloat(it.quantity) || 1,
+            unit: it.unit || 'pcs',
+          }));
+
+          fetch('/api/whatsapp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'purchase_order',
+              supplierPhone: supplier.phone,
+              supplierName: supplier.name,
+              items: formattedItems,
+            }),
+          })
+            .then((r) => r.json())
+            .then((waData) => {
+              if (waData.ultraMsgSent) {
+                alert(`✅ Purchase Order created & WhatsApp message sent to ${supplier.name} (+${waData.phone}) via UltraMsg!`);
+              }
+            })
+            .catch((err) => console.error('Background WhatsApp error:', err));
+        }
       } else {
         const err = await res.json();
         alert(`Error: ${err.error}`);
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleSendPoWhatsApp = async (po: any) => {
+    if (!supplier || !supplier.phone) {
+      alert(`❌ Supplier ${supplier?.name || ''} does not have a valid phone number stored.`);
+      return;
+    }
+    try {
+      const formattedItems = (po.items || []).map((it: any) => {
+        const name = it.displayName || (it.product?.name ? (it.variant?.variantName ? `${it.product.name} (${it.variant.variantName})` : it.product.name) : 'Item');
+        const qty = it.quantity || 1;
+        return {
+          productName: name,
+          quantity: qty,
+          unit: it.unit || it.product?.unit || 'pcs',
+        };
+      });
+
+      const res = await fetch('/api/whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'purchase_order',
+          supplierPhone: supplier.phone,
+          supplierName: supplier.name,
+          items: formattedItems,
+        }),
+      });
+      const data = await res.json();
+      if (data.ultraMsgSent) {
+        alert(`✅ WhatsApp Purchase Order #${po.poNumber} sent to ${supplier.name} (+${data.phone}) via UltraMsg!`);
+      } else if (data.ultraMsgError) {
+        alert(`⚠️ UltraMsg: ${data.ultraMsgError}\nOpening WhatsApp direct link...`);
+        if (data.whatsappUrl) window.open(data.whatsappUrl, '_blank');
+      } else if (data.whatsappUrl) {
+        window.open(data.whatsappUrl, '_blank');
+      }
+    } catch (e: any) {
+      alert(`❌ Failed to send WhatsApp message: ${e.message}`);
     }
   };
 
@@ -1366,11 +1433,11 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                               </button>
 
                               <button
-                                onClick={() => handleWhatsAppReorder(po)}
-                                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 p-1.5 rounded-[5px] text-xs font-bold"
+                                onClick={() => handleSendPoWhatsApp(po)}
+                                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1.5 rounded-[5px] text-xs font-bold flex items-center gap-1.5 shadow-2xs"
                                 title="Send PO on WhatsApp"
                               >
-                                <Share2 className="w-3.5 h-3.5 text-emerald-700" />
+                                <MessageSquare className="w-3.5 h-3.5 text-emerald-700" /> WhatsApp Order
                               </button>
 
                               <button
@@ -1565,6 +1632,13 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                                 className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-[#cbcbcb] px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1"
                               >
                                 <Printer className="w-3.5 h-3.5 text-slate-600" /> PDF Order
+                              </button>
+                              <button
+                                onClick={() => handleSendPoWhatsApp(po)}
+                                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1 transition-colors"
+                                title="Send Purchase Order via WhatsApp"
+                              >
+                                <Share2 className="w-3.5 h-3.5 text-emerald-700" /> WhatsApp Order
                               </button>
                               <button
                                 onClick={() => setDeleteConfirmPo(po)}

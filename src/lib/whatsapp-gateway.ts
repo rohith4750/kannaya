@@ -108,9 +108,8 @@ export async function initializeWhatsAppGateway(forceReconnect = false): Promise
         }
 
         if (shouldReconnect) {
-          console.log('WhatsApp connection closed, attempting reconnect...');
+          console.log('WhatsApp connection closed.');
           globalForWhatsApp.waInitializing = false;
-          setTimeout(() => initializeWhatsAppGateway(true), 3000);
         } else {
           globalForWhatsApp.waInitializing = false;
         }

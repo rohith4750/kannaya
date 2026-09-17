@@ -9,13 +9,7 @@ import {
 export async function GET() {
   try {
     const currentState = getWhatsAppGatewayState();
-    
-    // If disconnected, trigger initialization in background to get QR code if needed
-    if (currentState.status === 'DISCONNECTED') {
-      initializeWhatsAppGateway();
-    }
-
-    return NextResponse.json(getWhatsAppGatewayState());
+    return NextResponse.json(currentState);
   } catch (error: any) {
     console.error('WhatsApp Gateway GET error:', error);
     return NextResponse.json({ error: error.message || 'Failed to fetch gateway status' }, { status: 500 });

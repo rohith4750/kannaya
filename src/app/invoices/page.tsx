@@ -85,7 +85,10 @@ export default function InvoicesPage() {
           customerName: inv.customerName,
           invoiceNo: inv.invoiceNo,
           totalAmount: inv.totalAmount,
+          paidAmount: inv.paidAmount,
           dueAmount: inv.dueAmount,
+          customerOutstanding: inv.customer?.outstanding,
+          items: inv.items,
         }),
       });
       const data = await res.json();

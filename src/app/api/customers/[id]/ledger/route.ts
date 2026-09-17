@@ -12,13 +12,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           orderBy: { createdAt: 'desc' },
           include: {
             invoice: {
-              include: { items: true },
+              include: { items: { include: { variant: true, product: { include: { variants: true } } } } },
             },
           },
         },
         invoices: {
           orderBy: { createdAt: 'asc' },
-          include: { items: true },
+          include: { items: { include: { variant: true, product: { include: { variants: true } } } } },
         },
       },
     });
@@ -83,13 +83,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             orderBy: { createdAt: 'desc' },
             include: {
               invoice: {
-                include: { items: true },
+                include: { items: { include: { variant: true, product: { include: { variants: true } } } } },
               },
             },
           },
           invoices: {
             orderBy: { createdAt: 'desc' },
-            include: { items: true },
+            include: { items: { include: { variant: true, product: { include: { variants: true } } } } },
           },
         },
       });

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { sendWhatsAppGatewayMessage, getWhatsAppGatewayState } from '@/lib/whatsapp-gateway';
 import { sendUltraMsgWhatsApp } from '@/lib/ultramsg';
 
 export async function POST(request: Request) {
@@ -11,7 +10,10 @@ export async function POST(request: Request) {
       customerName,
       invoiceNo,
       totalAmount,
+      paidAmount,
       dueAmount,
+      customerOutstanding,
+      items,
       supplierPhone,
       supplierName,
       sendDirectly = true,
@@ -27,47 +29,101 @@ export async function POST(request: Request) {
 
     let messageText = '';
 
-    if (action === 'bill') {
+    if (action === 'bill' || action === 'credit') {
+      let itemsListStr = '';
+      if (items && Array.isArray(items) && items.length > 0) {
+        itemsListStr = items
+          .map((it: any) => {
+            const qty = it.quantity || 1;
+            const unit = it.unit || 'pcs';
+            const price = it.price !== undefined ? parseFloat(it.price) : parseFloat(it.sellingPrice || 0);
+            const itemTotal = it.total !== undefined ? parseFloat(it.total) : qty * price;
+            const name = it.productName || it.name || 'Item';
+            return `• *${name}*\n  Qty: ${qty} ${unit} × ₹${price} = ₹${itemTotal}`;
+          })
+          .join('\n');
+      }
+
+      const totAmt = totalAmount !== undefined ? parseFloat(totalAmount) : 0;
+      const dAmt = dueAmount !== undefined ? parseFloat(dueAmount) : 0;
+      const pAmt = paidAmount !== undefined ? parseFloat(paidAmount) : Math.max(0, totAmt - dAmt);
+      const statusBadge = dAmt <= 0 ? '🟢 PAID' : `🔴 PENDING (₹${dAmt})`;
+
+      const itemsSection = itemsListStr ? `🛒 *PURCHASED ITEMS:*\n${itemsListStr}\n\n` : '';
+
       messageText =
         `⚡ *${shopName}* ⚡\n\n` +
         `Dear *${customerName || 'Valued Customer'}*,\n\n` +
         `Thank you for your purchase! Here is your bill summary:\n\n` +
-        `📄 *Invoice No:* ${invoiceNo || 'INV-2026'}\n` +
-        `💰 *Total Amount:* ₹${totalAmount}\n` +
-        `🔴 *Outstanding Due:* ₹${dueAmount}\n\n` +
-        `Visit again for all your Electrical & Hardware needs!\n` +
-        `📞 *Contact:* ${settings?.phone || '+91 98765 43210'}`;
+        `📄 *Invoice No:* ${invoiceNo || 'INV-2026'}\n\n` +
+        itemsSection +
+        `💰 *Total Bill Amount:* ₹${totAmt}\n` +
+        `💵 *Amount Paid:* ₹${pAmt}\n` +
+        `📌 *Bill Status:* ${statusBadge}\n\n` +
+        `👤 *Proprietor:* Konala Kannaya Reddy\n` +
+        `📞 *Shop Contact:* ${settings?.phone || '+91 98765 43210'}`;
+    } else if (action === 'payment_received') {
+      const pAmt = paidAmount !== undefined ? parseFloat(paidAmount) : 0;
+      const remBal = dueAmount !== undefined ? parseFloat(dueAmount) : (customerOutstanding !== undefined ? parseFloat(customerOutstanding) : 0);
+      const statusBadge = remBal <= 0 ? '🟢 PAID' : `🔴 PENDING (₹${remBal})`;
+
+      messageText =
+        `💳 *PAYMENT RECEIPT - ${shopName}* 💳\n\n` +
+        `Dear *${customerName || 'Valued Customer'}*,\n\n` +
+        `We have received your payment:\n\n` +
+        `💵 *Payment Amount Received:* ₹${pAmt}\n` +
+        `📌 *Bill Status:* ${statusBadge}\n\n` +
+        `👤 *Proprietor:* Konnla Kannaya Reddy\n` +
+        `📞 *Shop Contact:* ${settings?.phone || '+91 98765 43210'}`;
     } else if (action === 'reminder') {
       messageText =
         `🔔 *PAYMENT REMINDER - ${shopName}* 🔔\n\n` +
         `Dear *${customerName}*,\n\n` +
-        `This is a friendly reminder regarding your outstanding credit balance (Udhar):\n\n` +
-        `🔴 *Current Outstanding:* ₹${dueAmount}\n\n` +
+        `This is a friendly reminder regarding your pending bill balance:\n\n` +
+        `🔴 *Pending Amount:* ₹${dueAmount || customerOutstanding || 0}\n\n` +
         `Kindly settle the due amount at your earliest convenience via Cash or UPI.\n\n` +
-        `Thank you for your continued business!\n` +
+        `👤 *Proprietor:* Konnla Kannaya Reddy\n` +
         `📞 *Shop Contact:* ${settings?.phone || '+91 98765 43210'}`;
-    } else if (action === 'reorder') {
-      const allVariants = await (prisma as any).productVariant.findMany({
-        include: { product: true },
-      });
-      const lowStock = allVariants.filter((v: any) => v.stockQuantity <= v.minStockAlert);
+    } else if (action === 'reorder' || action === 'purchase_order') {
+      let itemsListStr = '';
 
-      const itemsList = lowStock
-        .map((v: any) => `• ${v.product.name} (${v.variantName}) - Stock: ${v.stockQuantity} ${v.product.unit}`)
-        .join('\n');
+      if (items && Array.isArray(items) && items.length > 0) {
+        itemsListStr = items
+          .map((it: any) => {
+            const qty = it.quantity || it.reorderQty || 1;
+            const unit = it.unit || 'pcs';
+            const name = it.productName || it.name || 'Item';
+            return `• *${name}* — Qty: ${qty} ${unit}`;
+          })
+          .join('\n');
+      } else {
+        const allVariants = await (prisma as any).productVariant.findMany({
+          include: { product: true },
+        });
+        const lowStock = allVariants.filter((v: any) => v.stockQuantity <= v.minStockAlert);
+
+        itemsListStr = lowStock
+          .map((v: any) => {
+            const qty = Math.max(10, ((v.minStockAlert || 5) * 2) - v.stockQuantity);
+            return `• *${v.product.name} (${v.variantName})* — Qty: ${qty} ${v.product.unit}`;
+          })
+          .join('\n');
+      }
 
       messageText =
-        `📦 *NEW STOCK REORDER REQUEST* 📦\n\n` +
-        `To: *${supplierName || 'Distributor'}*\n` +
-        `From: *${shopName}*\n\n` +
-        `Please send quote / dispatch for low stock electrical items:\n\n` +
-        `${itemsList || '• Finolex Wire (1.5 SQMM)\n• Havells LED Bulb (9W)'}\n\n` +
-        `Kindly confirm availability. Thank you!`;
+        `📦 *NEW STOCK REORDER / PURCHASE ORDER* 📦\n\n` +
+        `To Supplier: *${supplierName || 'Distributor'}*\n` +
+        `From Shop: *${shopName}*\n\n` +
+        `Please accept our purchase order for the following products:\n\n` +
+        `${itemsListStr || '• Finolex Wire (1.5 SQMM) — 10 Coils\n• Havells LED Bulb (9W) — 50 Pcs'}\n\n` +
+        `Kindly confirm stock availability & dispatch schedule.\n\n` +
+        `👤 *Proprietor:* Konnla Kannaya Reddy\n` +
+        `📞 *Shop Contact:* ${settings?.phone || '+91 98765 43210'}`;
     }
 
     const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
 
-    // Primary Dispatch: UltraMsg API Instance (instance191882)
+    // Dispatch: UltraMsg API Instance
     let ultraMsgSent = false;
     let ultraMsgError = null;
 
@@ -80,26 +136,10 @@ export async function POST(request: Request) {
       }
     }
 
-    // Secondary Fallback: Self-hosted Baileys Gateway
-    const gatewayState = getWhatsAppGatewayState();
-    let gatewaySent = false;
-    let gatewayError = null;
-
-    if (!ultraMsgSent && gatewayState.status === 'CONNECTED' && cleanPhone) {
-      const sendRes = await sendWhatsAppGatewayMessage(cleanPhone, messageText);
-      if (sendRes.success) {
-        gatewaySent = true;
-      } else {
-        gatewayError = sendRes.error;
-      }
-    }
-
     return NextResponse.json({
       success: true,
       ultraMsgSent,
       ultraMsgError,
-      gatewaySent,
-      gatewayError,
       whatsappUrl,
       messageText,
       phone: cleanPhone,
@@ -109,5 +149,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to generate WhatsApp payload' }, { status: 500 });
   }
 }
-
-

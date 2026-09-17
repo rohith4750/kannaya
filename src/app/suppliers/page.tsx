@@ -150,6 +150,10 @@ export default function SuppliersPage() {
   };
 
   const handleWhatsAppReorder = async (supplier: any) => {
+    if (!supplier || !supplier.phone) {
+      alert(`❌ Supplier ${supplier?.name || ''} does not have a valid phone number stored.`);
+      return;
+    }
     try {
       const res = await fetch('/api/whatsapp', {
         method: 'POST',
@@ -161,11 +165,16 @@ export default function SuppliersPage() {
         }),
       });
       const data = await res.json();
-      if (data.whatsappUrl) {
+      if (data.ultraMsgSent) {
+        alert(`✅ WhatsApp Purchase Order successfully sent to ${supplier.name} (+${data.phone}) via UltraMsg!`);
+      } else if (data.ultraMsgError) {
+        alert(`⚠️ UltraMsg response: ${data.ultraMsgError}\nOpening WhatsApp direct link...`);
+        if (data.whatsappUrl) window.open(data.whatsappUrl, '_blank');
+      } else if (data.whatsappUrl) {
         window.open(data.whatsappUrl, '_blank');
       }
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      alert(`❌ Failed to send WhatsApp message: ${e.message}`);
     }
   };
 
