@@ -11,9 +11,11 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate",
+    "clean": "node -e \"try { require('fs').rmSync('dist-electron', {recursive: true, force: true}) } catch(e){}\"",
+    "electron:clean": "npm run clean",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:pack": "npm run build && electron-builder",
-    "electron:build": "npm run build && electron-builder"
+    "electron:pack": "npm run clean && npm run build && electron-builder",
+    "electron:build": "npm run clean && npm run build && electron-builder"
   },
   "build": {
     "appId": "com.kannaya.erp",
