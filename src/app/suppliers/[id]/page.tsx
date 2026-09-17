@@ -63,7 +63,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
   const [poPaidAmount, setPoPaidAmount] = useState('');
   const [poNotes, setPoNotes] = useState('');
   const [poPaymentMode, setPoPaymentMode] = useState<'paid' | 'pending' | 'partial'>('paid');
-  const [isReceivedImmediately, setIsReceivedImmediately] = useState(true);
+  const [isReceivedImmediately, setIsReceivedImmediately] = useState(false);
   const [poItems, setPoItems] = useState<{
     key: string;
     productId: string;

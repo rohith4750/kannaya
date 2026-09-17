@@ -106,7 +106,7 @@ export async function POST(request: Request) {
     }
 
     // ACTION 2: Create Purchase Order
-    const { supplierId, poNumber, items, paidAmount: paidInput, notes, isReceivedImmediately = true } = body;
+    const { supplierId, poNumber, items, paidAmount: paidInput, notes, isReceivedImmediately = false } = body;
 
     if (!supplierId || !items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Supplier and at least one item are required' }, { status: 400 });
