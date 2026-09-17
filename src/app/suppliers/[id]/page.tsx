@@ -64,11 +64,20 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
   const [poNotes, setPoNotes] = useState('');
   const [poPaymentMode, setPoPaymentMode] = useState<'paid' | 'pending' | 'partial'>('paid');
   const [isReceivedImmediately, setIsReceivedImmediately] = useState(true);
-  const [poItems, setPoItems] = useState<{ productId: string; variantId?: string; price: string; quantity: string }[]>([]);
+  const [poItems, setPoItems] = useState<{
+    key: string;
+    productId: string;
+    variantId?: string;
+    displayName: string;
+    price: string;
+    quantity: string;
+    stockQuantity?: number;
+    unit?: string;
+  }[]>([]);
 
   // Product Selection Search & Filter
   const [prodSearchTerm, setProdSearchTerm] = useState('');
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [selectedVariantKeys, setSelectedVariantKeys] = useState<string[]>([]);
 
   // Inline product creation modal state
   const [showInlineProdModal, setShowInlineProdModal] = useState(false);
@@ -176,37 +185,47 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
     }
   };
 
-  // Multi-select product toggle handler
-  const handleToggleProductSelection = (product: any) => {
-    const existsIndex = poItems.findIndex((it) => it.productId === product.id);
-    if (existsIndex >= 0) {
-      // Remove product from order list
-      setPoItems(poItems.filter((it) => it.productId !== product.id));
-      setSelectedProductIds(selectedProductIds.filter((pid) => pid !== product.id));
-    } else {
-      // Add product to order list with default variant if available
-      const firstVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
-      const initialPrice = firstVariant
-        ? (firstVariant.purchasePrice || firstVariant.sellingPrice || 0).toString()
-        : (product.purchasePrice || product.sellingPrice || 0).toString();
 
+
+  // Multi-select product or variant toggle handler
+  const handleToggleVariantSelection = (product: any, variant?: any) => {
+    const itemKey = variant ? `var_${variant.id}` : `prod_${product.id}`;
+    const exists = selectedVariantKeys.includes(itemKey);
+
+    if (exists) {
+      // Remove from PO items
+      setSelectedVariantKeys(selectedVariantKeys.filter((k) => k !== itemKey));
+      setPoItems(poItems.filter((it) => it.key !== itemKey));
+    } else {
+      // Add to PO items
+      const displayName = variant ? `${product.name} (${variant.variantName})` : product.name;
+      const initialPrice = variant
+        ? (variant.purchasePrice || variant.sellingPrice || 0).toString()
+        : (product.purchasePrice || product.sellingPrice || 0).toString();
+      const stockQuantity = variant ? variant.stockQuantity : product.stockQuantity;
+      const unit = product.unit || 'pcs';
+
+      setSelectedVariantKeys([...selectedVariantKeys, itemKey]);
       setPoItems([
         ...poItems,
         {
+          key: itemKey,
           productId: product.id,
-          variantId: firstVariant ? firstVariant.id : undefined,
+          variantId: variant ? variant.id : undefined,
+          displayName,
           price: initialPrice,
           quantity: '1',
+          stockQuantity,
+          unit,
         },
       ]);
-      setSelectedProductIds([...selectedProductIds, product.id]);
     }
   };
 
   const handleRemovePoItem = (index: number) => {
     const itemToRemove = poItems[index];
     if (itemToRemove) {
-      setSelectedProductIds(selectedProductIds.filter((pid) => pid !== itemToRemove.productId));
+      setSelectedVariantKeys(selectedVariantKeys.filter((k) => k !== itemToRemove.key));
     }
     setPoItems(poItems.filter((_, idx) => idx !== index));
   };
@@ -214,16 +233,6 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
   const handlePoItemChange = (index: number, field: string, value: string) => {
     const updated = [...poItems];
     (updated[index] as any)[field] = value;
-    setPoItems(updated);
-  };
-
-  const handleVariantSelectChange = (index: number, variantId: string, matchedProd: any) => {
-    const updated = [...poItems];
-    const selectedVariant = matchedProd?.variants?.find((v: any) => v.id === variantId);
-    updated[index].variantId = variantId;
-    if (selectedVariant) {
-      updated[index].price = (selectedVariant.purchasePrice || selectedVariant.sellingPrice || 0).toString();
-    }
     setPoItems(updated);
   };
 
@@ -271,7 +280,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         setPoPaidAmount('');
         setPoNotes('');
         setPoItems([]);
-        setSelectedProductIds([]);
+        setSelectedVariantKeys([]);
         setPoPaymentMode('paid');
         loadSupplierData();
       } else {
@@ -416,9 +425,21 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
         const prodData = await prodRes.json();
         if (Array.isArray(prodData)) {
           setProducts(prodData);
+          const itemKey = `prod_${data.id}`;
           const newPrice = (data.purchasePrice || data.sellingPrice || 0).toString();
-          setPoItems([...poItems, { productId: data.id, price: newPrice, quantity: '1' }]);
-          setSelectedProductIds([...selectedProductIds, data.id]);
+          setPoItems([
+            ...poItems,
+            {
+              key: itemKey,
+              productId: data.id,
+              displayName: data.name,
+              price: newPrice,
+              quantity: '1',
+              stockQuantity: 0,
+              unit: data.unit || 'pcs',
+            },
+          ]);
+          setSelectedVariantKeys([...selectedVariantKeys, itemKey]);
         }
       } else {
         alert(data.error || 'Failed to create product');
@@ -854,22 +875,65 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                 />
               </div>
 
-              {/* Multi-Select Products Grid */}
-              <div className="max-h-56 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-1 border border-[#cbcbcb] rounded-[5px] bg-white">
+              {/* Multi-Select Products & Variants Grid */}
+              <div className="max-h-64 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-1 border border-[#cbcbcb] rounded-[5px] bg-white">
                 {filteredProducts.length === 0 ? (
                   <p className="col-span-full text-center text-slate-400 text-xs py-4 italic">
                     No matching products found. Click "+ Create New Product" to add one.
                   </p>
                 ) : (
-                  filteredProducts.map((prod) => {
-                    const isSelected = selectedProductIds.includes(prod.id);
-                    return (
+                  filteredProducts.flatMap((prod) => {
+                    // If product has variants, return a card for each variant
+                    if (prod.variants && prod.variants.length > 0) {
+                      return prod.variants.map((variant: any) => {
+                        const itemKey = `var_${variant.id}`;
+                        const isSelected = selectedVariantKeys.includes(itemKey);
+                        return (
+                          <div
+                            key={itemKey}
+                            onClick={() => handleToggleVariantSelection(prod, variant)}
+                            className={`p-2.5 rounded-[5px] border cursor-pointer transition-all flex items-center justify-between gap-2 ${
+                              isSelected
+                                ? 'bg-emerald-50 border-emerald-400 shadow-2xs font-semibold'
+                                : 'bg-slate-50/70 border-[#cbcbcb] hover:border-[#6d8196] hover:bg-white'
+                            }`}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="font-bold text-[#4a4a4a] text-xs truncate">
+                                {prod.name} <span className="text-emerald-700">({variant.variantName})</span>
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                                Stock: {variant.stockQuantity} {prod.unit || 'pcs'} • Rate: ₹
+                                {variant.purchasePrice || variant.sellingPrice || 0}
+                              </div>
+                            </div>
+
+                            <div className="shrink-0">
+                              {isSelected ? (
+                                <span className="bg-emerald-700 text-white p-1 rounded-full text-[10px] flex items-center gap-1 font-bold px-2">
+                                  <Check className="w-3 h-3" /> Added
+                                </span>
+                              ) : (
+                                <span className="bg-slate-200 hover:bg-[#6d8196] hover:text-white text-slate-700 px-2 py-1 rounded-[5px] text-[10px] font-bold transition-colors">
+                                  + Select
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      });
+                    }
+
+                    // Standard Product with no variants
+                    const itemKey = `prod_${prod.id}`;
+                    const isSelected = selectedVariantKeys.includes(itemKey);
+                    return [
                       <div
-                        key={prod.id}
-                        onClick={() => handleToggleProductSelection(prod)}
+                        key={itemKey}
+                        onClick={() => handleToggleVariantSelection(prod)}
                         className={`p-2.5 rounded-[5px] border cursor-pointer transition-all flex items-center justify-between gap-2 ${
                           isSelected
-                            ? 'bg-emerald-50/80 border-emerald-400 shadow-2xs'
+                            ? 'bg-emerald-50 border-emerald-400 shadow-2xs font-semibold'
                             : 'bg-slate-50/70 border-[#cbcbcb] hover:border-[#6d8196] hover:bg-white'
                         }`}
                       >
@@ -877,7 +941,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                           <div className="font-bold text-[#4a4a4a] text-xs truncate">{prod.name}</div>
                           <div className="text-[10px] text-slate-500 font-mono mt-0.5">
                             Stock: {prod.stockQuantity} {prod.unit || 'pcs'} • Rate: ₹
-                            {prod.purchasePrice || prod.sellingPrice}
+                            {prod.purchasePrice || prod.sellingPrice || 0}
                           </div>
                         </div>
 
@@ -892,8 +956,8 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                             </span>
                           )}
                         </div>
-                      </div>
-                    );
+                      </div>,
+                    ];
                   })
                 )}
               </div>
@@ -908,38 +972,20 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {poItems.map((item, idx) => {
-                    const matchedProd = products.find((p) => p.id === item.productId);
                     const lineSubtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
 
                     return (
                       <div
-                        key={idx}
+                        key={item.key || idx}
                         className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-50 p-2.5 rounded-[5px] border border-[#cbcbcb]"
                       >
                         <div className="flex-1 min-w-0">
                           <div className="font-bold text-[#4a4a4a] text-xs">
-                            {matchedProd ? matchedProd.name : `Product #${idx + 1}`}
+                            {item.displayName}
                           </div>
-
-                          {matchedProd && matchedProd.variants && matchedProd.variants.length > 0 ? (
-                            <div className="mt-1">
-                              <select
-                                value={item.variantId || matchedProd.variants[0]?.id || ''}
-                                onChange={(e) => handleVariantSelectChange(idx, e.target.value, matchedProd)}
-                                className="bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-0.5 text-[11px] font-bold text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
-                              >
-                                {matchedProd.variants.map((v: any) => (
-                                  <option key={v.id} value={v.id}>
-                                    Variant: {v.variantName} (Stock: {v.stockQuantity}) - ₹{v.purchasePrice || v.sellingPrice}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          ) : (
-                            <div className="text-[10px] text-slate-500 font-mono">
-                              Stock: {matchedProd?.stockQuantity || 0} {matchedProd?.unit || 'pcs'}
-                            </div>
-                          )}
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            Stock: {item.stockQuantity || 0} {item.unit || 'pcs'}
+                          </div>
                         </div>
 
                         <div className="w-full sm:w-28">
