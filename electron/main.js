@@ -8,12 +8,16 @@ let mainWindow = null;
 let serverProcess = null;
 
 const PORT = process.env.PORT || 3000;
-const SERVER_URL = process.env.ELECTRON_START_URL || `http://localhost:${PORT}`;
+const PRODUCTION_URL = 'https://www.venkatalaksmi.shop';
+const LOCAL_URL = `http://localhost:${PORT}`;
 
-// Helper to check if local Next.js server is responding
-function checkServer(url, callback) {
-  http
-    .get(url, (res) => {
+const SERVER_URL = process.env.ELECTRON_START_URL || (app.isPackaged ? PRODUCTION_URL : LOCAL_URL);
+
+// Helper to check if server is responding (supports http and https)
+function checkServer(urlStr, callback) {
+  const client = urlStr.startsWith('https') ? require('https') : require('http');
+  client
+    .get(urlStr, (res) => {
       if (res.statusCode >= 200 && res.statusCode < 400) {
         callback(true);
       } else {
@@ -27,6 +31,12 @@ function checkServer(url, callback) {
 
 // Start Next.js server automatically if not already running
 function startLocalServer(onReady) {
+  if (SERVER_URL.startsWith('https://')) {
+    console.log(`Connecting to production cloud server at ${SERVER_URL}...`);
+    onReady();
+    return;
+  }
+
   checkServer(SERVER_URL, (running) => {
     if (running) {
       console.log('Next.js server is already running.');
