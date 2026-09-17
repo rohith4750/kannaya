@@ -32,13 +32,17 @@
   --card-padding: 12px;
 }
 
-body, input, select, textarea, button {
+body {
   color: var(--text-primary);
   background-color: var(--bg-app);
   font-family: var(--font-plus-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+input, select, textarea, button {
+  font-family: var(--font-plus-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
 }
 
 /* Smooth mobile touch scrolling */
