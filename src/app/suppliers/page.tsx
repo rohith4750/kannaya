@@ -2,22 +2,32 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Truck, Plus, DollarSign, MessageSquare, Phone, Mail, Building, X, FileText, Trash2, Printer } from 'lucide-react';
+import { Truck, Plus, DollarSign, MessageSquare, Phone, Mail, Building, X, FileText, Trash2, Printer, Search, Edit3, Filter } from 'lucide-react';
 import ConfirmModal from '@/components/ConfirmModal';
 
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [showAddSupplierModal, setShowAddSupplierModal] = useState(false);
+  const [editSupplier, setEditSupplier] = useState<any>(null);
   const [payModalSupplier, setPayModalSupplier] = useState<any>(null);
   const [deleteModalSupplier, setDeleteModalSupplier] = useState<any>(null);
   const [deleting, setDeleting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'DUE' | 'PAID'>('ALL');
 
-  // Form states
+  // Form states (Add)
   const [name, setName] = useState('');
   const [contactPerson, setContactPerson] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
+
+  // Form states (Edit)
+  const [editName, setEditName] = useState('');
+  const [editContactPerson, setEditContactPerson] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editAddress, setEditAddress] = useState('');
 
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
@@ -57,6 +67,40 @@ export default function SuppliersPage() {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleEditSupplier = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editSupplier) return;
+    try {
+      const res = await fetch('/api/suppliers', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editSupplier.id,
+          name: editName,
+          contactPerson: editContactPerson,
+          phone: editPhone,
+          email: editEmail,
+          address: editAddress,
+        }),
+      });
+      if (res.ok) {
+        setEditSupplier(null);
+        loadSuppliers();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const openEditModal = (supplier: any) => {
+    setEditSupplier(supplier);
+    setEditName(supplier.name || '');
+    setEditContactPerson(supplier.contactPerson || '');
+    setEditPhone(supplier.phone || '');
+    setEditEmail(supplier.email || '');
+    setEditAddress(supplier.address || '');
   };
 
   const handleRecordPayment = async (e: React.FormEvent) => {
@@ -125,7 +169,24 @@ export default function SuppliersPage() {
     }
   };
 
-  const totalSupplierDueAll = suppliers.reduce((sum, s) => sum + s.outstanding, 0);
+  const filteredSuppliers = suppliers.filter((s) => {
+    const q = searchQuery.toLowerCase();
+    const matchesQuery =
+      s.name.toLowerCase().includes(q) ||
+      (s.phone && s.phone.includes(q)) ||
+      (s.contactPerson && s.contactPerson.toLowerCase().includes(q));
+
+    const matchesStatus =
+      statusFilter === 'ALL'
+        ? true
+        : statusFilter === 'DUE'
+        ? s.outstanding > 0
+        : s.outstanding <= 0;
+
+    return matchesQuery && matchesStatus;
+  });
+
+  const totalSupplierDueAll = suppliers.reduce((sum, s) => sum + (s.outstanding || 0), 0);
 
   return (
     <div className="space-y-4 w-full">
@@ -143,7 +204,7 @@ export default function SuppliersPage() {
         <div className="flex items-center gap-3">
           <div className="bg-[#ffffe3] border border-[#cbcbcb] px-3.5 py-1.5 rounded-[5px] text-xs shadow-sm">
             <span className="text-slate-500 font-bold text-[10px] uppercase">Total Supplier Pending: </span>
-            <span className="font-extrabold text-[#6d8196] font-mono">₹{totalSupplierDueAll.toLocaleString('en-IN')}</span>
+            <span className="font-extrabold text-[#6d8196] font-mono">₹{(totalSupplierDueAll || 0).toLocaleString('en-IN')}</span>
           </div>
 
           <button
@@ -162,9 +223,53 @@ export default function SuppliersPage() {
         </div>
       </div>
 
+      {/* FILTER & SEARCH CONTROL BAR */}
+      <div className="bg-white p-3 rounded-[5px] border border-[#cbcbcb] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="relative flex-1 w-full">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search suppliers by company name, contact person, or phone number..."
+            className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] pl-9 pr-3 py-1.5 text-xs text-[#4a4a4a] focus:bg-white focus:outline-none focus:border-[#6d8196]"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Filter className="w-4 h-4 text-[#6d8196]" />
+          <div className="flex bg-slate-100 p-1 rounded-[5px] border border-[#cbcbcb] text-xs font-bold w-full sm:w-auto">
+            <button
+              onClick={() => setStatusFilter('ALL')}
+              className={`px-3 py-1 rounded-[4px] transition-all ${
+                statusFilter === 'ALL' ? 'bg-white text-slate-800 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              All ({suppliers.length})
+            </button>
+            <button
+              onClick={() => setStatusFilter('DUE')}
+              className={`px-3 py-1 rounded-[4px] transition-all ${
+                statusFilter === 'DUE' ? 'bg-amber-500 text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Dues Pending ({suppliers.filter((s) => s.outstanding > 0).length})
+            </button>
+            <button
+              onClick={() => setStatusFilter('PAID')}
+              className={`px-3 py-1 rounded-[4px] transition-all ${
+                statusFilter === 'PAID' ? 'bg-emerald-600 text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Paid Clear ({suppliers.filter((s) => s.outstanding <= 0).length})
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* SUPPLIERS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {suppliers.map((s) => (
+        {filteredSuppliers.map((s) => (
           <div
             key={s.id}
             className="bg-white border border-[#cbcbcb] rounded-[5px] p-4 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow space-y-4"
@@ -177,15 +282,24 @@ export default function SuppliersPage() {
                     <span className="text-xs text-slate-500 font-medium">Contact: {s.contactPerson}</span>
                   )}
                 </div>
-                {s.outstanding > 0 ? (
-                  <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                    Payment Due
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                    Paid Clear
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5">
+                  {s.outstanding > 0 ? (
+                    <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                      Payment Due
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      Paid Clear
+                    </span>
+                  )}
+                  <button
+                    onClick={() => openEditModal(s)}
+                    className="p-1 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-[4px] border border-slate-200 transition-colors"
+                    title="Edit Supplier Details"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
               {/* Contact Info */}
@@ -248,6 +362,94 @@ export default function SuppliersPage() {
           </div>
         ))}
       </div>
+
+      {/* EDIT SUPPLIER MODAL */}
+      {editSupplier && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#cbcbcb] rounded-[5px] max-w-md w-full p-5 space-y-4 shadow-xl">
+            <h3 className="text-base font-bold text-[#4a4a4a] flex items-center justify-between border-b border-[#cbcbcb] pb-2">
+              <span className="flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-[#6d8196]" /> Edit Supplier Details
+              </span>
+              <button onClick={() => setEditSupplier(null)} className="text-slate-400 hover:text-slate-700 p-1">
+                <X className="w-4 h-4" />
+              </button>
+            </h3>
+
+            <form onSubmit={handleEditSupplier} className="space-y-3 text-xs">
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Supplier / Company Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Contact Person</label>
+                  <input
+                    type="text"
+                    value={editContactPerson}
+                    onChange={(e) => setEditContactPerson(e.target.value)}
+                    className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Phone Number *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Email Address</label>
+                <input
+                  type="email"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[#4a4a4a] uppercase text-[10px] font-bold">Warehouse / Market Address</label>
+                <input
+                  type="text"
+                  value={editAddress}
+                  onChange={(e) => setEditAddress(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-2 text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditSupplier(null)}
+                  className="w-1/2 bg-slate-100 border border-[#cbcbcb] text-[#4a4a4a] py-2 rounded-[5px] font-bold hover:bg-slate-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 bg-[#6d8196] hover:bg-[#5b6f84] text-white py-2 rounded-[5px] font-bold shadow-sm"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
 
       {/* CONFIRMATION DELETE MODAL */}
       <ConfirmModal

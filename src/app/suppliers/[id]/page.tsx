@@ -64,7 +64,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
   const [poNotes, setPoNotes] = useState('');
   const [poPaymentMode, setPoPaymentMode] = useState<'paid' | 'pending' | 'partial'>('paid');
   const [isReceivedImmediately, setIsReceivedImmediately] = useState(true);
-  const [poItems, setPoItems] = useState<{ productId: string; price: string; quantity: string }[]>([]);
+  const [poItems, setPoItems] = useState<{ productId: string; variantId?: string; price: string; quantity: string }[]>([]);
 
   // Product Selection Search & Filter
   const [prodSearchTerm, setProdSearchTerm] = useState('');
@@ -184,9 +184,21 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
       setPoItems(poItems.filter((it) => it.productId !== product.id));
       setSelectedProductIds(selectedProductIds.filter((pid) => pid !== product.id));
     } else {
-      // Add product to order list
-      const initialPrice = (product.purchasePrice || product.sellingPrice || 0).toString();
-      setPoItems([...poItems, { productId: product.id, price: initialPrice, quantity: '1' }]);
+      // Add product to order list with default variant if available
+      const firstVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+      const initialPrice = firstVariant
+        ? (firstVariant.purchasePrice || firstVariant.sellingPrice || 0).toString()
+        : (product.purchasePrice || product.sellingPrice || 0).toString();
+
+      setPoItems([
+        ...poItems,
+        {
+          productId: product.id,
+          variantId: firstVariant ? firstVariant.id : undefined,
+          price: initialPrice,
+          quantity: '1',
+        },
+      ]);
       setSelectedProductIds([...selectedProductIds, product.id]);
     }
   };
@@ -202,6 +214,16 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
   const handlePoItemChange = (index: number, field: string, value: string) => {
     const updated = [...poItems];
     (updated[index] as any)[field] = value;
+    setPoItems(updated);
+  };
+
+  const handleVariantSelectChange = (index: number, variantId: string, matchedProd: any) => {
+    const updated = [...poItems];
+    const selectedVariant = matchedProd?.variants?.find((v: any) => v.id === variantId);
+    updated[index].variantId = variantId;
+    if (selectedVariant) {
+      updated[index].price = (selectedVariant.purchasePrice || selectedVariant.sellingPrice || 0).toString();
+    }
     setPoItems(updated);
   };
 
@@ -898,9 +920,26 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                           <div className="font-bold text-[#4a4a4a] text-xs">
                             {matchedProd ? matchedProd.name : `Product #${idx + 1}`}
                           </div>
-                          <div className="text-[10px] text-slate-500 font-mono">
-                            Stock: {matchedProd?.stockQuantity || 0} {matchedProd?.unit || 'pcs'}
-                          </div>
+
+                          {matchedProd && matchedProd.variants && matchedProd.variants.length > 0 ? (
+                            <div className="mt-1">
+                              <select
+                                value={item.variantId || matchedProd.variants[0]?.id || ''}
+                                onChange={(e) => handleVariantSelectChange(idx, e.target.value, matchedProd)}
+                                className="bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-0.5 text-[11px] font-bold text-[#4a4a4a] focus:outline-none focus:border-[#6d8196]"
+                              >
+                                {matchedProd.variants.map((v: any) => (
+                                  <option key={v.id} value={v.id}>
+                                    Variant: {v.variantName} (Stock: {v.stockQuantity}) - ₹{v.purchasePrice || v.sellingPrice}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : (
+                            <div className="text-[10px] text-slate-500 font-mono">
+                              Stock: {matchedProd?.stockQuantity || 0} {matchedProd?.unit || 'pcs'}
+                            </div>
+                          )}
                         </div>
 
                         <div className="w-full sm:w-28">

@@ -80,6 +80,37 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, name, contactPerson, phone, email, address } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Supplier ID is required' }, { status: 400 });
+    }
+
+    if (!name || !name.trim()) {
+      return NextResponse.json({ error: 'Supplier name is required' }, { status: 400 });
+    }
+
+    const updatedSupplier = await prisma.supplier.update({
+      where: { id },
+      data: {
+        name: name.trim(),
+        contactPerson: contactPerson ? contactPerson.trim() : null,
+        phone: phone ? phone.trim() : '',
+        email: email ? email.trim() : null,
+        address: address ? address.trim() : null,
+      },
+    });
+
+    return NextResponse.json(updatedSupplier);
+  } catch (error: any) {
+    console.error('Suppliers PUT error:', error);
+    return NextResponse.json({ error: error.message || 'Failed to update supplier' }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -112,3 +143,4 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: error.message || 'Failed to delete supplier' }, { status: 500 });
   }
 }
+
