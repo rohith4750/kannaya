@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       sendDirectly = true,
     } = await request.json();
 
-    const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
+    const settings = (await prisma.shopSettings.findFirst({ where: { id: 'default' } })) as any;
     const shopName = settings?.shopName || 'VENKATA LAKSHMI ELECTRICALS';
 
     let cleanPhone = (customerPhone || supplierPhone || '').replace(/\D/g, '');
@@ -47,13 +47,13 @@ export async function POST(request: Request) {
         `Thank you for your continued business!\n` +
         `📞 *Shop Contact:* ${settings?.phone || '+91 98765 43210'}`;
     } else if (action === 'reorder') {
-      const allVariants = await prisma.productVariant.findMany({
+      const allVariants = await (prisma as any).productVariant.findMany({
         include: { product: true },
       });
-      const lowStock = allVariants.filter((v) => v.stockQuantity <= v.minStockAlert);
+      const lowStock = allVariants.filter((v: any) => v.stockQuantity <= v.minStockAlert);
 
       const itemsList = lowStock
-        .map((v) => `• ${v.product.name} (${v.variantName}) - Stock: ${v.stockQuantity} ${v.product.unit}`)
+        .map((v: any) => `• ${v.product.name} (${v.variantName}) - Stock: ${v.stockQuantity} ${v.product.unit}`)
         .join('\n');
 
       messageText =

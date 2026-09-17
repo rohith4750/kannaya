@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     const { action, recipientEmail } = body;
 
     if (action === 'test-smtp') {
-      const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
+      const settings = (await prisma.shopSettings.findFirst({ where: { id: 'default' } })) as any;
       const target = recipientEmail || settings?.alertRecipientEmail || settings?.email || settings?.smtpUser;
 
       if (!target) {

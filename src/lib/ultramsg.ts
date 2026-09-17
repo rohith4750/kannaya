@@ -5,7 +5,7 @@ export async function sendUltraMsgWhatsApp(
   body: string
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   try {
-    const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
+    const settings = (await prisma.shopSettings.findFirst({ where: { id: 'default' } })) as any;
     const instanceId = settings?.ultraMsgInstanceId || 'instance191882';
     const token = settings?.ultraMsgToken || 'nf1d6jqukm5blsc0';
 
