@@ -1,3 +1,4 @@
+
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
 const http = require('http');
@@ -33,12 +34,15 @@ function startLocalServer(onReady) {
       return;
     }
 
-    console.log('Starting local Next.js server...');
+    const isProd = app.isPackaged || process.env.NODE_ENV === 'production';
+    const serverSubCommand = isProd ? 'start' : 'dev';
+    console.log(`Starting local Next.js server in ${isProd ? 'PRODUCTION' : 'DEV'} mode...`);
+
     const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-    serverProcess = spawn(npxCmd, ['next', 'dev', '-p', PORT], {
+    serverProcess = spawn(npxCmd, ['next', serverSubCommand, '-p', PORT], {
       cwd: path.join(__dirname, '..'),
       shell: true,
-      env: { ...process.env },
+      env: { ...process.env, NODE_ENV: isProd ? 'production' : 'development' },
     });
 
     let isReady = false;
@@ -157,7 +161,7 @@ app.on('window-all-closed', () => {
   if (serverProcess) {
     try {
       serverProcess.kill();
-    } catch (e) {}
+    } catch (e) { }
   }
   if (process.platform !== 'darwin') {
     app.quit();
