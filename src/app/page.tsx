@@ -824,7 +824,7 @@ export default function DashboardPage() {
                       <span className="text-[10px] text-slate-500">Category Sales</span>
                     </div>
                     <div className="text-right">
-                      <span className="font-extrabold text-[#6d8196] block">₹{cat.sales.toLocaleString('en-IN')}</span>
+                      <span className="font-extrabold text-[#6d8196] block">₹{(cat.sales || 0).toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                 ))
@@ -917,7 +917,7 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="text-right">
-                    <span className="font-extrabold text-[#4a4a4a] block">₹{inv.totalAmount.toLocaleString('en-IN')}</span>
+                    <span className="font-extrabold text-[#4a4a4a] block">₹{(inv.totalAmount || 0).toLocaleString('en-IN')}</span>
                     <span className="text-[10px] text-slate-400">
                       {new Date(inv.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                     </span>

@@ -77,7 +77,7 @@ export default function WhatsAppPage() {
                   <div className="text-right flex items-center gap-3">
                     <div>
                       <div className="text-[10px] text-slate-500 font-bold">Due Balance</div>
-                      <div className="font-extrabold text-amber-700">₹{c.outstanding.toLocaleString('en-IN')}</div>
+                      <div className="font-extrabold text-amber-700">₹{(c.outstanding || 0).toLocaleString('en-IN')}</div>
                     </div>
                     <button
                       onClick={() => handleSendReminder(c)}

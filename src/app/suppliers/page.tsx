@@ -200,12 +200,12 @@ export default function SuppliersPage() {
               <div className="mt-4 pt-3 border-t border-[#cbcbcb] grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <span className="text-[10px] text-slate-500 uppercase font-bold">Total Stock Purchased</span>
-                  <div className="font-bold text-[#4a4a4a]">₹{s.totalPurchased.toLocaleString('en-IN')}</div>
+                  <div className="font-bold text-[#4a4a4a]">₹{(s.totalPurchased || 0).toLocaleString('en-IN')}</div>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-500 uppercase font-bold">Pending Payable</span>
-                  <div className={`font-black text-sm ${s.outstanding > 0 ? 'text-[#6d8196]' : 'text-emerald-700'}`}>
-                    ₹{s.outstanding.toLocaleString('en-IN')}
+                  <div className={`font-black text-sm ${(s.outstanding || 0) > 0 ? 'text-[#6d8196]' : 'text-emerald-700'}`}>
+                    ₹{(s.outstanding || 0).toLocaleString('en-IN')}
                   </div>
                 </div>
               </div>
