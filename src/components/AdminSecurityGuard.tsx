@@ -37,17 +37,36 @@ export default function AdminSecurityGuard({
     return () => window.removeEventListener('security_state_changed', checkUnlockedState);
   }, []);
 
-  const handleUnlockWithPin = (e?: React.FormEvent, directPin?: string) => {
+  const handleUnlockWithPin = async (e?: React.FormEvent, directPin?: string) => {
     if (e) e.preventDefault();
     setPinError('');
     const targetPin = directPin !== undefined ? directPin : pinInput;
-    if (targetPin === '1234') {
-      sessionStorage.setItem('kannaya_admin_pin_unlocked', 'true');
-      setIsUnlocked(true);
-      setPinInput('');
-      window.dispatchEvent(new Event('security_state_changed'));
-    } else {
-      setPinError('Invalid 4-Digit Security PIN Code! Access Denied.');
+
+    if (!targetPin || targetPin.trim().length === 0) {
+      setPinError('Please enter your 4-Digit Admin Security PIN Code');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/auth/pin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pinCode: targetPin.trim() }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success && data.user?.role === 'ADMIN') {
+        sessionStorage.setItem('kannaya_admin_pin_unlocked', 'true');
+        setIsUnlocked(true);
+        setPinInput('');
+        window.dispatchEvent(new Event('security_state_changed'));
+      } else if (res.ok && data.success && data.user?.role !== 'ADMIN') {
+        setPinError('Access Denied: This Security PIN belongs to Staff. Admin PIN required.');
+      } else {
+        setPinError(data.error || 'Invalid Admin Security PIN Code! Access Denied.');
+      }
+    } catch (err: any) {
+      setPinError('Connection error verifying Security PIN.');
     }
   };
 
@@ -61,7 +80,7 @@ export default function AdminSecurityGuard({
       if (pinInput.length < 6) {
         const next = pinInput + digit;
         setPinInput(next);
-        if (next === '1234') {
+        if (next.length === 4) {
           handleUnlockWithPin(undefined, next);
         }
       }

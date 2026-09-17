@@ -35,3 +35,5 @@ prisma_out.txt
 *.apk
 /dist-electron
 /dist
+/dist-app
+dist-app/
