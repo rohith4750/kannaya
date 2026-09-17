@@ -578,7 +578,7 @@ function ProductsContent() {
               <h3 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                 <Edit2 className="w-4 h-4 text-amber-600" /> Edit Variant: {editVariant.variantName}
               </h3>
-              <button onClick={() => setEditVariant(null)} className="text-slate-400 hover:text-slate-700">
+              <button type="button" onClick={() => setEditVariant(null)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-4 h-4" />
               </button>
             </div>

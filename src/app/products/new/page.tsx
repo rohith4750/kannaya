@@ -673,7 +673,7 @@ export default function AddNewProductPage() {
               <h4 className="text-xs font-bold text-[#4a4a4a] flex items-center gap-1.5">
                 <FolderPlus className="w-4 h-4 text-[#6d8196]" /> Create New Category
               </h4>
-              <button onClick={() => setShowAddCategoryModal(false)} className="text-slate-400 hover:text-slate-700">
+              <button type="button" onClick={() => setShowAddCategoryModal(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -705,7 +705,7 @@ export default function AddNewProductPage() {
               <h4 className="text-xs font-bold text-[#4a4a4a] flex items-center gap-1.5">
                 <Tag className="w-4 h-4 text-[#6d8196]" /> Create New Brand
               </h4>
-              <button onClick={() => setShowAddBrandModal(false)} className="text-slate-400 hover:text-slate-700">
+              <button type="button" onClick={() => setShowAddBrandModal(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-4 h-4" />
               </button>
             </div>
