@@ -11,7 +11,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate",
-    "clean": "node -e \"try { require('fs').rmSync('dist-electron', {recursive: true, force: true}) } catch(e){}\"",
+    "clean": "node -e \"try{require('child_process').execSync('taskkill /F /IM electron.exe /T',{stdio:'ignore'})}catch(e){}; try{require('child_process').execSync('taskkill /F /IM \\\"Sri Venkata Lakshmi ERP.exe\\\" /T',{stdio:'ignore'})}catch(e){}; try{require('fs').rmSync('dist-electron',{recursive:true,force:true})}catch(e){}\"",
     "electron:clean": "npm run clean",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
     "electron:pack": "npm run clean && npm run build && electron-builder",
