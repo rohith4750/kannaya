@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 
     const cleanNewPin = newPin.trim();
 
-    // Verify user exists or update by role
+    // Verify user exists by exact userId or role match
     let user = null;
     if (userId) {
       user = await prisma.user.findUnique({ where: { id: userId } });
@@ -22,10 +22,6 @@ export async function POST(request: Request) {
     
     if (!user && role) {
       user = await prisma.user.findFirst({ where: { role: role as any } });
-    }
-
-    if (!user) {
-      user = await prisma.user.findFirst();
     }
 
     if (!user) {

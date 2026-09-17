@@ -177,7 +177,7 @@ export default function UsersPage() {
     setEditName(u.name);
     setEditEmail(u.email);
     setEditPassword('');
-    setEditPinCode(u.pinCode || (u.role === 'ADMIN' ? '1234' : '0000'));
+    setEditPinCode(u.pinCode || '');
     setEditRole(u.role);
     setFormError('');
   };
