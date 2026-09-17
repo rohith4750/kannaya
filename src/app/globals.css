@@ -149,12 +149,8 @@ textarea:focus {
   color: #4a4a4a;
 }
 
-.erp-table tr:nth-child(even) td {
-  background-color: #ffffe3 !important;
-}
-
 .erp-table tr:hover td {
-  background-color: #e2e8f0 !important;
+  background-color: #f1f5f9 !important;
 }
 
 /* Global 5px Radius Rule */

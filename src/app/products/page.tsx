@@ -358,7 +358,7 @@ function ProductsContent() {
 
                   return (
                     <React.Fragment key={p.id}>
-                      <tr className="bg-slate-50/70 border-b border-[#cbcbcb] hover:bg-slate-100 transition-colors">
+                      <tr className="bg-white border-b border-[#cbcbcb] hover:bg-slate-50 transition-colors">
                         <td className="text-left font-medium">
                           <div className="flex items-center gap-2">
                             <button
