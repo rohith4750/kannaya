@@ -43,7 +43,9 @@ export default function SettingsPage() {
     printerType: '80mm',
     defaultGstPercent: 18,
     defaultHsnCode: '8544',
+    enableWholesale: false,
     termsConditions: '',
+    showBankDetails: true,
     bankDetails: '',
     upiId: '',
     smtpHost: 'smtp.gmail.com',
@@ -78,7 +80,9 @@ export default function SettingsPage() {
           printerType: data.printerType || '80mm',
           defaultGstPercent: data.defaultGstPercent !== undefined ? data.defaultGstPercent : 18,
           defaultHsnCode: data.defaultHsnCode || '8544',
+          enableWholesale: data.enableWholesale !== undefined ? data.enableWholesale : false,
           termsConditions: data.termsConditions || '',
+          showBankDetails: data.showBankDetails !== undefined ? data.showBankDetails : true,
           bankDetails: data.bankDetails || '',
           upiId: data.upiId || '',
           smtpHost: data.smtpHost || 'smtp.gmail.com',
@@ -389,6 +393,27 @@ export default function SettingsPage() {
                     </select>
                   </div>
                 </div>
+
+                {/* Wholesale Mode Toggle */}
+                <div className="pt-2">
+                  <label className="flex items-center gap-3 p-3 bg-slate-50 border border-[#cbcbcb] rounded-[5px] cursor-pointer hover:bg-slate-100 transition-colors">
+                    <input
+                      type="checkbox"
+                      disabled={userRole !== 'ADMIN'}
+                      checked={formData.enableWholesale}
+                      onChange={(e) => setFormData({ ...formData, enableWholesale: e.target.checked })}
+                      className="w-4 h-4 text-[#6d8196] rounded border-slate-300 focus:ring-[#6d8196]"
+                    />
+                    <div>
+                      <div className="text-xs font-extrabold text-[#4a4a4a]">
+                        Enable Wholesale Pricing Feature Across Application
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-medium">
+                        If enabled, Wholesale Price and Wholesale Quantity options appear in Products, Billing, and Inventory. If disabled, only Retail Selling Price is displayed.
+                      </div>
+                    </div>
+                  </label>
+                </div>
               </div>
 
               {/* Section 3: Terms & Payment Info */}
@@ -411,6 +436,26 @@ export default function SettingsPage() {
                       placeholder="e.g. Goods once sold will not be returned or exchanged. Subject to local jurisdiction."
                       className="w-full bg-slate-50 border border-[#cbcbcb] rounded-[5px] px-3 py-1.5 text-xs text-[#4a4a4a] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#6d8196] disabled:opacity-60 font-medium"
                     />
+                  </div>
+
+                  {/* Show Bank Details Toggle */}
+                  <div className="flex items-start gap-2.5 bg-slate-50 border border-[#cbcbcb] p-3 rounded-[5px]">
+                    <input
+                      type="checkbox"
+                      id="showBankDetails"
+                      disabled={userRole !== 'ADMIN'}
+                      checked={formData.showBankDetails}
+                      onChange={(e) => setFormData({ ...formData, showBankDetails: e.target.checked })}
+                      className="mt-0.5 rounded text-[#6d8196] focus:ring-[#6d8196] cursor-pointer"
+                    />
+                    <label htmlFor="showBankDetails" className="text-xs cursor-pointer select-none">
+                      <span className="font-bold text-[#4a4a4a] block">
+                        Show Bank Account Details on Printed Invoices & PDFs
+                      </span>
+                      <span className="text-slate-500 text-[11px] block mt-0.5">
+                        If checked, bank details will be printed on sales invoices, PDFs, and thermal receipts. If unchecked, bank details will be hidden everywhere across the application.
+                      </span>
+                    </label>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">

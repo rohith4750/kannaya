@@ -69,12 +69,12 @@ export default function BillingPOSPage() {
   const [paymentMethod, setPaymentMethod] = useState<string>('CASH');
   const [paidAmountInput, setPaidAmountInput] = useState<string>('');
 
-  // Thermal Receipt & Modal state
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [receiptData, setReceiptData] = useState<any>(null);
   const [printerWidth, setPrinterWidth] = useState<'58mm' | '80mm'>('80mm');
   const [loading, setLoading] = useState(false);
   const [autoCloseCountdown, setAutoCloseCountdown] = useState<number>(5);
+  const [enableWholesale, setEnableWholesale] = useState<boolean>(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -154,6 +154,7 @@ export default function BillingPOSPage() {
       if (settings) {
         if (settings.printerType) setPrinterWidth(settings.printerType as any);
         if (settings.defaultGstPercent !== undefined) setTaxPercent(settings.defaultGstPercent);
+        if (settings.enableWholesale !== undefined) setEnableWholesale(!!settings.enableWholesale);
       }
     } catch (e) {
       console.error(e);
@@ -238,7 +239,7 @@ export default function BillingPOSPage() {
       const updatedCart = [...cart];
       const newQty = updatedCart[existingIndex].quantity + 1;
       const effectivePrice =
-        item.wholesalePrice && newQty >= (item.minWholesaleQty || 10)
+        enableWholesale && item.wholesalePrice && newQty >= (item.minWholesaleQty || 10)
           ? item.wholesalePrice
           : item.sellingPrice;
       updatedCart[existingIndex].quantity = newQty;
@@ -263,7 +264,7 @@ export default function BillingPOSPage() {
           if (item.id === id) {
             const newQty = item.quantity + delta;
             const effectivePrice =
-              item.wholesalePrice && newQty >= (item.minWholesaleQty || 10)
+              enableWholesale && item.wholesalePrice && newQty >= (item.minWholesaleQty || 10)
                 ? item.wholesalePrice
                 : item.sellingPrice;
             return newQty > 0 ? { ...item, quantity: newQty, effectivePrice } : null;
@@ -599,7 +600,7 @@ export default function BillingPOSPage() {
                     <span className="text-[#4a4a4a] font-semibold">
                       ₹{(item.effectivePrice || item.sellingPrice) * item.quantity}
                     </span>
-                    {item.effectivePrice && item.effectivePrice < item.sellingPrice && (
+                    {enableWholesale && item.effectivePrice && item.effectivePrice < item.sellingPrice && (
                       <span className="text-amber-700 font-semibold text-[9px] ml-1">(Wholesale!)</span>
                     )}
                   </div>

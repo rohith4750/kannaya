@@ -60,6 +60,93 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
+
+    // Handle Batch Array of Multiple Products
+    if (Array.isArray(body)) {
+      if (body.length === 0) {
+        return NextResponse.json({ error: 'Product array cannot be empty' }, { status: 400 });
+      }
+
+      const createdProducts = [];
+      for (const item of body) {
+        if (!item.name || !item.name.trim()) continue;
+
+        let catId = item.categoryId;
+        let brId = item.brandId;
+
+        if (!catId) {
+          let defaultCat = await prisma.category.findFirst();
+          if (!defaultCat) {
+            defaultCat = await prisma.category.create({ data: { name: 'General' } });
+          }
+          catId = defaultCat.id;
+        }
+
+        if (!brId) {
+          let defaultBrand = await prisma.brand.findFirst();
+          if (!defaultBrand) {
+            defaultBrand = await prisma.brand.create({ data: { name: 'Generic' } });
+          }
+          brId = defaultBrand.id;
+        }
+
+        const variantList = Array.isArray(item.variants) && item.variants.length > 0 ? item.variants : [
+          {
+            variantName: 'Standard',
+            barcode: item.barcode || `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+            hsnCode: item.hsnCode || null,
+            purchasePrice: parseFloat(item.purchasePrice) || 0,
+            sellingPrice: parseFloat(item.sellingPrice) || 0,
+            wholesalePrice: item.wholesalePrice ? parseFloat(item.wholesalePrice) : null,
+            minWholesaleQty: item.minWholesaleQty ? parseFloat(item.minWholesaleQty) : null,
+            stockQuantity: parseFloat(item.stockQuantity) || 0,
+            minStockAlert: parseFloat(item.minStockAlert) || 5,
+            rackId: item.rackId || null,
+          }
+        ];
+
+        const product = await prisma.product.create({
+          data: {
+            name: item.name.trim().toUpperCase(),
+            hsnCode: item.hsnCode ? item.hsnCode.trim().toUpperCase() : (settings?.defaultHsnCode || '8544'),
+            gstPercent: item.gstPercent !== undefined && item.gstPercent !== '' ? parseFloat(item.gstPercent) : (settings?.defaultGstPercent || 18),
+            unit: (item.unit || 'PCS').toUpperCase(),
+            warranty: item.warranty ? item.warranty.trim().toUpperCase() : null,
+            description: item.description ? item.description.trim().toUpperCase() : null,
+            categoryId: catId,
+            brandId: brId,
+            variants: {
+              create: variantList.map((v: any, index: number) => ({
+                variantName: (v.variantName || `Variant ${index + 1}`).trim().toUpperCase(),
+                barcode: v.barcode && v.barcode.trim() ? v.barcode.trim().toUpperCase() : `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+                hsnCode: v.hsnCode && v.hsnCode.trim() ? v.hsnCode.trim().toUpperCase() : null,
+                purchasePrice: parseFloat(v.purchasePrice) || 0,
+                sellingPrice: parseFloat(v.sellingPrice) || 0,
+                wholesalePrice: v.wholesalePrice !== undefined && v.wholesalePrice !== null && v.wholesalePrice !== '' ? parseFloat(v.wholesalePrice) : null,
+                minWholesaleQty: v.minWholesaleQty !== undefined && v.minWholesaleQty !== null && v.minWholesaleQty !== '' ? parseFloat(v.minWholesaleQty) : null,
+                stockQuantity: parseFloat(v.stockQuantity) || 0,
+                minStockAlert: parseFloat(v.minStockAlert) || 5,
+                rackId: v.rackId || null,
+                imageUrl: v.imageUrl || null,
+              })),
+            },
+          },
+          include: {
+            category: true,
+            brand: true,
+            variants: {
+              include: { rack: true },
+            },
+          },
+        });
+        createdProducts.push(product);
+      }
+
+      return NextResponse.json(createdProducts);
+    }
+
+    // Handle Single Product Object
     const {
       name,
       hsnCode,
@@ -95,8 +182,6 @@ export async function POST(request: Request) {
       brId = defaultBrand.id;
     }
 
-    const settings = await prisma.shopSettings.findFirst({ where: { id: 'default' } });
-
     const variantList = Array.isArray(variants) && variants.length > 0 ? variants : [
       {
         variantName: 'Standard',
@@ -116,7 +201,7 @@ export async function POST(request: Request) {
       data: {
         name: name.trim().toUpperCase(),
         hsnCode: hsnCode ? hsnCode.trim().toUpperCase() : (settings?.defaultHsnCode || '8544'),
-        gstPercent: gstPercent !== undefined ? parseFloat(gstPercent) : (settings?.defaultGstPercent || 18),
+        gstPercent: gstPercent !== undefined && gstPercent !== '' ? parseFloat(gstPercent) : (settings?.defaultGstPercent || 18),
         unit: (unit || 'PCS').toUpperCase(),
         warranty: warranty ? warranty.trim().toUpperCase() : null,
         description: description ? description.trim().toUpperCase() : null,

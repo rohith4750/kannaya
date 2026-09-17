@@ -38,6 +38,7 @@ export default function AddNewProductPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [racks, setRacks] = useState<any[]>([]);
+  const [enableWholesale, setEnableWholesale] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Dynamic Category & Brand creation modals
@@ -94,6 +95,7 @@ export default function AddNewProductPage() {
       if (Array.isArray(rData)) setRacks(rData);
 
       if (sData) {
+        setEnableWholesale(!!sData.enableWholesale);
         setProductData((prev) => ({
           ...prev,
           hsnCode: sData.defaultHsnCode || prev.hsnCode,
@@ -569,7 +571,7 @@ export default function AddNewProductPage() {
                     <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-1">
                       Pricing (₹)
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className={`grid ${enableWholesale ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}>
                       <div>
                         <label className="text-[9px] font-bold text-slate-600 uppercase block mb-0.5">Purchase</label>
                         <input
@@ -583,7 +585,7 @@ export default function AddNewProductPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-[9px] font-bold text-emerald-800 uppercase block mb-0.5">Retail *</label>
+                        <label className="text-[9px] font-bold text-emerald-800 uppercase block mb-0.5">Retail Selling *</label>
                         <input
                           type="number"
                           step="0.01"
@@ -594,17 +596,19 @@ export default function AddNewProductPage() {
                           className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-right font-black text-emerald-800 focus:border-[#6d8196] focus:outline-none"
                         />
                       </div>
-                      <div>
-                        <label className="text-[9px] font-bold text-amber-800 uppercase block mb-0.5">Wholesale</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={row.wholesalePrice}
-                          onChange={(e) => updateVariant(idx, 'wholesalePrice', e.target.value)}
-                          placeholder="880"
-                          className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-right font-extrabold text-amber-700 focus:border-[#6d8196] focus:outline-none"
-                        />
-                      </div>
+                      {enableWholesale && (
+                        <div>
+                          <label className="text-[9px] font-bold text-amber-800 uppercase block mb-0.5">Wholesale</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={row.wholesalePrice}
+                            onChange={(e) => updateVariant(idx, 'wholesalePrice', e.target.value)}
+                            placeholder="880"
+                            className="w-full bg-white border border-[#cbcbcb] rounded-[4px] px-2 py-1 text-xs text-right font-extrabold text-amber-700 focus:border-[#6d8196] focus:outline-none"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
 

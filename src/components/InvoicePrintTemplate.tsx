@@ -290,7 +290,7 @@ export default function InvoicePrintTemplate({
           <div className="text-[10px] text-slate-500 space-y-1 bg-white p-3 rounded-[5px] border border-[#cbcbcb]">
             <span className="font-bold text-[#4a4a4a] uppercase block">Terms & Conditions:</span>
             <p className="whitespace-pre-line">{termsConditions}</p>
-            {settings?.bankDetails && (
+            {settings?.showBankDetails !== false && settings?.bankDetails && (
               <p className="pt-1 border-t border-slate-200 text-slate-700 font-medium">
                 <strong>Bank Account:</strong> {settings.bankDetails}
               </p>

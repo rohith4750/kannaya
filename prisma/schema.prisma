@@ -240,7 +240,9 @@ model ShopSettings {
   printerType             String   @default("80mm")
   defaultGstPercent       Float    @default(18)
   defaultHsnCode          String   @default("8544")
+  enableWholesale         Boolean  @default(false)
   termsConditions         String   @default("Goods once sold will not be taken back or exchanged. Subject to local jurisdiction.")
+  showBankDetails         Boolean  @default(true)
   bankDetails             String?  @default("State Bank of India A/C: 1234567890 | IFSC: SBIN0001234")
   upiId                   String?  @default("9876543210@paytm")
 
