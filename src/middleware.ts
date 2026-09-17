@@ -36,6 +36,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
+  // If NOT authenticated and trying to access any protected route, redirect to /login
+  if (!isAuthenticated && pathname !== '/login') {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
   return NextResponse.next();
 }
 
