@@ -44,24 +44,28 @@ export async function POST(request: Request) {
       });
       const variantMap = new Map(dbVariants.map((v) => [v.id, v]));
 
-      let invoice: any = null;
+      const invoice = await tx.invoice.create({
+        data: {
+          invoiceNo,
+          customerId: customerId || null,
+          customerName: customerName || 'Walk-in Customer',
+          customerPhone: customerPhone || 'N/A',
+          subtotal: parseFloat(subtotal),
+          discount: parseFloat(discount),
+          tax: parseFloat(tax),
+          totalAmount: parseFloat(totalAmount),
+          paidAmount: parseFloat(paidAmount),
+          dueAmount: parseFloat(dueAmount),
+          paymentMethod: paymentMethod as PaymentMethod,
+          status: 'COMPLETED',
+          createdAt: customDate,
+          items: {
+            create: items.map((item: any) => {
+              const vId = item.variantId || item.id;
+              const dbVariant = variantMap.get(vId);
+              const pId = dbVariant ? dbVariant.productId : (item.productId || null);
 
-      // Check running invoice for customer
-      if (customerId) {
-        const existingInvoice = await tx.invoice.findFirst({
-          where: { customerId },
-          orderBy: { createdAt: 'asc' },
-        });
-
-        if (existingInvoice) {
-          for (const item of items) {
-            const vId = item.variantId || item.id;
-            const dbVariant = variantMap.get(vId);
-            const pId = dbVariant ? dbVariant.productId : (item.productId || null);
-
-            await tx.invoiceItem.create({
-              data: {
-                invoiceId: existingInvoice.id,
+              return {
                 productId: pId,
                 variantId: dbVariant ? dbVariant.id : null,
                 productName: item.name || (dbVariant ? `${dbVariant.product.name} (${dbVariant.variantName})` : 'Item'),
@@ -73,69 +77,14 @@ export async function POST(request: Request) {
                   ? `${dbVariant.rack.rackName} ${dbVariant.rack.shelfCode}`
                   : (item.rackLocation || 'Default'),
                 createdAt: customDate,
-              },
-            });
-          }
-
-          invoice = await tx.invoice.update({
-            where: { id: existingInvoice.id },
-            data: {
-              subtotal: { increment: parseFloat(subtotal) },
-              discount: { increment: parseFloat(discount) },
-              tax: { increment: parseFloat(tax) },
-              totalAmount: { increment: parseFloat(totalAmount) },
-              paidAmount: { increment: parseFloat(paidAmount) },
-              dueAmount: { increment: parseFloat(dueAmount) },
-            },
-            include: { items: true },
-          });
-        }
-      }
-
-      // New invoice if no running invoice
-      if (!invoice) {
-        invoice = await tx.invoice.create({
-          data: {
-            invoiceNo,
-            customerId: customerId || null,
-            customerName: customerName || 'Walk-in Customer',
-            customerPhone: customerPhone || 'N/A',
-            subtotal: parseFloat(subtotal),
-            discount: parseFloat(discount),
-            tax: parseFloat(tax),
-            totalAmount: parseFloat(totalAmount),
-            paidAmount: parseFloat(paidAmount),
-            dueAmount: parseFloat(dueAmount),
-            paymentMethod: paymentMethod as PaymentMethod,
-            status: 'COMPLETED',
-            createdAt: customDate,
-            items: {
-              create: items.map((item: any) => {
-                const vId = item.variantId || item.id;
-                const dbVariant = variantMap.get(vId);
-                const pId = dbVariant ? dbVariant.productId : (item.productId || null);
-
-                return {
-                  productId: pId,
-                  variantId: dbVariant ? dbVariant.id : null,
-                  productName: item.name || (dbVariant ? `${dbVariant.product.name} (${dbVariant.variantName})` : 'Item'),
-                  unit: item.unit || dbVariant?.product.unit || 'pcs',
-                  price: parseFloat(item.sellingPrice),
-                  quantity: parseFloat(item.quantity),
-                  total: parseFloat(item.sellingPrice) * parseFloat(item.quantity),
-                  rackLocation: dbVariant?.rack
-                    ? `${dbVariant.rack.rackName} ${dbVariant.rack.shelfCode}`
-                    : (item.rackLocation || 'Default'),
-                  createdAt: customDate,
-                };
-              }),
-            },
+              };
+            }),
           },
-          include: {
-            items: true,
-          },
-        });
-      }
+        },
+        include: {
+          items: true,
+        },
+      });
 
       // 2. Deduct variant stock
       for (const item of items) {
