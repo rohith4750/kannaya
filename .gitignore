@@ -33,3 +33,5 @@ next-env.d.ts
 *.log
 prisma_out.txt
 *.apk
+/dist-electron
+/dist
