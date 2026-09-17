@@ -395,6 +395,7 @@ export default function UsersPage() {
                 <UserPlus className="w-4 h-4 text-[#6d8196]" /> Create Internal User Account
               </h3>
               <button
+                type="button"
                 onClick={() => {
                   setShowCreateModal(false);
                   setFormError('');

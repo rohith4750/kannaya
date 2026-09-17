@@ -360,7 +360,7 @@ export default function SuppliersPage() {
               <span className="flex items-center gap-2">
                 <Edit3 className="w-5 h-5 text-[#6d8196]" /> Edit Supplier Details
               </span>
-              <button onClick={() => setEditSupplier(null)} className="text-slate-400 hover:text-slate-700 p-1">
+              <button type="button" onClick={() => setEditSupplier(null)} className="text-slate-400 hover:text-slate-700 p-1">
                 <X className="w-4 h-4" />
               </button>
             </h3>

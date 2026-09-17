@@ -334,7 +334,7 @@ export default function ExpensesPage() {
               <h3 className="text-sm font-bold text-[#4a4a4a] flex items-center gap-2">
                 <Receipt className="w-4 h-4 text-[#6d8196]" /> Record Shop Expense / Outflow
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-700">
+              <button type="button" onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-4 h-4" />
               </button>
             </div>
